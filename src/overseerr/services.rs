@@ -3,35 +3,44 @@ use actix_web::{get, web, HttpResponse, Responder};
 use dotenv::dotenv;
 use reqwest::{header::ACCEPT, Error, Response};
 
-async fn make_api_call() -> Result<Response, Error> {
+async fn make_api_call(endpoint : &str) -> Result<Response, Error> {
     let client = reqwest::Client::new();
     dotenv().ok();
     let os_request_url = std::env::var("OS_REQUEST_URL").expect("os_request_url must be set.");
     let os_api_key = std::env::var("OS_API_KEY").expect("os_api_key must be set.");
 
     let response = client
-        .get(os_request_url)
+        .get(format!("{os_request_url}{endpoint}"))
         .header("X-Api-Key", os_api_key)
         .header(ACCEPT, "application/json")
         .send()
-        .await;
-    return response;
+        .await?;
+
+    Ok(response)
+}
+
+async fn get_requests_response() -> Result<OverserrRequestResponse, Error> {
+    let endpoint = "request?take=20&skip=0&sort=added&filter=available";
+    let response_result = make_api_call(&endpoint).await?;
+    let response_text = response_result.json::<OverserrRequestResponse>().await?;
+    Ok(response_text)
 }
 
 #[get("/requests/all")]
 async fn get_requests() -> impl Responder {
-    let response = make_api_call()
-        .await
-        .expect("failed to get response")
-        .json::<OverserrRequestResponse>()
-        .await
-        .expect("failed to get payload");
-    HttpResponse::Ok().json(response)
+    let requests = get_requests_response().await;
+
+    return match requests {
+        Ok(response) => HttpResponse::Ok().json(response),
+        Err(error) => HttpResponse::InternalServerError().json(format!("{{error: '{}'}}", error.to_string())),
+    }
+    
 }
 
 #[get("requests/all/text")]
 async fn get_requests_text() -> impl Responder {
-    let response = make_api_call()
+    let endpoint = "request?take=20&skip=0&sort=added&filter=available";
+    let response = make_api_call(&endpoint)
         .await
         .expect("failed to get response")
         .text()
