@@ -1,10 +1,10 @@
 use serde::{Deserialize, Serialize};
 
-#[derive(Deserialize, Serialize, Debug)]
+#[derive(Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
-pub struct OverserrRequestResponse {
+pub struct OverseerrResponse<T> {
     page_info: PageInfo,
-    results: Vec<Request>,
+    results: Vec<T>,
 }
 
 #[derive(Deserialize, Serialize, Debug)]

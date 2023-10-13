@@ -1,9 +1,11 @@
-use super::models::OverserrRequestResponse;
+use std::fmt::Debug;
+
+use super::models::{OverseerrResponse, Request};
 use actix_web::{get, web, HttpResponse, Responder};
 use dotenv::dotenv;
 use reqwest::{header::ACCEPT, Error, Response};
 
-async fn make_api_call(endpoint : &str) -> Result<Response, Error> {
+async fn make_api_call(endpoint: &str) -> Result<Response, Error> {
     let client = reqwest::Client::new();
     dotenv().ok();
     let os_request_url = std::env::var("OS_REQUEST_URL").expect("os_request_url must be set.");
@@ -11,7 +13,7 @@ async fn make_api_call(endpoint : &str) -> Result<Response, Error> {
 
     let response = client
         .get(format!("{os_request_url}{endpoint}"))
-        .header("X-Api-Key", os_api_key)
+        .header("X-Api-Key", "os_api_key")
         .header(ACCEPT, "application/json")
         .send()
         .await?;
@@ -19,22 +21,29 @@ async fn make_api_call(endpoint : &str) -> Result<Response, Error> {
     Ok(response)
 }
 
-async fn get_requests_response() -> Result<OverserrRequestResponse, Error> {
+async fn get_requests_response() -> Result<OverseerrResponse<Request>, Error> {
     let endpoint = "request?take=20&skip=0&sort=added&filter=available";
     let response_result = make_api_call(&endpoint).await?;
-    let response_text = response_result.json::<OverserrRequestResponse>().await?;
+    let response_text = response_result.json::<OverseerrResponse<Request>>().await?;
     Ok(response_text)
+}
+
+fn process_request<T>(requests: &Result<OverseerrResponse<T>, Error>) -> impl Responder
+where
+    T: serde::Serialize,
+{
+    return match requests {
+        Ok(response) => HttpResponse::Ok().json(response),
+        Err(error) => {
+            HttpResponse::InternalServerError().json(format!("{{error: '{}'}}", error.to_string()))
+        }
+    };
 }
 
 #[get("/requests/all")]
 async fn get_requests() -> impl Responder {
-    let requests = get_requests_response().await;
-
-    return match requests {
-        Ok(response) => HttpResponse::Ok().json(response),
-        Err(error) => HttpResponse::InternalServerError().json(format!("{{error: '{}'}}", error.to_string())),
-    }
-    
+    let requests: Result<OverseerrResponse<Request>, Error> = get_requests_response().await;
+    return process_request(&requests);
 }
 
 #[get("requests/all/text")]
