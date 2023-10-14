@@ -16,7 +16,8 @@ async fn make_api_call(endpoint: &str) -> Result<Response, Error> {
         .header("X-Api-Key", "os_api_key")
         .header(ACCEPT, "application/json")
         .send()
-        .await?;
+        .await?
+        .error_for_status()?;
 
     Ok(response)
 }
