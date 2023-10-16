@@ -1,4 +1,5 @@
-use super::models::{APIData, APIResponse, OverseerrResponse, Request};
+use super::models::{APIData, APIResponse};
+use super::overseerr::{MediaRequest, OverseerrResponse};
 use actix_web::{get, web, HttpResponse, Responder};
 use dotenv::dotenv;
 use reqwest::{header::ACCEPT, Error};
@@ -36,24 +37,22 @@ async fn make_api_call<T: serde::de::DeserializeOwned>(
     Ok(api_response)
 }
 
-async fn get_requests_response() -> Result<HttpResponse, Error> {
-    let endpoint = "request?take=20&skip=0&sort=added&filter=available";
-    let response_result: APIResponse<Request> = make_api_call(&endpoint).await?;
-
-    return Ok(HttpResponse::Ok().json(response_result));
-}
-
-fn process_request(requests: Result<HttpResponse, Error>) -> impl Responder {
+fn process_request<T>(requests: Result<APIResponse<T>, Error>) -> impl Responder
+where
+    T: serde::Serialize,
+{
     return match requests {
-        Ok(response) => response,
+        Ok(response) => HttpResponse::Ok().json(response),
         Err(error) => HttpResponse::InternalServerError().json(error.to_string()),
     };
 }
 
 #[get("/requests/all")]
 async fn get_requests() -> impl Responder {
-    let requests = get_requests_response().await;
-    return process_request(requests);
+    let endpoint = "request?take=20&skip=0&sort=added&filter=available";
+    let response_result: Result<APIResponse<MediaRequest>, Error> = make_api_call(&endpoint).await;
+
+    return process_request(response_result);
 }
 
 pub fn config(cfg: &mut web::ServiceConfig) {
