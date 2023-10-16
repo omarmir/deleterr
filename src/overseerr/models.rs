@@ -1,5 +1,18 @@
 use serde::{Deserialize, Serialize};
 
+#[derive(Debug, Serialize, Deserialize)]
+pub struct APIResponse {
+    pub success: bool,
+    pub code: u16,
+    pub data: APIData,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub enum APIData {
+    Success(OverseerrResponse<Request>),
+    Failure(String),
+}
+
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct OverseerrResponse<T> {

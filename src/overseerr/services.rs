@@ -1,11 +1,9 @@
-use std::fmt::Debug;
-
-use super::models::{OverseerrResponse, Request};
+use super::models::{APIResponse, OverseerrResponse, Request};
 use actix_web::{get, web, HttpResponse, Responder};
 use dotenv::dotenv;
-use reqwest::{header::ACCEPT, Error, Response};
+use reqwest::{header::ACCEPT, Error};
 
-async fn make_api_call(endpoint: &str) -> Result<Response, Error> {
+async fn make_api_call(endpoint: &str) -> Result<APIResponse, Error> {
     let client = reqwest::Client::new();
     dotenv().ok();
     let os_request_url = std::env::var("OS_REQUEST_URL").expect("os_request_url must be set.");
@@ -13,53 +11,51 @@ async fn make_api_call(endpoint: &str) -> Result<Response, Error> {
 
     let response = client
         .get(format!("{os_request_url}{endpoint}"))
-        .header("X-Api-Key", "os_api_key")
+        .header("X-Api-Key", os_api_key)
         .header(ACCEPT, "application/json")
         .send()
-        .await?
-        .error_for_status()?;
+        .await?;
 
-    Ok(response)
+    let response_code = response.status().as_u16();
+
+    let api_response = match response_code {
+        200 => APIResponse {
+            success: true,
+            data: super::models::APIData::Success(
+                response.json::<OverseerrResponse<Request>>().await?,
+            ),
+            code: response_code,
+        },
+        _ => APIResponse {
+            success: false,
+            data: super::models::APIData::Failure(response.text().await?),
+            code: response_code,
+        },
+    };
+
+    Ok(api_response)
 }
 
-async fn get_requests_response() -> Result<OverseerrResponse<Request>, Error> {
+async fn get_requests_response() -> Result<HttpResponse, Error> {
     let endpoint = "request?take=20&skip=0&sort=added&filter=available";
     let response_result = make_api_call(&endpoint).await?;
-    let response_text = response_result.json::<OverseerrResponse<Request>>().await?;
-    Ok(response_text)
+
+    return Ok(HttpResponse::Ok().json(response_result));
 }
 
-fn process_request<T>(requests: &Result<OverseerrResponse<T>, Error>) -> impl Responder
-where
-    T: serde::Serialize,
-{
+fn process_request(requests: Result<HttpResponse, Error>) -> impl Responder {
     return match requests {
-        Ok(response) => HttpResponse::Ok().json(response),
-        Err(error) => {
-            HttpResponse::InternalServerError().json(format!("{{error: '{}'}}", error.to_string()))
-        }
+        Ok(response) => response,
+        Err(error) => HttpResponse::InternalServerError().json(error.to_string()),
     };
 }
 
 #[get("/requests/all")]
 async fn get_requests() -> impl Responder {
-    let requests: Result<OverseerrResponse<Request>, Error> = get_requests_response().await;
-    return process_request(&requests);
-}
-
-#[get("requests/all/text")]
-async fn get_requests_text() -> impl Responder {
-    let endpoint = "request?take=20&skip=0&sort=added&filter=available";
-    let response = make_api_call(&endpoint)
-        .await
-        .expect("failed to get response")
-        .text()
-        .await
-        .expect("failed to get payload");
-
-    HttpResponse::Ok().body(response)
+    let requests = get_requests_response().await;
+    return process_request(requests);
 }
 
 pub fn config(cfg: &mut web::ServiceConfig) {
-    cfg.service(get_requests).service(get_requests_text);
+    cfg.service(get_requests);
 }
