@@ -1,5 +1,5 @@
 use super::models::{APIData, APIResponse};
-use super::overseerr::{MediaRequest, OverseerrResponse};
+use super::overseerr::{MediaRequest, OverseerrListResponse};
 use actix_web::{get, web, HttpResponse, Responder};
 use dotenv::dotenv;
 use reqwest::{header::ACCEPT, Error};
@@ -24,7 +24,7 @@ async fn make_api_call<T: serde::de::DeserializeOwned>(
     let api_response = match response_code {
         200 => APIResponse {
             success: true,
-            data: APIData::Success(response.json::<OverseerrResponse<T>>().await?),
+            data: APIData::Success(response.json::<OverseerrListResponse<T>>().await?),
             code: response_code,
         },
         _ => APIResponse {
@@ -51,7 +51,7 @@ where
 async fn get_requests() -> impl Responder {
     let endpoint = "request?take=20&skip=0&sort=added&filter=available";
     let response_result: Result<APIResponse<MediaRequest>, Error> = make_api_call(&endpoint).await;
-
+    //let requests = get_requests_response().await;
     return process_request(response_result);
 }
 

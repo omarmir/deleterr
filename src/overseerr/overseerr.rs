@@ -1,8 +1,20 @@
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Debug)]
+pub struct OverseerrRequestsCount {
+    total: u32,
+    movie: u32,
+    tv: u32,
+    pending: u32,
+    approved: u32,
+    declined: u32,
+    processing: u32,
+    available: u32,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
-pub struct OverseerrResponse<T> {
+pub struct OverseerrListResponse<T> {
     page_info: PageInfo,
     results: Vec<T>,
 }
