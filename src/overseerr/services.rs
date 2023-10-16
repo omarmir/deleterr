@@ -2,11 +2,9 @@ use super::models::{APIData, APIResponse};
 use super::overseerr::{MediaRequest, OverseerrListResponse};
 use actix_web::{get, web, HttpResponse, Responder};
 use dotenv::dotenv;
-use reqwest::{header::ACCEPT, Error};
+use reqwest::{header::ACCEPT, Error, Response};
 
-async fn make_api_call<T: serde::de::DeserializeOwned>(
-    endpoint: &str,
-) -> Result<APIResponse<T>, Error> {
+async fn make_api_call<T: serde::de::DeserializeOwned>(endpoint: &str) -> Result<Response, Error> {
     let client = reqwest::Client::new();
     dotenv().ok();
     let os_request_url = std::env::var("OS_REQUEST_URL").expect("os_request_url must be set.");
@@ -17,24 +15,29 @@ async fn make_api_call<T: serde::de::DeserializeOwned>(
         .header("X-Api-Key", os_api_key)
         .header(ACCEPT, "application/json")
         .send()
-        .await?;
+        .await;
 
-    let response_code = response.status().as_u16();
+    return response;
+}
 
-    let api_response = match response_code {
-        200 => APIResponse {
-            success: true,
-            data: APIData::Success(response.json::<OverseerrListResponse<T>>().await?),
-            code: response_code,
-        },
-        _ => APIResponse {
+async fn map_to_response<T>(response: Result<Response, Error>) -> Result<APIResponse<T>, Error> {
+    return match response {
+        Ok(res) => {
+            let response_code = res.status().as_u16();
+            let list_response = res.json::<OverseerrListResponse<T>>().await?;
+            let api_response = APIResponse {
+                success: true,
+                data: APIData::Success(list_response),
+                code: response_code,
+            };
+            Ok(api_response)
+        }
+        Err(err) => Ok(APIResponse {
             success: false,
-            data: APIData::Failure(response.text().await?).into(),
-            code: response_code,
-        },
+            data: APIData::Failure(err.to_string()),
+            code: 500,
+        }),
     };
-
-    Ok(api_response)
 }
 
 fn process_request<T>(requests: Result<APIResponse<T>, Error>) -> impl Responder
