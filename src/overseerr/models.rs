@@ -1,15 +1,16 @@
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct APIResponse {
+pub struct APIResponse<T> {
     pub success: bool,
     pub code: u16,
-    pub data: APIData,
+    pub data: APIData<T>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-pub enum APIData {
-    Success(OverseerrResponse<Request>),
+#[serde(untagged)]
+pub enum APIData<T> {
+    Success(OverseerrResponse<T>),
     Failure(String),
 }
 

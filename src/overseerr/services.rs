@@ -1,9 +1,11 @@
-use super::models::{APIResponse, OverseerrResponse, Request};
+use super::models::{APIData, APIResponse, OverseerrResponse, Request};
 use actix_web::{get, web, HttpResponse, Responder};
 use dotenv::dotenv;
 use reqwest::{header::ACCEPT, Error};
 
-async fn make_api_call(endpoint: &str) -> Result<APIResponse, Error> {
+async fn make_api_call<T: serde::de::DeserializeOwned>(
+    endpoint: &str,
+) -> Result<APIResponse<T>, Error> {
     let client = reqwest::Client::new();
     dotenv().ok();
     let os_request_url = std::env::var("OS_REQUEST_URL").expect("os_request_url must be set.");
@@ -21,14 +23,12 @@ async fn make_api_call(endpoint: &str) -> Result<APIResponse, Error> {
     let api_response = match response_code {
         200 => APIResponse {
             success: true,
-            data: super::models::APIData::Success(
-                response.json::<OverseerrResponse<Request>>().await?,
-            ),
+            data: APIData::Success(response.json::<OverseerrResponse<T>>().await?),
             code: response_code,
         },
         _ => APIResponse {
             success: false,
-            data: super::models::APIData::Failure(response.text().await?),
+            data: APIData::Failure(response.text().await?).into(),
             code: response_code,
         },
     };
@@ -38,7 +38,7 @@ async fn make_api_call(endpoint: &str) -> Result<APIResponse, Error> {
 
 async fn get_requests_response() -> Result<HttpResponse, Error> {
     let endpoint = "request?take=20&skip=0&sort=added&filter=available";
-    let response_result = make_api_call(&endpoint).await?;
+    let response_result: APIResponse<Request> = make_api_call(&endpoint).await?;
 
     return Ok(HttpResponse::Ok().json(response_result));
 }
