@@ -1,6 +1,18 @@
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Debug)]
+#[serde(untagged)]
+pub enum OverseerrResponses<T> {
+    List(OverseerrListResponse<T>),
+    Count(OverseerrRequestsCount),
+}
+
+pub enum OverseerrResponsesTypes {
+    List,
+    Count,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
 pub struct OverseerrRequestsCount {
     total: u32,
     movie: u32,

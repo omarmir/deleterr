@@ -1,7 +1,10 @@
 use std::time::Duration;
 
 use super::models::{APIData, APIResponse};
-use super::overseerr::{MediaRequest, OverseerrListResponse};
+use super::overseerr::{
+    MediaRequest, OverseerrListResponse, OverseerrRequestsCount, OverseerrResponses,
+    OverseerrResponsesTypes,
+};
 use actix_web::{get, web, HttpResponse, Responder};
 use dotenv::dotenv;
 use reqwest::{header::ACCEPT, Error, Response};
@@ -23,24 +26,37 @@ async fn make_api_call(endpoint: &str) -> Result<Response, Error> {
     return response;
 }
 
-async fn map_to_response<T>(response: Result<Response, Error>) -> Result<APIResponse<T>, Error>
+async fn map_to_response<T>(
+    response: Result<Response, Error>,
+    resp_type: OverseerrResponsesTypes,
+) -> Result<APIResponse<T>, Error>
 where
     for<'a> T: serde::Deserialize<'a>,
 {
     let res = response?;
-    let res_code = res.status().as_u16();
+    let code = res.status().as_u16();
 
-    let api_response = match res_code {
-        200 => APIResponse {
-            success: true,
-            data: APIData::Success(res.json::<OverseerrListResponse<T>>().await?),
-            code: res_code,
-        },
-        _ => APIResponse {
+    if code != 200 {
+        return Ok(APIResponse {
             success: false,
             data: APIData::Failure(res.text().await?).into(),
-            code: res_code,
-        },
+            code,
+        });
+    };
+
+    let data = match resp_type {
+        OverseerrResponsesTypes::List => APIData::Success(OverseerrResponses::List(
+            res.json::<OverseerrListResponse<T>>().await?,
+        )),
+        OverseerrResponsesTypes::Count => APIData::Success(OverseerrResponses::Count(
+            res.json::<OverseerrRequestsCount>().await?,
+        )),
+    };
+
+    let api_response = APIResponse {
+        success: true,
+        data,
+        code,
     };
 
     Ok(api_response)
@@ -67,7 +83,7 @@ where
 async fn get_requests() -> impl Responder {
     let endpoint = "request?take=20&skip=0&sort=added&filter=available";
     let response = make_api_call(&endpoint).await;
-    let requests = map_to_response::<MediaRequest>(response).await;
+    let requests = map_to_response::<MediaRequest>(response, OverseerrResponsesTypes::List).await;
     return process_request(requests);
 }
 
@@ -75,6 +91,8 @@ async fn get_requests() -> impl Responder {
 async fn get_requests_count() -> impl Responder {
     let endpoint = "request/count";
     let response: Result<Response, Error> = make_api_call(&endpoint).await;
+
+    return HttpResponse::Ok().json("sss");
 }
 
 pub fn config(cfg: &mut web::ServiceConfig) {

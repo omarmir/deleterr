@@ -1,4 +1,4 @@
-use super::overseerr::OverseerrListResponse;
+use super::overseerr::OverseerrResponses;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -11,6 +11,6 @@ pub struct APIResponse<T> {
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum APIData<T> {
-    Success(OverseerrListResponse<T>),
+    Success(OverseerrResponses<T>),
     Failure(String),
 }
