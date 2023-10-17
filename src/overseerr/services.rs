@@ -28,7 +28,7 @@ async fn make_api_call(endpoint: &str) -> Result<Response, Error> {
 
 async fn map_to_response<T>(
     response: Result<Response, Error>,
-    resp_type: OverseerrResponsesTypes,
+    overseerr_response: OverseerrResponses<T>
 ) -> Result<APIResponse<T>, Error>
 where
     for<'a> T: serde::Deserialize<'a>,
@@ -44,18 +44,9 @@ where
         });
     };
 
-    let data = match resp_type {
-        OverseerrResponsesTypes::List => APIData::Success(OverseerrResponses::List(
-            res.json::<OverseerrListResponse<T>>().await?,
-        )),
-        OverseerrResponsesTypes::Count => APIData::Success(OverseerrResponses::Count(
-            res.json::<OverseerrRequestsCount>().await?,
-        )),
-    };
-
     let api_response = APIResponse {
         success: true,
-        data,
+        data: APIData::Success(overseerr_response),
         code,
     };
 
@@ -87,10 +78,17 @@ async fn get_requests() -> impl Responder {
     return process_request(requests);
 }
 
+async fn map_count(response: Result<Response, Error>) -> Result<OverseerrResponses<()>, Error> {
+    let resp = response?.json::<OverseerrRequestsCount>().await?;
+    let overseerr_response:OverseerrResponses<()> = OverseerrResponses::Count(resp);
+    Ok(overseerr_response)
+}
+
 #[get("/requests/count")]
 async fn get_requests_count() -> impl Responder {
     let endpoint = "request/count";
     let response: Result<Response, Error> = make_api_call(&endpoint).await;
+    let overseerr_response: Result<OverseerrResponses<()>, Error> = map_count(response).await;
 
     return HttpResponse::Ok().json("sss");
 }
