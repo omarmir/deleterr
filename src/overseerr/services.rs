@@ -1,10 +1,7 @@
 use std::time::Duration;
 
 use super::models::{APIData, APIResponse};
-use super::overseerr::{
-    MediaRequest, OverseerrListResponse, OverseerrRequestsCount, OverseerrResponses,
-    OverseerrResponsesTypes,
-};
+use super::overseerr::{OverseerrRequestsCount, OverseerrResponses};
 use actix_web::{get, web, HttpResponse, Responder};
 use dotenv::dotenv;
 use reqwest::{header::ACCEPT, Error, Response};
@@ -28,7 +25,7 @@ async fn make_api_call(endpoint: &str) -> Result<Response, Error> {
 
 async fn map_to_response<T>(
     response: Result<Response, Error>,
-    overseerr_response: OverseerrResponses<T>
+    overseerr_response: OverseerrResponses<T>,
 ) -> Result<APIResponse<T>, Error>
 where
     for<'a> T: serde::Deserialize<'a>,
@@ -39,7 +36,7 @@ where
     if code != 200 {
         return Ok(APIResponse {
             success: false,
-            data: APIData::Failure(res.text().await?).into(),
+            data: APIData::Failure(res.status().to_string()).into(),
             code,
         });
     };
@@ -72,23 +69,26 @@ where
 
 #[get("/requests/all")]
 async fn get_requests() -> impl Responder {
-    let endpoint = "request?take=20&skip=0&sort=added&filter=available";
-    let response = make_api_call(&endpoint).await;
-    let requests = map_to_response::<MediaRequest>(response, OverseerrResponsesTypes::List).await;
-    return process_request(requests);
+    //let endpoint = "request?take=20&skip=0&sort=added&filter=available";
+    //let response = make_api_call(&endpoint).await;
+    //let requests = map_to_response::<MediaRequest>(response, OverseerrResponsesTypes::List).await;
+    //return process_request(requests);
+    return HttpResponse::Ok().json("sss");
 }
 
-async fn map_count(response: Result<Response, Error>) -> Result<OverseerrResponses<()>, Error> {
+async fn map_count_to_api_response(
+    response: Result<Response, Error>,
+) -> Result<APIResponse<()>, Error> {
     let resp = response?.json::<OverseerrRequestsCount>().await?;
-    let overseerr_response:OverseerrResponses<()> = OverseerrResponses::Count(resp);
-    Ok(overseerr_response)
+    let overseerr_response: OverseerrResponses<()> = OverseerrResponses::Count(resp);
+    let api_response = map_to_response(response, overseerr_response).await?;
+    Ok(api_response)
 }
 
 #[get("/requests/count")]
 async fn get_requests_count() -> impl Responder {
     let endpoint = "request/count";
-    let response: Result<Response, Error> = make_api_call(&endpoint).await;
-    let overseerr_response: Result<OverseerrResponses<()>, Error> = map_count(response).await;
+    let response: Result<Response, Error> = make_api_call(endpoint).await;
 
     return HttpResponse::Ok().json("sss");
 }
