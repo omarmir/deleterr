@@ -7,11 +7,6 @@ pub enum OverseerrResponses<T> {
     Count(OverseerrRequestsCount),
 }
 
-pub enum OverseerrResponsesTypes {
-    List,
-    Count,
-}
-
 #[derive(Serialize, Deserialize, Debug)]
 pub struct OverseerrRequestsCount {
     total: u32,
@@ -64,5 +59,6 @@ pub struct Media {
     id: i32,
     tmdb_id: Option<i32>,
     tvdb_id: Option<i32>,
+    rating_key: Option<String>,
     status: i8, // Availability of the media. 1 = UNKNOWN, 2 = PENDING, 3 = PROCESSING, 4 = PARTIALLY_AVAILABLE, 5 = AVAILABLE
 }
