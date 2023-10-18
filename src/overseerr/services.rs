@@ -1,9 +1,9 @@
 use std::time::Duration;
 
-use super::models::{APIData, APIResponse, RequestResponse};
-use super::overseerr::{
+use super::models::{
     MediaRequest, OverseerrListResponse, OverseerrRequestsCount, OverseerrResponses,
 };
+use crate::deleterr::models::{APIData, APIResponse, RequestResponse};
 use actix_web::{get, web, HttpResponse, Responder};
 use dotenv::dotenv;
 use reqwest::{header::ACCEPT, Error};
@@ -49,7 +49,7 @@ where
 
     let api_response = APIResponse {
         success: true,
-        data: APIData::Success(overseerr_response),
+        data: APIData::OverseerrSuccess(overseerr_response),
         code,
     };
 

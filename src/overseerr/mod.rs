@@ -1,3 +1,2 @@
-mod models;
-mod overseerr;
+pub mod models;
 pub mod services;

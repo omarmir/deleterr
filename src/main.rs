@@ -1,6 +1,7 @@
 use actix_web::{get, middleware::Logger, web, App, HttpServer};
 use std::sync::Mutex;
 
+mod deleterr;
 mod overseerr;
 use overseerr::services;
 
