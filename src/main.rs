@@ -3,7 +3,9 @@ use std::sync::Mutex;
 
 mod deleterr;
 mod overseerr;
-use overseerr::services;
+mod polodb;
+use overseerr::services as os_serv;
+use polodb::services as polo_serv;
 
 struct AppState {
     data: Mutex<Vec<String>>,
@@ -31,7 +33,7 @@ async fn main() -> std::io::Result<()> {
             .wrap(logger)
             .app_data(app_data.clone())
             .service(index)
-            .configure(services::config)
+            .configure(os_serv::config)
     })
     .bind(("127.0.0.1", 8080))?
     .run()
