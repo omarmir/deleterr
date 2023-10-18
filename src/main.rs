@@ -1,5 +1,5 @@
 use actix_web::{get, middleware::Logger, web, App, HttpServer};
-use std::sync::Mutex;
+use std::sync::{Arc, Mutex};
 
 mod deleterr;
 mod overseerr;
@@ -8,7 +8,7 @@ use overseerr::services as os_serv;
 use polodb::services as polo_serv;
 
 struct AppState {
-    data: Mutex<Vec<String>>,
+    db: Arc<polodb_core::Database>,
 }
 
 #[get("/")]
@@ -22,10 +22,11 @@ async fn main() -> std::io::Result<()> {
     std::env::set_var("RUST_BACKTRACE", "1");
     env_logger::init();
 
+    let app_state = polo_serv::get_database().expect("Unable to open db. Exiting.");
+    let data = web::Data::new(app_state);
+
     HttpServer::new(move || {
-        let app_data = web::Data::new(AppState {
-            data: Mutex::new(vec![]),
-        });
+        let app_data = &data;
 
         let logger = Logger::default();
 
