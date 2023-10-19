@@ -4,6 +4,7 @@ mod deleterr;
 mod overseerr;
 mod polodb;
 mod tautulli;
+mod common;
 use overseerr::services as os_serv;
 use polodb::services as polo_serv;
 use tautulli::services as tt_serv;

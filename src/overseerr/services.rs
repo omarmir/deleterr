@@ -3,8 +3,8 @@ use std::time::Duration;
 use super::models::{
     MediaRequest, OverseerrListResponse, OverseerrRequestsCount, OverseerrResponses,
 };
-use crate::deleterr::models::APIResponse;
-use crate::deleterr::services::{make_api_call, process_request, map_to_api_response};
+use crate::common::models::APIResponse;
+use crate::common::services::{make_api_call, process_request, map_to_api_response};
 use actix_web::{get, web, Responder};
 use dotenv::dotenv;
 use reqwest::{header::ACCEPT, Error};

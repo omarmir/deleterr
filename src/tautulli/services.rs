@@ -1,6 +1,6 @@
 use super::models::TautulliResponse;
-use crate::deleterr::models::APIResponse;
-use crate::deleterr::services::{make_api_call, map_to_api_response, process_request};
+use crate::common::models::APIResponse;
+use crate::common::services::{make_api_call, map_to_api_response, process_request};
 use actix_web::{get, web, Responder};
 use dotenv::dotenv;
 use reqwest::{header::ACCEPT, Error};
