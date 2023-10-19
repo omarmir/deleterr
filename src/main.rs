@@ -1,15 +1,10 @@
 use actix_web::{get, middleware::Logger, web, App, HttpServer};
-use std::sync::{Arc, Mutex};
 
 mod deleterr;
 mod overseerr;
 mod polodb;
 use overseerr::services as os_serv;
 use polodb::services as polo_serv;
-
-struct AppState {
-    db: Arc<polodb_core::Database>,
-}
 
 #[get("/")]
 async fn index() -> String {
