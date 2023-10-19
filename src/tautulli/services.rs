@@ -6,7 +6,7 @@ use dotenv::dotenv;
 use reqwest::{header::ACCEPT, Error};
 use std::time::Duration;
 
-fn get_api_endpoint(endpoint: &str) -> Result<reqwest::RequestBuilder, Error> {
+fn get_api_endpoint(endpoint: String) -> Result<reqwest::RequestBuilder, Error> {
     dotenv().ok();
 
     let client = reqwest::Client::new();
@@ -22,8 +22,8 @@ fn get_api_endpoint(endpoint: &str) -> Result<reqwest::RequestBuilder, Error> {
     Ok(req_client)
 }
 
-pub async fn get_item_history() -> Result<APIResponse<TautulliResponse>, Error> {
-    let endpoint = "&cmd=get_history&rating_key=29946";
+pub async fn get_item_history(rating_key: u64) -> Result<APIResponse<TautulliResponse>, Error> {
+    let endpoint = format!("&cmd=get_history&rating_key={rating_key}");
     let client_req = get_api_endpoint(endpoint)?;
     let request_response = make_api_call(client_req).await?;
     let resp = request_response.response.json::<TautulliResponse>().await?;
@@ -32,9 +32,10 @@ pub async fn get_item_history() -> Result<APIResponse<TautulliResponse>, Error> 
     Ok(api_response)
 }
 
-#[get("/history")]
-async fn get_requests_json() -> impl Responder {
-    let requests_response = get_item_history().await;
+#[get("/history/{rating_key}")]
+async fn get_requests_json(path: web::Path<u64>) -> impl Responder {
+    let rating_key = path.into_inner();
+    let requests_response = get_item_history(rating_key).await;
     return process_request(requests_response);
 }
 
