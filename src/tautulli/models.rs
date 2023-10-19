@@ -3,19 +3,19 @@ use serde_aux::prelude::deserialize_option_number_from_string;
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct TautulliResponse {
-    response: ResponseContent,
+    pub response: ResponseContent,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct ResponseContent {
     result: Result,
     message: Option<String>,
-    data: ResponseData,
+    pub data: ResponseData,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct ResponseData {
-    data: Option<Vec<UserWatchHistory>>,
+    pub data: Option<Vec<UserWatchHistory>>,
 }
 
 #[derive(Deserialize, Serialize, Debug)]
@@ -25,7 +25,7 @@ enum Result {
     Failure,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct UserWatchHistory {
     user: String,
     friendly_name: String,

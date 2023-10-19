@@ -24,7 +24,7 @@ fn get_api_endpoint(endpoint: String) -> Result<reqwest::RequestBuilder, Error> 
     Ok(req_client)
 }
 
-async fn get_requests(take: u16, skip: u16) -> Result<APIResponse<OverseerrResponses<MediaRequest>>, Error> {
+pub async fn get_requests(take: u16, skip: u16) -> Result<APIResponse<OverseerrResponses<MediaRequest>>, Error> {
     let endpoint = format!("request?take={take}&skip={skip}&sort=added&filter=available");
     let client_req = get_api_endpoint(endpoint)?;
     let request_response = make_api_call(client_req).await?;

@@ -1,7 +1,8 @@
 use serde::{Deserialize, Serialize};
 use serde_aux::prelude::deserialize_option_number_from_string;
+use enum_as_inner::EnumAsInner;
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, EnumAsInner)]
 #[serde(untagged)]
 pub enum OverseerrResponses<T> {
     List(OverseerrListResponse<T>),
@@ -23,8 +24,8 @@ pub struct OverseerrRequestsCount {
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct OverseerrListResponse<T> {
-    page_info: PageInfo,
-    results: Vec<T>,
+    pub page_info: PageInfo,
+    pub results: Vec<T>,
 }
 
 #[derive(Deserialize, Serialize, Debug)]
@@ -34,16 +35,16 @@ pub struct PageInfo {
     results: u32,
 }
 
-#[derive(Deserialize, Serialize, Debug)]
+#[derive(Deserialize, Serialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct MediaRequest {
-    id: u32,
-    status: u8, // Status of the request. 1 = PENDING APPROVAL, 2 = APPROVED, 3 = DECLINED
-    requested_by: User,
-    media: Media,
+    pub id: u32,
+    pub status: u8, // Status of the request. 1 = PENDING APPROVAL, 2 = APPROVED, 3 = DECLINED
+    pub requested_by: User,
+    pub media: Media,
 }
 
-#[derive(Deserialize, Serialize, Debug)]
+#[derive(Deserialize, Serialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct User {
     id: u32,
@@ -51,10 +52,10 @@ pub struct User {
     user_type: u32,
     email: Option<String>,
     plex_username: Option<String>,
-    plex_id: Option<u64>, // Don't know if its 32 bit or 64
+    pub plex_id: Option<u64>, // Don't know if its 32 bit or 64 - same as tautulli user
 }
 
-#[derive(Deserialize, Serialize, Debug)]
+#[derive(Deserialize, Serialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct Media {
     id: u32,
@@ -62,11 +63,11 @@ pub struct Media {
     tmdb_id: Option<u32>,
     tvdb_id: Option<u32>,
     #[serde(deserialize_with = "deserialize_option_number_from_string")]
-    rating_key: Option<u64>,
+    pub rating_key: Option<u64>,
     status: u8, // Availability of the media. 1 = UNKNOWN, 2 = PENDING, 3 = PROCESSING, 4 = PARTIALLY_AVAILABLE, 5 = AVAILABLE
 }
 
-#[derive(Deserialize, Serialize, Debug)]
+#[derive(Deserialize, Serialize, Debug, Clone)]
 #[serde(rename_all = "lowercase")]
 enum MediaType {
     Movie,
