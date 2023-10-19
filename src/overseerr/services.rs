@@ -89,14 +89,19 @@ async fn map_requests_to_api_response(endpoint: &str) -> Result<APIResponse<Medi
     Ok(api_response)
 }
 
-#[get("/requests/all")]
-async fn get_requests() -> impl Responder {
+async fn get_requests() -> Result<APIResponse<MediaRequest>, Error> {
     let endpoint = "request?take=20&skip=0&sort=added&filter=available";
-    let count_response = map_requests_to_api_response(&endpoint).await;
-    return process_request(count_response);
+    let requests_response = map_requests_to_api_response(&endpoint).await;
+    return requests_response;
 }
 
-async fn map_count_to_api_response(endpoint: &str) -> Result<APIResponse<()>, Error> {
+#[get("/requests/all")]
+async fn get_requests_json() -> impl Responder {
+    let requests_response = get_requests().await;
+    return process_request(requests_response);
+}
+
+pub async fn map_count_to_api_response(endpoint: &str) -> Result<APIResponse<()>, Error> {
     let request_response = make_api_call(endpoint).await?;
     let resp = request_response
         .response
@@ -112,13 +117,19 @@ async fn map_count_to_api_response(endpoint: &str) -> Result<APIResponse<()>, Er
     Ok(api_response)
 }
 
-#[get("/requests/count")]
-async fn get_requests_count() -> impl Responder {
+pub async fn get_requests_count() -> Result<APIResponse<()>, Error> {
     let endpoint = "request/count";
     let count_response = map_count_to_api_response(&endpoint).await;
+    return count_response;
+}
+
+#[get("/requests/count")]
+async fn get_requests_count_json() -> impl Responder {
+    let count_response = get_requests_count().await;
     return process_request(count_response);
 }
 
 pub fn config(cfg: &mut web::ServiceConfig) {
-    cfg.service(get_requests).service(get_requests_count);
+    cfg.service(get_requests_json)
+        .service(get_requests_count_json);
 }

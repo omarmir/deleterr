@@ -6,6 +6,10 @@ mod polodb;
 use overseerr::services as os_serv;
 use polodb::services as polo_serv;
 
+struct AppData {
+    db: polodb_core::Database,
+}
+
 #[get("/")]
 async fn index() -> String {
     "This is a health check".to_string()
@@ -17,7 +21,10 @@ async fn main() -> std::io::Result<()> {
     std::env::set_var("RUST_BACKTRACE", "1");
     env_logger::init();
 
-    let app_state = polo_serv::get_database().expect("Unable to open db. Exiting.");
+    let app_state = AppData {
+        db: polo_serv::get_database().expect("Unable to open db. Exiting."),
+    };
+
     let data = web::Data::new(app_state);
 
     HttpServer::new(move || {
