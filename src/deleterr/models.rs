@@ -1,4 +1,5 @@
-use crate::overseerr::models::OverseerrResponses;
+use crate::overseerr::models::{MediaRequest, OverseerrResponses};
+use crate::tautulli::models::{TautulliResponse, UserWatchHistory};
 use serde::{Deserialize, Serialize};
 
 pub struct RequestResponse {
@@ -20,6 +21,17 @@ pub enum APIData<T> {
     OverseerrSuccess(OverseerrResponses<T>),
     RadarrSuccess,
     SonarrSuccess,
-    TautulliSuccess,
+    TautulliSuccess(TautulliResponse),
     Failure(String),
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct RequestStatus {
+    media_request: MediaRequest,
+    user_watch_history: UserWatchHistory,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct Requests {
+    requests: Vec<RequestStatus>,
 }

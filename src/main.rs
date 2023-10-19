@@ -3,8 +3,10 @@ use actix_web::{get, middleware::Logger, web, App, HttpServer};
 mod deleterr;
 mod overseerr;
 mod polodb;
+mod tautulli;
 use overseerr::services as os_serv;
 use polodb::services as polo_serv;
+use tautulli::services as tt_serv;
 
 struct AppData {
     db: polodb_core::Database,
@@ -37,6 +39,7 @@ async fn main() -> std::io::Result<()> {
             .app_data(app_data.clone())
             .service(index)
             .configure(os_serv::config)
+            .configure(tt_serv::config)
     })
     .bind(("127.0.0.1", 8080))?
     .run()

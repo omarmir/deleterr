@@ -65,7 +65,7 @@ where
         Err(error) => {
             let err_response = APIResponse {
                 success: false,
-                data: APIData::<String>::Failure(error.to_string()).into(),
+                data: APIData::<String>::Failure(error.to_string()),
                 code: 500,
             };
             return HttpResponse::Ok().json(err_response);

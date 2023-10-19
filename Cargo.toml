@@ -16,3 +16,4 @@ strum_macros = "0.25.2"
 strum = { version = "^0.25", features = ["derive"] }
 dotenv = "0.15.0"
 polodb_core = "4.4.0"
+serde-aux = "4.2.0"
