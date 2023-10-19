@@ -9,7 +9,7 @@ use actix_web::{get, web, Responder};
 use dotenv::dotenv;
 use reqwest::{header::ACCEPT, Error};
 
-fn get_api_endpoint(endpoint: &str) -> Result<reqwest::RequestBuilder, Error> {
+fn get_api_endpoint(endpoint: String) -> Result<reqwest::RequestBuilder, Error> {
     dotenv().ok();
 
     let os_request_url = std::env::var("OS_REQUEST_URL").expect("os_request_url must be set.");
@@ -24,8 +24,8 @@ fn get_api_endpoint(endpoint: &str) -> Result<reqwest::RequestBuilder, Error> {
     Ok(req_client)
 }
 
-async fn get_requests() -> Result<APIResponse<OverseerrResponses<MediaRequest>>, Error> {
-    let endpoint = "request?take=20&skip=0&sort=added&filter=available";
+async fn get_requests(take: u16, skip: u16) -> Result<APIResponse<OverseerrResponses<MediaRequest>>, Error> {
+    let endpoint = format!("request?take={take}&skip={skip}&sort=added&filter=available");
     let client_req = get_api_endpoint(endpoint)?;
     let request_response = make_api_call(client_req).await?;
     let resp = request_response
@@ -42,14 +42,15 @@ async fn get_requests() -> Result<APIResponse<OverseerrResponses<MediaRequest>>,
     Ok(api_response)
 }
 
-#[get("/requests/all")]
-async fn get_requests_json() -> impl Responder {
-    let requests_response = get_requests().await;
+#[get("/requests/{take}/{skip}")]
+async fn get_requests_json(path: web::Path<(u16, u16)>) -> impl Responder {
+    let (take, skip) = path.into_inner();
+    let requests_response = get_requests(take, skip).await;
     return process_request(requests_response);
 }
 
 pub async fn get_requests_count() -> Result<APIResponse<OverseerrResponses<()>>, Error> {
-    let endpoint = "request/count";
+    let endpoint = "request/count".to_string();
     let client_req = get_api_endpoint(endpoint)?;
     let request_response = make_api_call(client_req).await?;
     let resp = request_response

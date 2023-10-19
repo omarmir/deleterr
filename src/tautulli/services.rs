@@ -11,8 +11,8 @@ fn get_api_endpoint(endpoint: String) -> Result<reqwest::RequestBuilder, Error> 
 
     let client = reqwest::Client::new();
 
-    let tt_request_url = std::env::var("TT_REQUEST_URL").expect("os_request_url must be set.");
-    let tt_api_key = std::env::var("TT_API_KEY").expect("os_api_key must be set.");
+    let tt_request_url = std::env::var("TT_REQUEST_URL").expect("TT_request_url must be set.");
+    let tt_api_key = std::env::var("TT_API_KEY").expect("TT_api_key must be set.");
 
     let req_client = client
     .get(format!("{tt_request_url}{tt_api_key}{endpoint}"))
@@ -22,8 +22,8 @@ fn get_api_endpoint(endpoint: String) -> Result<reqwest::RequestBuilder, Error> 
     Ok(req_client)
 }
 
-pub async fn get_item_history(rating_key: u64) -> Result<APIResponse<TautulliResponse>, Error> {
-    let endpoint = format!("&cmd=get_history&rating_key={rating_key}");
+pub async fn get_item_history(rating_key: u64, user_id: u64) -> Result<APIResponse<TautulliResponse>, Error> {
+    let endpoint = format!("&cmd=get_history&rating_key={rating_key}&user_id={user_id}");
     let client_req = get_api_endpoint(endpoint)?;
     let request_response = make_api_call(client_req).await?;
     let resp = request_response.response.json::<TautulliResponse>().await?;
@@ -32,10 +32,10 @@ pub async fn get_item_history(rating_key: u64) -> Result<APIResponse<TautulliRes
     Ok(api_response)
 }
 
-#[get("/history/{rating_key}")]
-async fn get_requests_json(path: web::Path<u64>) -> impl Responder {
-    let rating_key = path.into_inner();
-    let requests_response = get_item_history(rating_key).await;
+#[get("/history/{rating_key}/{user_id}")]
+async fn get_requests_json(path: web::Path<(u64, u64)>) -> impl Responder {
+    let (rating_key, user_id) = path.into_inner();
+    let requests_response = get_item_history(rating_key, user_id).await;
     return process_request(requests_response);
 }
 
