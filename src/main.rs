@@ -1,17 +1,18 @@
 use actix_web::{get, middleware::Logger, web, App, HttpServer};
+use deleterr::services as dr_serv;
+use overseerr::services as os_serv;
+use polodb::services as polo_serv;
+use std::path::{Path, PathBuf};
+use tautulli::services as tt_serv;
 
 mod common;
 mod deleterr;
 mod overseerr;
 mod polodb;
 mod tautulli;
-use deleterr::services as dr_serv;
-use overseerr::services as os_serv;
-use polodb::services as polo_serv;
-use tautulli::services as tt_serv;
 
 struct AppData {
-    db: polodb_core::Database,
+    _db: polodb_core::Database,
 }
 
 #[get("/")]
@@ -26,7 +27,7 @@ async fn main() -> std::io::Result<()> {
     env_logger::init();
 
     let app_state = AppData {
-        db: polo_serv::get_database().expect("Unable to open db. Exiting."),
+        _db: polo_serv::get_database().expect("Unable to open db. Exiting."),
     };
 
     let data = web::Data::new(app_state);
@@ -40,6 +41,7 @@ async fn main() -> std::io::Result<()> {
             .wrap(logger)
             .app_data(app_data.clone())
             .service(index)
+            .service(webapp)
             .configure(os_serv::config)
             .configure(tt_serv::config)
             .configure(dr_serv::config)
