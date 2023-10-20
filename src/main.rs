@@ -2,7 +2,6 @@ use actix_web::{get, middleware::Logger, web, App, HttpServer};
 use deleterr::services as dr_serv;
 use overseerr::services as os_serv;
 use polodb::services as polo_serv;
-use std::path::{Path, PathBuf};
 use tautulli::services as tt_serv;
 
 mod common;
@@ -41,10 +40,10 @@ async fn main() -> std::io::Result<()> {
             .wrap(logger)
             .app_data(app_data.clone())
             .service(index)
-            .service(webapp)
             .configure(os_serv::config)
             .configure(tt_serv::config)
             .configure(dr_serv::config)
+            .service(actix_files::Files::new("/webapp", "webapp/dist").index_file("index.html"))
     })
     .bind(("127.0.0.1", 8080))?
     .run()
