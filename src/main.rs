@@ -1,10 +1,11 @@
 use actix_web::{get, middleware::Logger, web, App, HttpServer};
 
+mod common;
 mod deleterr;
 mod overseerr;
 mod polodb;
 mod tautulli;
-mod common;
+use deleterr::services as dr_serv;
 use overseerr::services as os_serv;
 use polodb::services as polo_serv;
 use tautulli::services as tt_serv;
@@ -41,6 +42,7 @@ async fn main() -> std::io::Result<()> {
             .service(index)
             .configure(os_serv::config)
             .configure(tt_serv::config)
+            .configure(dr_serv::config)
     })
     .bind(("127.0.0.1", 8080))?
     .run()

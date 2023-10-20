@@ -1,5 +1,5 @@
-use serde::{Deserialize, Serialize};
 use enum_as_inner::EnumAsInner;
+use serde::{Deserialize, Serialize};
 
 pub struct RequestResponse {
     pub code: u16,
