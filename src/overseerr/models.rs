@@ -1,13 +1,5 @@
 use serde::{Deserialize, Serialize};
 use serde_aux::prelude::deserialize_option_number_from_string;
-use enum_as_inner::EnumAsInner;
-
-#[derive(Serialize, Deserialize, Debug, EnumAsInner)]
-#[serde(untagged)]
-pub enum OverseerrResponses<T> {
-    List(OverseerrListResponse<T>),
-    Count(OverseerrRequestsCount),
-}
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct OverseerrRequestsCount {

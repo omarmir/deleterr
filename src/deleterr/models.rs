@@ -5,5 +5,5 @@ use serde::{Deserialize, Serialize};
 #[derive(Debug, Serialize, Deserialize)]
 pub struct RequestStatus {
     pub media_request: MediaRequest,
-    pub user_watch_history: UserWatchHistory,
+    pub user_watch_history: Option<UserWatchHistory>,
 }

@@ -44,7 +44,7 @@ async fn main() -> std::io::Result<()> {
             .configure(tt_serv::config)
             .configure(dr_serv::config)
     })
-    .bind(("127.0.0.1", 8080))?
+    .bind(("127.0.0.1", 8081))?
     .run()
     .await
 }

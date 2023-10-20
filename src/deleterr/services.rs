@@ -1,34 +1,51 @@
-use crate::common::models::{APIData, APIResponse};
+use crate::common::models::{APIData, APIResponse, DeleterrError};
 use crate::common::services::{map_to_api_response, process_request};
-use crate::overseerr::models::{MediaRequest, OverseerrListResponse, OverseerrResponses};
+use crate::overseerr::models::MediaRequest;
+use crate::tautulli::models::UserWatchHistory;
 use actix_web::{get, web, Responder};
 
 use super::models::RequestStatus;
 
-async fn get_all_requests() -> Result<APIResponse<Vec<RequestStatus>>, reqwest::Error> {
-    let os_requests = crate::os_serv::get_requests(1, 1).await.unwrap();
-    let os_data: OverseerrListResponse<MediaRequest> = os_requests
-        .data
-        .into_success()
-        .unwrap()
-        .into_list()
-        .unwrap();
-    let rating_key = os_data.results[0].media.rating_key.unwrap();
-    let user_id = os_data.results[0].requested_by.plex_id.unwrap();
+async fn get_os_requests(take: u16, skip: u16) -> Result<Vec<MediaRequest>, DeleterrError> {
+    let os_requests = crate::os_serv::get_requests(take, skip).await?.data;
+    match os_requests {
+        APIData::Success(data) => Ok(data.results),
+        APIData::Failure(err) => Err(DeleterrError::new(err.as_str())),
+    }
+}
+
+async fn get_tt_match(rating_key: u64, user_id: u64) -> Option<UserWatchHistory> {
     let tt_request = crate::tt_serv::get_item_history(rating_key, user_id)
         .await
-        .unwrap();
-    let tt_data = tt_request
-        .data
-        .into_success()
-        .unwrap()
-        .response
-        .data
-        .data
-        .unwrap();
+        .ok()?
+        .data;
 
-    let media_request = os_data.results[0].clone();
-    let user_watch_history = tt_data[0].clone();
+    let tt_matches = match tt_request {
+        APIData::Success(tt_response) => tt_response.response.data.data,
+        _ => None,
+    };
+
+    return match tt_matches {
+        Some(histories) => Some(histories[0].clone()),
+        _ => None,
+    };
+}
+
+async fn match_os_requests(media_request: &MediaRequest) -> Option<UserWatchHistory> {
+    let rating_key = media_request.media.rating_key;
+    let user_id = media_request.requested_by.plex_id;
+
+    return match (rating_key, user_id) {
+        (Some(rating_key), Some(user_id)) => get_tt_match(rating_key, user_id).await,
+        _ => None,
+    };
+}
+
+async fn match_requests_to_watched() -> Result<APIResponse<Vec<RequestStatus>>, DeleterrError> {
+    let os_requests = get_os_requests(1, 1).await?;
+
+    let media_request = os_requests[0].clone();
+    let user_watch_history = match_os_requests(&media_request).await;
 
     let matched_result = RequestStatus {
         media_request,
@@ -37,19 +54,15 @@ async fn get_all_requests() -> Result<APIResponse<Vec<RequestStatus>>, reqwest::
 
     let requests = vec![matched_result];
 
-    let api_response = APIResponse {
-        success: true,
-        code: 200,
-        data: APIData::Success(requests),
-    };
+    let api_response = map_to_api_response(requests, 200, "Success".to_string()).await?;
 
     Ok(api_response)
 }
 
 #[get("/api/v1/json/requests/all")]
 async fn get_all_requests_json() -> impl Responder {
-    let count_response = get_all_requests().await;
-    return process_request(count_response);
+    let matched_results = match_requests_to_watched().await;
+    return process_request(matched_results);
 }
 
 pub fn config(cfg: &mut web::ServiceConfig) {

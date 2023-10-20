@@ -489,7 +489,6 @@ version = "0.1.0"
 dependencies = [
  "actix-web",
  "dotenv",
- "enum-as-inner",
  "env_logger",
  "log",
  "polodb_core",
@@ -543,18 +542,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7268b386296a025e474d5140678f75d6de9493ae55a5d709eeb9dd08149945e1"
 dependencies = [
  "cfg-if",
-]
-
-[[package]]
-name = "enum-as-inner"
-version = "0.6.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5ffccbb6966c05b32ef8fbac435df276c4ae4d3dc55a8cd0eb9745e6c12f546a"
-dependencies = [
- "heck",
- "proc-macro2",
- "quote",
- "syn 2.0.37",
 ]
 
 [[package]]

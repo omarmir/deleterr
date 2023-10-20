@@ -1,8 +1,10 @@
-use super::models::{APIData, APIResponse, RequestResponse};
+use super::models::{APIData, APIResponse, DeleterrError, RequestResponse};
 use actix_web::{HttpResponse, Responder};
 use reqwest::Error;
 
-pub async fn make_api_call(client_request: reqwest::RequestBuilder) -> Result<RequestResponse, Error> {
+pub async fn make_api_call(
+    client_request: reqwest::RequestBuilder,
+) -> Result<RequestResponse, Error> {
     let response = client_request.send().await?;
 
     let request_response: RequestResponse = RequestResponse {
@@ -14,7 +16,7 @@ pub async fn make_api_call(client_request: reqwest::RequestBuilder) -> Result<Re
     Ok(request_response)
 }
 
-pub fn process_request<T>(requests: Result<APIResponse<T>, Error>) -> impl Responder
+pub fn process_request<T>(requests: Result<APIResponse<T>, DeleterrError>) -> impl Responder
 where
     T: serde::Serialize,
 {
