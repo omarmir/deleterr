@@ -17,3 +17,4 @@ strum = { version = "^0.25", features = ["derive"] }
 dotenv = "0.15.0"
 polodb_core = "4.4.0"
 serde-aux = "4.2.0"
+tokio = { version = "1.33.0", features = ["macros", "time"] }

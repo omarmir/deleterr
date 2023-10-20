@@ -22,9 +22,9 @@ pub struct OverseerrListResponse<T> {
 
 #[derive(Deserialize, Serialize, Debug)]
 pub struct PageInfo {
-    page: u32,
-    pages: u32,
-    results: u32,
+    pub page: u32,
+    pub pages: u16,
+    pub results: usize,
 }
 
 #[derive(Deserialize, Serialize, Debug, Clone)]
