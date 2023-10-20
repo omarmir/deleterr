@@ -25,8 +25,19 @@ async fn get_tt_match(rating_key: u64, user_id: u64) -> Option<UserWatchHistory>
         _ => None,
     };
 
+    /*
+     * We make sure that there is exactly one matched result since
+     * we provided both a ratingKey and userId. If there is more than one result
+     * then we did something wrong.
+     */
     return match tt_matches {
-        Some(histories) => Some(histories[0].clone()),
+        Some(histories) => {
+            if histories.len() == 1 {
+                Some(histories[0].clone())
+            } else {
+                None
+            }
+        }
         _ => None,
     };
 }
