@@ -2,3 +2,5 @@
 *.env
 *.db.wal
 *.db
+/webapp/node_modules
+/webapp/dist
