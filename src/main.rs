@@ -1,9 +1,8 @@
 use actix_files as fs;
-use actix_web::{get, middleware::Logger, web, App, HttpServer};
+use actix_web::{middleware::Logger, web, App, HttpServer};
 use deleterr::services as dr_serv;
 use overseerr::services as os_serv;
 use polodb::services as polo_serv;
-use std::path::PathBuf;
 use tautulli::services as tt_serv;
 
 mod common;
@@ -14,17 +13,6 @@ mod tautulli;
 
 struct AppData {
     _db: polodb_core::Database,
-}
-
-#[get("/")]
-async fn index() -> String {
-    "This is a health check".to_string()
-}
-
-fn single_page_app() -> Result<fs::NamedFile, actix_web::Error> {
-    // 1.
-    let path: PathBuf = PathBuf::from("./webapp/dist/index.html");
-    Ok(fs::NamedFile::open(path)?)
 }
 
 #[actix_web::main]
@@ -47,10 +35,12 @@ async fn main() -> std::io::Result<()> {
         App::new()
             .wrap(logger)
             .app_data(app_data.clone())
-            .service(index)
-            //.service(webapp)
-            .route("/", web::get().to(single_page_app))
-            .service(fs::Files::new("/", "./public").index_file("index.html"))
+            .service(
+                fs::Files::new("/", "webapp/dist")
+                    .show_files_listing()
+                    .index_file("index.html")
+                    .use_last_modified(true),
+            )
             .configure(os_serv::config)
             .configure(tt_serv::config)
             .configure(dr_serv::config)
