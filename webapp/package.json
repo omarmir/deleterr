@@ -9,9 +9,11 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "tailwindcss-multi-theme": "^1.0.4",
     "vue": "^3.3.4"
   },
   "devDependencies": {
+    "@tailwindcss/forms": "^0.5.6",
     "@vitejs/plugin-vue": "^4.2.3",
     "autoprefixer": "^10.4.16",
     "postcss": "^8.4.31",
