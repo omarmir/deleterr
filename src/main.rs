@@ -1,5 +1,6 @@
 use actix_files as fs;
 use actix_web::{middleware::Logger, web, App, HttpServer};
+use actix_web_lab::web as lab_web;
 use deleterr::services as dr_serv;
 use overseerr::services as os_serv;
 use polodb::services as polo_serv;
@@ -39,10 +40,11 @@ async fn main() -> std::io::Result<()> {
             .configure(tt_serv::config)
             .configure(dr_serv::config)
             .service(
-                fs::Files::new("/", "webapp/dist")
-                    .show_files_listing()
-                    .index_file("index.html")
-                    .use_last_modified(true),
+                lab_web::spa()
+                    .index_file("./webapp/dist/index.html")
+                    .static_resources_mount("/assets")
+                    .static_resources_location("./webapp/dist/assets")
+                    .finish(),
             )
     })
     .bind(("127.0.0.1", 8080))?
