@@ -12,4 +12,15 @@ import Table from '../components/Table.vue';
 </template>
 <script setup lang="ts">
 import Datatable from '~/components/Datatable.vue'
+const getRequests = async () => {
+    try {
+        const response = await fetch('http://localhost:8080/api/v1/json/requests?take=10&skip=0')
+        const requests = await response.json()
+        return requests
+    } catch (error) {
+        console.error(error)
+    }
+}
+
+console.log(await getRequests())
 </script>
