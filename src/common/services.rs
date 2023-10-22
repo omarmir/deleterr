@@ -21,7 +21,9 @@ where
     T: serde::Serialize,
 {
     return match requests {
-        Ok(response) => HttpResponse::Ok().json(response),
+        Ok(response) => HttpResponse::Ok()
+            .insert_header(("Access-Control-Allow-Origin", "*"))
+            .json(response),
         Err(error) => {
             let err_response = APIResponse {
                 success: false,
