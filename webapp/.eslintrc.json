@@ -8,19 +8,10 @@
     "parserOptions": {
         "parser": "@typescript-eslint/parser"
     },
-    "extends": [
-        "plugin:vue/vue3-recommended",
-        "@nuxtjs/eslint-config-typescript",
-        "prettier"
-    ],
-    "plugins": [
-        "vue"
-    ],
+    "extends": ["plugin:vue/vue3-recommended", "prettier"],
+    "plugins": ["vue"],
     "rules": {
-        "semi": [
-            2,
-            "never"
-        ],
+        "semi": [2, "never"],
         "vue/multi-word-component-names": "off",
         "vue/require-default-prop": "off",
         "vue/first-attribute-linebreak": "off",
