@@ -1,13 +1,14 @@
 use super::models::RequestStatus;
 use crate::common::models::{APIData, APIResponse, DeleterrError};
 use crate::common::services::{map_to_api_response, process_request};
+use crate::deleterr::models::QueryParms;
 use crate::overseerr::models::{MediaRequest, PageInfo};
 use crate::tautulli::models::UserWatchHistory;
 use actix_web::{get, web, Responder};
 
 async fn get_os_requests(
-    take: u16,
-    skip: u16,
+    take: usize,
+    skip: usize,
 ) -> Result<(Vec<MediaRequest>, PageInfo), DeleterrError> {
     let os_requests = crate::os_serv::get_requests(take, skip).await?.data;
     match os_requests {
@@ -96,30 +97,44 @@ async fn make_tt_history_chunk_query(os_requests: Vec<MediaRequest>) -> Vec<Requ
  * This function splits up the OS requests in 10 request chunks and then
  * spawns 10 threads (in theory)
  */
-async fn match_requests_to_watched() -> Result<APIResponse<Vec<RequestStatus>>, DeleterrError> {
-    let take: u16 = 10;
-    let skip: u16 = 0;
-    let (os_requests, page_info) = get_os_requests(take, skip).await?;
-    let req_status_len = page_info.results;
-    let num_of_pages = page_info.pages;
-    let mut matched_requests: Vec<RequestStatus> = Vec::with_capacity(req_status_len);
+async fn match_requests_to_watched(
+    take: usize,
+    skip: usize,
+) -> Result<APIResponse<Vec<RequestStatus>>, DeleterrError> {
+    //Our chunk size is 10 so that we don't DDOS our own server if we have thousands of requests
+    // This app uses tokio's spawn function which is concurrent
+    //We take the lesser of our specified take or 10
+    //So that if we getting sent a take of 60,000 we do it 10 at a time
+    let chunk_size = std::cmp::min(10, take);
 
-    /*
-     * Less than/Equal to 10 requests requires no further requests to overseerr
-     * so make an api response and sent it
-     */
+    let (os_requests, page_info) = get_os_requests(chunk_size, skip).await?;
+    let final_result_count = std::cmp::min(page_info.results, take); //Length of the vector that holds the final result is the lesser or take or results
+    let mut matched_requests: Vec<RequestStatus> = Vec::with_capacity(final_result_count);
+
+    let max_pages = num_integer::div_ceil(take, chunk_size); // Calculates max pages by dividing the take by chunk size and rounding up
+    let num_of_pages = std::cmp::min(page_info.pages, max_pages); // the lesser of the results or what we calculated on max_pages
+
+    // Make the first match query to tautulli
     matched_requests.extend(make_tt_history_chunk_query(os_requests).await);
 
-    if req_status_len < 11 {
+    // Less than/Equal to 10 requests requires no further requests to overseerr
+    // so make an api response and sent it
+    if final_result_count <= chunk_size {
         let api_response =
             map_to_api_response(matched_requests, 200, "Success".to_string()).await?;
         return Ok(api_response);
     }
 
+    // If our max(take/results) > chunk size then we need to iterate
+    // Start at 1 since we already did one query
     for i in 1..num_of_pages {
         // ! Sleep this for 2 seconds so we aren't just hammering the API endpoints
         tokio::time::sleep(std::time::Duration::from_secs(2)).await;
-        let (os_requests, _page_info) = get_os_requests(take, i * skip).await?;
+        let skip = i * chunk_size;
+        // Pick the lesser of what's left or the chunk size
+        // e.g. if at 73 and skip 70 then pick 3 otherwise pick 10
+        let take = std::cmp::min(final_result_count - skip, chunk_size);
+        let (os_requests, _page_info) = get_os_requests(take, skip).await?;
         matched_requests.extend(make_tt_history_chunk_query(os_requests).await);
     }
 
@@ -128,9 +143,27 @@ async fn match_requests_to_watched() -> Result<APIResponse<Vec<RequestStatus>>, 
     Ok(api_response)
 }
 
-#[get("/api/v1/json/requests/all")]
-async fn get_all_requests_json() -> impl Responder {
-    let matched_results = match_requests_to_watched().await;
+/// Returns all Overseerr requests matched with Tautulli watched statuses
+/// It first makes a query to get a count of available requests
+async fn get_all_requests() -> Result<APIResponse<Vec<RequestStatus>>, DeleterrError> {
+    let req_count = crate::os_serv::get_requests_count().await?.data;
+    match req_count {
+        APIData::Success(data) => {
+            let available = data.available;
+            Ok(match_requests_to_watched(available, 0).await?)
+        }
+        APIData::Failure(err) => Err(DeleterrError::new(err.as_str())),
+    }
+}
+
+#[get("/api/v1/json/requests")]
+async fn get_all_requests_json(info: web::Query<QueryParms>) -> impl Responder {
+    let matched_results = match (info.take, info.skip) {
+        (Some(take), Some(skip)) => match_requests_to_watched(take, skip).await,
+        (Some(take), None) => match_requests_to_watched(take, 0).await,
+        _ => get_all_requests().await,
+    };
+
     return process_request(matched_results);
 }
 

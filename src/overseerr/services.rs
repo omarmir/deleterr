@@ -23,8 +23,8 @@ fn get_api_endpoint(endpoint: String) -> Result<reqwest::RequestBuilder, Error> 
 }
 
 pub async fn get_requests(
-    take: u16,
-    skip: u16,
+    take: usize,
+    skip: usize,
 ) -> Result<APIResponse<OverseerrListResponse<MediaRequest>>, DeleterrError> {
     let endpoint = format!("request?take={take}&skip={skip}&sort=added&filter=available");
     let client_req = get_api_endpoint(endpoint)?;
@@ -40,14 +40,14 @@ pub async fn get_requests(
 }
 
 #[get("/requests/{take}/{skip}")]
-async fn get_requests_json(path: web::Path<(u16, u16)>) -> impl Responder {
+async fn get_requests_json(path: web::Path<(usize, usize)>) -> impl Responder {
     let (take, skip) = path.into_inner();
     let requests_response = get_requests(take, skip).await;
     return process_request(requests_response);
 }
 
 pub async fn get_requests_count() -> Result<APIResponse<OverseerrRequestsCount>, DeleterrError> {
-    let endpoint = "request/count".to_string();
+    let endpoint: String = "request/count".to_string();
     let client_req = get_api_endpoint(endpoint)?;
     let request_response = make_api_call(client_req).await?;
     let resp = request_response

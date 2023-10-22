@@ -10,7 +10,7 @@ pub struct OverseerrRequestsCount {
     approved: u32,
     declined: u32,
     processing: u32,
-    available: u32,
+    pub available: usize,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -23,7 +23,7 @@ pub struct OverseerrListResponse<T> {
 #[derive(Deserialize, Serialize, Debug)]
 pub struct PageInfo {
     pub page: u32,
-    pub pages: u16,
+    pub pages: usize,
     pub results: usize,
 }
 
