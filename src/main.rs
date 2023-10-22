@@ -1,4 +1,3 @@
-use actix_files as fs;
 use actix_web::{middleware::Logger, web, App, HttpServer};
 use actix_web_lab::web as lab_web;
 use deleterr::services as dr_serv;
