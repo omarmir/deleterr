@@ -39,6 +39,7 @@ pub async fn get_requests(
     Ok(api_response)
 }
 
+// TODO: This needs to be turned into query parms
 #[get("/requests/{take}/{skip}")]
 async fn get_requests_json(path: web::Path<(usize, usize)>) -> impl Responder {
     let (take, skip) = path.into_inner();
