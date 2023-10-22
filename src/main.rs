@@ -35,15 +35,15 @@ async fn main() -> std::io::Result<()> {
         App::new()
             .wrap(logger)
             .app_data(app_data.clone())
+            .configure(os_serv::config)
+            .configure(tt_serv::config)
+            .configure(dr_serv::config)
             .service(
                 fs::Files::new("/", "webapp/dist")
                     .show_files_listing()
                     .index_file("index.html")
                     .use_last_modified(true),
             )
-            .configure(os_serv::config)
-            .configure(tt_serv::config)
-            .configure(dr_serv::config)
     })
     .bind(("127.0.0.1", 8080))?
     .run()
