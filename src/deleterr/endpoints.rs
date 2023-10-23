@@ -1,6 +1,7 @@
+use super::models::Services;
 use super::services::match_requests_to_watched;
-use crate::common::services::process_request;
 use crate::deleterr::models::QueryParms;
+use crate::{common::services::process_request, deleterr::models::ServiceInfo};
 use actix_web::{get, post, web, Responder};
 
 #[get("/api/v1/json/requests")]
@@ -15,21 +16,17 @@ async fn get_requests_count_json() -> impl Responder {
     return process_request(count_response);
 }
 
-#[post("/api/v1/json/requests/status/overseerr")]
-async fn get_overseerr_about_json() -> impl Responder {
-    let about_overseer = crate::os_serv::get_overseerr_status().await;
-    return process_request(about_overseer);
-}
-
-#[post("/api/v1/json/requests/status/tautulli")]
-async fn get_status_tautulli_json() -> impl Responder {
-    let status_tautulli = crate::tt_serv::get_tautulli_status().await;
-    return process_request(status_tautulli);
+#[post("/api/v1/json/service/status")]
+async fn get_service_status_json(form: web::Form<ServiceInfo>) -> impl Responder {
+    let service_status = match form.service {
+        Services::Overseer => crate::os_serv::get_overseerr_status().await,
+        Services::Tautulli => crate::tt_serv::get_tautulli_status().await,
+    };
+    return process_request(service_status);
 }
 
 pub fn config(cfg: &mut web::ServiceConfig) {
     cfg.service(get_all_requests_json)
         .service(get_requests_count_json)
-        .service(get_overseerr_about_json)
-        .service(get_status_tautulli_json);
+        .service(get_service_status_json);
 }

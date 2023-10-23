@@ -15,3 +15,20 @@ pub struct QueryParms {
     pub take: Option<usize>,
     pub skip: Option<usize>,
 }
+
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ServiceInfo {
+    pub host: String,
+    pub port: Option<u8>,
+    pub api_key: String,
+    pub use_ssl: bool,
+    pub service: Services,
+}
+
+#[derive(Deserialize, Serialize, Debug, Clone)]
+#[serde(rename_all = "lowercase")]
+pub enum Services {
+    Tautulli,
+    Overseer,
+}
