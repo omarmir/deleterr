@@ -1,10 +1,9 @@
 use super::models::RequestStatus;
 use crate::common::models::{APIData, APIResponse, DeleterrError};
-use crate::common::services::{map_to_api_response, process_request};
-use crate::deleterr::models::QueryParms;
+use crate::common::services::map_to_api_response;
+
 use crate::overseerr::models::{MediaRequest, PageInfo};
 use crate::tautulli::models::UserWatchHistory;
-use actix_web::{get, web, Responder};
 
 async fn get_os_requests(
     take: usize,
@@ -109,7 +108,7 @@ async fn make_tt_history_chunk_query(os_requests: Vec<MediaRequest>) -> Vec<Requ
  * This function splits up the OS requests in 10 request chunks and then
  * spawns 10 threads (in theory)
  */
-async fn match_requests_to_watched(
+pub async fn match_requests_to_watched(
     take: Option<usize>,
     skip: Option<usize>,
 ) -> Result<APIResponse<Vec<RequestStatus>>, DeleterrError> {
@@ -165,35 +164,4 @@ async fn match_requests_to_watched(
     let api_response = map_to_api_response(matched_requests, 200, "Success".to_string()).await?;
 
     Ok(api_response)
-}
-
-#[get("/api/v1/json/requests")]
-async fn get_all_requests_json(info: web::Query<QueryParms>) -> impl Responder {
-    let matched_results = match_requests_to_watched(info.take, info.skip).await;
-    return process_request(matched_results);
-}
-
-#[get("/api/v1/json/requests/count")]
-async fn get_requests_count_json() -> impl Responder {
-    let count_response = crate::os_serv::get_requests_count().await;
-    return process_request(count_response);
-}
-
-#[get("/api/v1/json/requests/status/overseerr")]
-async fn get_overseerr_about_json() -> impl Responder {
-    let about_overseer = crate::os_serv::get_overseerr_status().await;
-    return process_request(about_overseer);
-}
-
-#[get("/api/v1/json/requests/status/tautulli")]
-async fn get_status_tautulli_json() -> impl Responder {
-    let status_tautulli = crate::tt_serv::get_tautulli_status().await;
-    return process_request(status_tautulli);
-}
-
-pub fn config(cfg: &mut web::ServiceConfig) {
-    cfg.service(get_all_requests_json)
-        .service(get_requests_count_json)
-        .service(get_overseerr_about_json)
-        .service(get_status_tautulli_json);
 }

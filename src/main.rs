@@ -1,6 +1,6 @@
 use actix_web::{middleware::Logger, web, App, HttpServer};
 use actix_web_lab::web as lab_web;
-use deleterr::services as dr_serv;
+use deleterr::endpoints as dr_serv;
 use overseerr::services as os_serv;
 use polodb::services as polo_serv;
 use tautulli::services as tt_serv;
