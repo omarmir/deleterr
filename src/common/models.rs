@@ -2,6 +2,13 @@ use serde::{Deserialize, Serialize};
 use std::error::Error;
 use std::fmt;
 
+#[derive(Debug, Serialize, Deserialize)]
+pub enum APIServiceStatus {
+    Success,
+    WrongAPIKey,
+    Other,
+}
+
 pub struct RequestResponse {
     pub code: u16,
     pub status: String,

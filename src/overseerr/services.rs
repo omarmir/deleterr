@@ -1,7 +1,7 @@
 use super::models::{
     AboutServer, MediaInfo, MediaRequest, MediaType, OverseerrListResponse, OverseerrRequestsCount,
 };
-use crate::common::models::{APIResponse, DeleterrError};
+use crate::common::models::{APIResponse, APIServiceStatus, DeleterrError};
 use crate::common::services::{make_api_call, map_to_api_response};
 use dotenv::dotenv;
 use reqwest::{header::ACCEPT, Error};
@@ -68,13 +68,18 @@ pub async fn get_media_info(
     Ok(resp)
 }
 
-pub async fn get_overseerr_about() -> Result<APIResponse<AboutServer>, DeleterrError> {
+pub async fn get_overseerr_status() -> Result<APIResponse<APIServiceStatus>, DeleterrError> {
     let endpoint: String = "settings/about".to_string();
     let client_req = get_api_endpoint(endpoint)?;
     let request_response = make_api_call(client_req).await?;
-    let resp = request_response.response.json::<AboutServer>().await?;
 
-    let api_response =
-        map_to_api_response(resp, request_response.code, request_response.status).await?;
+    //This is a nested match which is a bit messy but the if let statements were harder to parse mentally
+    let service_status = match request_response.code {
+        200 => APIServiceStatus::Success,
+        403 => APIServiceStatus::WrongAPIKey,
+        _ => APIServiceStatus::Other,
+    };
+
+    let api_response = map_to_api_response(service_status, 200, "Failure".to_string()).await?;
     Ok(api_response)
 }

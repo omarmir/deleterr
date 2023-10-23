@@ -38,7 +38,7 @@ where
 pub async fn map_to_api_response<T>(
     service_reponse: T,
     code: u16,
-    status: String,
+    failure_status: String,
 ) -> Result<APIResponse<T>, Error>
 where
     for<'a> T: serde::Deserialize<'a>,
@@ -46,7 +46,7 @@ where
     if code != 200 {
         return Ok(APIResponse {
             success: false,
-            data: APIData::Failure(status),
+            data: APIData::Failure(failure_status),
             code,
         });
     };

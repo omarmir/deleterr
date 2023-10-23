@@ -131,7 +131,7 @@ async fn match_requests_to_watched(
 
     if final_result_count == 0 {
         let api_response =
-            map_to_api_response(matched_requests, 200, "Success".to_string()).await?;
+            map_to_api_response(matched_requests, 200, "Failure".to_string()).await?;
         return Ok(api_response);
     }
 
@@ -145,7 +145,7 @@ async fn match_requests_to_watched(
     // so make an api response and sent it
     if final_result_count <= chunk_size {
         let api_response =
-            map_to_api_response(matched_requests, 200, "Success".to_string()).await?;
+            map_to_api_response(matched_requests, 200, "Failure".to_string()).await?;
         return Ok(api_response);
     }
 
@@ -179,14 +179,21 @@ async fn get_requests_count_json() -> impl Responder {
     return process_request(count_response);
 }
 
-#[get("/api/v1/json/requests/about/overseerr")]
+#[get("/api/v1/json/requests/status/overseerr")]
 async fn get_overseerr_about_json() -> impl Responder {
-    let about_overseer = crate::os_serv::get_overseerr_about().await;
+    let about_overseer = crate::os_serv::get_overseerr_status().await;
     return process_request(about_overseer);
+}
+
+#[get("/api/v1/json/requests/status/tautulli")]
+async fn get_status_tautulli_json() -> impl Responder {
+    let status_tautulli = crate::tt_serv::get_tautulli_status().await;
+    return process_request(status_tautulli);
 }
 
 pub fn config(cfg: &mut web::ServiceConfig) {
     cfg.service(get_all_requests_json)
         .service(get_requests_count_json)
-        .service(get_overseerr_about_json);
+        .service(get_overseerr_about_json)
+        .service(get_status_tautulli_json);
 }

@@ -8,8 +8,8 @@ pub struct TautulliResponse {
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct ResponseContent {
-    result: Result,
-    message: Option<String>,
+    pub result: Result,
+    pub message: Option<String>,
     pub data: ResponseData,
 }
 
@@ -20,7 +20,7 @@ pub struct ResponseData {
 
 #[derive(Deserialize, Serialize, Debug)]
 #[serde(rename_all = "lowercase")]
-enum Result {
+pub enum Result {
     Success,
     Failure,
 }
