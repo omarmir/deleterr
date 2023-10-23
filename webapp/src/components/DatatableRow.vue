@@ -1,7 +1,17 @@
 <template>
     <tr class="text-gray-700 dark:text-gray-400">
         <td class="px-4 py-3">
-            <p class="font-semibold">{{ request?.mediaRequest.id }}</p>
+            <div class="flex items-center text-sm space-x-5">
+                <img class="h-full w-10 object-cover"
+                    :src="'https://image.tmdb.org/t/p/w600_and_h900_bestv2' + request?.mediaInfo?.posterPath" alt=""
+                    loading="lazy" />
+                <div class="flex flex-col space-y-1">
+                    <p class="font-semibold">{{ request?.mediaInfo?.title ?? 'N/A' }}</p>
+                    <p class="text-xs">
+                        Release: {{ request?.mediaInfo?.releaseDate }}
+                    </p>
+                </div>
+            </div>
         </td>
         <td class="px-4 py-3 text-sm" :data-media-type="request?.mediaRequest.media.mediaType">
             {{ request?.mediaRequest.media.mediaType }}

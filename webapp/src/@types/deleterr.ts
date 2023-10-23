@@ -24,6 +24,7 @@ export type MediaType = 'movie' | 'tv'
 export interface RequestStatus {
     mediaRequest: MediaRequest
     userWatchHistory?: UserWatchHistory
+    mediaInfo?: MediaInfo
 }
 
 export interface User {
@@ -46,4 +47,10 @@ export interface UserWatchHistory {
     parentRatingKey?: number
     grandparentRatingKey?: number
     userThumb?: string
+}
+
+export interface MediaInfo {
+    posterPath?: string
+    releaseDate?: string
+    title: string
 }
