@@ -26,7 +26,7 @@ enum Result {
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
-#[serde(rename_all = "camelCase")]
+#[serde(rename_all(serialize = "camelCase"))]
 pub struct UserWatchHistory {
     user: String,
     friendly_name: String,
