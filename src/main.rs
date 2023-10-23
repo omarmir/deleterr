@@ -35,7 +35,6 @@ async fn main() -> std::io::Result<()> {
         App::new()
             .wrap(logger)
             .app_data(app_data.clone())
-            .configure(tt_serv::config)
             .configure(dr_serv::config)
             .service(
                 lab_web::spa()

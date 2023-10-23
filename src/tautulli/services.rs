@@ -1,7 +1,6 @@
 use super::models::TautulliResponse;
 use crate::common::models::{APIResponse, DeleterrError};
-use crate::common::services::{make_api_call, map_to_api_response, process_request};
-use actix_web::{get, web, Responder};
+use crate::common::services::{make_api_call, map_to_api_response};
 use dotenv::dotenv;
 use reqwest::{header::ACCEPT, Error};
 use std::time::Duration;
@@ -33,15 +32,4 @@ pub async fn get_item_history(
     let api_response =
         map_to_api_response(resp, request_response.code, request_response.status).await?;
     Ok(api_response)
-}
-
-#[get("/history/{rating_key}/{user_id}")]
-async fn get_requests_json(path: web::Path<(u64, u64)>) -> impl Responder {
-    let (rating_key, user_id) = path.into_inner();
-    let requests_response = get_item_history(rating_key, user_id).await;
-    return process_request(requests_response);
-}
-
-pub fn config(cfg: &mut web::ServiceConfig) {
-    cfg.service(get_requests_json);
 }
