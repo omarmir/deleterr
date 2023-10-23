@@ -1,14 +1,11 @@
-use std::time::Duration;
-
 use super::models::{
-    MediaInfo, MediaInfoQueryParms, MediaRequest, MediaType, OverseerrListResponse,
-    OverseerrRequestsCount,
+    MediaInfo, MediaRequest, MediaType, OverseerrListResponse, OverseerrRequestsCount,
 };
 use crate::common::models::{APIResponse, DeleterrError};
-use crate::common::services::{make_api_call, map_to_api_response, process_request};
-use actix_web::{get, web, Responder};
+use crate::common::services::{make_api_call, map_to_api_response};
 use dotenv::dotenv;
 use reqwest::{header::ACCEPT, Error};
+use std::time::Duration;
 
 fn get_api_endpoint(endpoint: String) -> Result<reqwest::RequestBuilder, Error> {
     dotenv().ok();
@@ -42,14 +39,6 @@ pub async fn get_requests(
     Ok(api_response)
 }
 
-// TODO: This needs to be turned into query parms
-#[get("/requests/{take}/{skip}")]
-async fn get_requests_json(path: web::Path<(usize, usize)>) -> impl Responder {
-    let (take, skip) = path.into_inner();
-    let requests_response = get_requests(take, skip).await;
-    return process_request(requests_response);
-}
-
 pub async fn get_requests_count() -> Result<APIResponse<OverseerrRequestsCount>, DeleterrError> {
     let endpoint: String = "request/count".to_string();
     let client_req = get_api_endpoint(endpoint)?;
@@ -62,12 +51,6 @@ pub async fn get_requests_count() -> Result<APIResponse<OverseerrRequestsCount>,
     let api_response =
         map_to_api_response(resp, request_response.code, request_response.status).await?;
     Ok(api_response)
-}
-
-#[get("/requests/count")]
-async fn get_requests_count_json() -> impl Responder {
-    let count_response = get_requests_count().await;
-    return process_request(count_response);
 }
 
 pub async fn get_media_info(
@@ -83,16 +66,4 @@ pub async fn get_media_info(
     let resp = request_response.response.json::<MediaInfo>().await?;
 
     Ok(resp)
-}
-
-#[get("/requests/mediainfo")]
-async fn get_media_info_json(info: web::Query<MediaInfoQueryParms>) -> impl Responder {
-    let media_info = get_media_info(&info.media_type, &info.id).await;
-    return actix_web::HttpResponse::Ok().json(media_info.ok());
-}
-
-pub fn config(cfg: &mut web::ServiceConfig) {
-    cfg.service(get_requests_json)
-        .service(get_requests_count_json)
-        .service(get_media_info_json);
 }

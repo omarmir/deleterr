@@ -141,7 +141,7 @@ async fn match_requests_to_watched(
     // Start at 1 since we already did one query
     for i in 1..num_of_pages {
         // ! Sleep this for 2 seconds so we aren't just hammering the API endpoints
-        tokio::time::sleep(std::time::Duration::from_secs(2)).await;
+        tokio::time::sleep(std::time::Duration::from_secs(2)).await; // This doesn't spawn new threads - its green threading/tasking
         let skip = i * chunk_size;
         // Pick the lesser of what's left or the chunk size
         // e.g. if at 73 and skip 70 then pick 3 otherwise pick 10
@@ -179,6 +179,13 @@ async fn get_all_requests_json(info: web::Query<QueryParms>) -> impl Responder {
     return process_request(matched_results);
 }
 
+#[get("/api/v1/json/requests/count")]
+async fn get_requests_count_json() -> impl Responder {
+    let count_response = crate::os_serv::get_requests_count().await;
+    return process_request(count_response);
+}
+
 pub fn config(cfg: &mut web::ServiceConfig) {
-    cfg.service(get_all_requests_json);
+    cfg.service(get_all_requests_json)
+        .service(get_requests_count_json);
 }
