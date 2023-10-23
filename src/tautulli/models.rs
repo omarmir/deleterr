@@ -38,4 +38,5 @@ pub struct UserWatchHistory {
     parent_rating_key: Option<u64>,
     #[serde(deserialize_with = "deserialize_option_number_from_string")]
     grandparent_rating_key: Option<u64>,
+    user_thumb: Option<String>,
 }

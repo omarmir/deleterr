@@ -45,6 +45,7 @@ pub struct User {
     email: Option<String>,
     plex_username: Option<String>,
     pub plex_id: Option<u64>, // Don't know if its 32 bit or 64 - same as tautulli user
+    avatar: Option<String>,
 }
 
 #[derive(Deserialize, Serialize, Debug, Clone)]
