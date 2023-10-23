@@ -53,13 +53,25 @@ async fn get_request_status_for_media_request(media_request: MediaRequest) -> Re
     let rating_key = media_request.media.rating_key;
     let user_id = media_request.requested_by.plex_id;
 
+    let media_type = &media_request.media.media_type;
+    let tmdb_id = &media_request.media.tmdb_id;
+
+    let media_info = match (media_type, tmdb_id) {
+        (Some(media_type), Some(tmdb_id)) => crate::os_serv::get_media_info(media_type, tmdb_id)
+            .await
+            .ok(),
+        _ => None,
+    };
+
     return match (rating_key, user_id) {
         (Some(rating_key), Some(user_id)) => RequestStatus {
             media_request: media_request.clone(),
+            media_info,
             user_watch_history: get_tau_history_by_key_user(rating_key, user_id).await,
         },
         _ => RequestStatus {
             media_request: media_request.clone(),
+            media_info,
             user_watch_history: None,
         },
     };

@@ -52,8 +52,8 @@ pub struct User {
 #[serde(rename_all = "camelCase")]
 pub struct Media {
     id: u32,
-    media_type: Option<MediaType>,
-    tmdb_id: Option<u32>,
+    pub media_type: Option<MediaType>,
+    pub tmdb_id: Option<usize>,
     tvdb_id: Option<u32>,
     #[serde(deserialize_with = "deserialize_option_number_from_string")]
     pub rating_key: Option<u64>,

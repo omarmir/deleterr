@@ -72,8 +72,8 @@ async fn get_requests_count_json() -> impl Responder {
 
 pub async fn get_media_info(
     media_type: &MediaType,
-    id: usize,
-) -> Result<APIResponse<MediaInfo>, DeleterrError> {
+    id: &usize,
+) -> Result<MediaInfo, DeleterrError> {
     let endpoint: String = match media_type {
         MediaType::TV => format!("tv/{id}"),
         MediaType::Movie => format!("movie/{id}"),
@@ -82,15 +82,13 @@ pub async fn get_media_info(
     let request_response = make_api_call(client_req).await?;
     let resp = request_response.response.json::<MediaInfo>().await?;
 
-    let api_response =
-        map_to_api_response(resp, request_response.code, request_response.status).await?;
-    Ok(api_response)
+    Ok(resp)
 }
 
 #[get("/requests/mediainfo")]
 async fn get_media_info_json(info: web::Query<MediaInfoQueryParms>) -> impl Responder {
-    let media_info = get_media_info(&info.media_type, info.id).await;
-    return process_request(media_info);
+    let media_info = get_media_info(&info.media_type, &info.id).await;
+    return actix_web::HttpResponse::Ok().json(media_info.ok());
 }
 
 pub fn config(cfg: &mut web::ServiceConfig) {
