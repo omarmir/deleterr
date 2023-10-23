@@ -110,20 +110,32 @@ async fn make_tt_history_chunk_query(os_requests: Vec<MediaRequest>) -> Vec<Requ
  * spawns 10 threads (in theory)
  */
 async fn match_requests_to_watched(
-    take: usize,
-    skip: usize,
+    take: Option<usize>,
+    skip: Option<usize>,
 ) -> Result<APIResponse<Vec<RequestStatus>>, DeleterrError> {
     //Our chunk size is 10 so that we don't DDOS our own server if we have thousands of requests
     // This app uses tokio's spawn function which is concurrent
     //We take the lesser of our specified take or 10
     //So that if we getting sent a take of 60,000 we do it 10 at a time
-    let chunk_size = std::cmp::min(10, take);
+    let chunk_size = std::cmp::min(10, take.unwrap_or(10));
+    let skip_val = skip.unwrap_or(0);
 
-    let (os_requests, page_info) = get_os_requests(chunk_size, skip).await?;
-    let final_result_count = std::cmp::min(page_info.results, take); //Length of the vector that holds the final result is the lesser or take or results
+    let (os_requests, page_info) = get_os_requests(chunk_size, skip_val).await?;
+    let result_or_take = std::cmp::min(page_info.results, take.unwrap_or(page_info.results)); //Length of the vector that holds the final result is the lesser or take or results
+    let final_result_count = match result_or_take <= skip_val {
+        false => result_or_take - skip_val,
+        true => 0,
+    };
+
     let mut matched_requests: Vec<RequestStatus> = Vec::with_capacity(final_result_count);
 
-    let max_pages = num_integer::div_ceil(take, chunk_size); // Calculates max pages by dividing the take by chunk size and rounding up
+    if final_result_count == 0 {
+        let api_response =
+            map_to_api_response(matched_requests, 200, "Success".to_string()).await?;
+        return Ok(api_response);
+    }
+
+    let max_pages = num_integer::div_ceil(final_result_count, chunk_size); // Calculates max pages by dividing the take by chunk size and rounding up
     let num_of_pages = std::cmp::min(page_info.pages, max_pages); // the lesser of the results or what we calculated on max_pages
 
     // Make the first match query to tautulli
@@ -155,27 +167,9 @@ async fn match_requests_to_watched(
     Ok(api_response)
 }
 
-/// Returns all Overseerr requests matched with Tautulli watched statuses
-/// It first makes a query to get a count of available requests
-async fn get_all_requests() -> Result<APIResponse<Vec<RequestStatus>>, DeleterrError> {
-    let req_count = crate::os_serv::get_requests_count().await?.data;
-    match req_count {
-        APIData::Success(data) => {
-            let available = data.available;
-            Ok(match_requests_to_watched(available, 0).await?)
-        }
-        APIData::Failure(err) => Err(DeleterrError::new(err.as_str())),
-    }
-}
-
 #[get("/api/v1/json/requests")]
 async fn get_all_requests_json(info: web::Query<QueryParms>) -> impl Responder {
-    let matched_results = match (info.take, info.skip) {
-        (Some(take), Some(skip)) => match_requests_to_watched(take, skip).await,
-        (Some(take), None) => match_requests_to_watched(take, 0).await,
-        _ => get_all_requests().await,
-    };
-
+    let matched_results = match_requests_to_watched(info.take, info.skip).await;
     return process_request(matched_results);
 }
 
@@ -185,7 +179,14 @@ async fn get_requests_count_json() -> impl Responder {
     return process_request(count_response);
 }
 
+#[get("/api/v1/json/requests/about/overseerr")]
+async fn get_overseerr_about_json() -> impl Responder {
+    let about_overseer = crate::os_serv::get_overseerr_about().await;
+    return process_request(about_overseer);
+}
+
 pub fn config(cfg: &mut web::ServiceConfig) {
     cfg.service(get_all_requests_json)
-        .service(get_requests_count_json);
+        .service(get_requests_count_json)
+        .service(get_overseerr_about_json);
 }

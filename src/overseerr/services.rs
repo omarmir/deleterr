@@ -1,5 +1,5 @@
 use super::models::{
-    MediaInfo, MediaRequest, MediaType, OverseerrListResponse, OverseerrRequestsCount,
+    AboutServer, MediaInfo, MediaRequest, MediaType, OverseerrListResponse, OverseerrRequestsCount,
 };
 use crate::common::models::{APIResponse, DeleterrError};
 use crate::common::services::{make_api_call, map_to_api_response};
@@ -66,4 +66,15 @@ pub async fn get_media_info(
     let resp = request_response.response.json::<MediaInfo>().await?;
 
     Ok(resp)
+}
+
+pub async fn get_overseerr_about() -> Result<APIResponse<AboutServer>, DeleterrError> {
+    let endpoint: String = "settings/about".to_string();
+    let client_req = get_api_endpoint(endpoint)?;
+    let request_response = make_api_call(client_req).await?;
+    let resp = request_response.response.json::<AboutServer>().await?;
+
+    let api_response =
+        map_to_api_response(resp, request_response.code, request_response.status).await?;
+    Ok(api_response)
 }
