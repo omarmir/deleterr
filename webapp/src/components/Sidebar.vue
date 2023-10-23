@@ -1,65 +1,50 @@
 <template>
-    <aside class="z-20 hidden w-64 flex-shrink-0 overflow-y-auto bg-white dark:bg-gray-800 md:block">
-        <div class="py-4 text-gray-500 dark:text-gray-400">
-            <Logo />
-            <ul class="mt-6">
-                <li class="relative px-6 py-3">
-                    <span class="absolute inset-y-0 left-0 w-1 rounded-br-lg rounded-tr-lg bg-purple-600"
-                        aria-hidden="true"></span>
-                    <a class="inline-flex w-full items-center text-sm font-semibold text-gray-800 transition-colors duration-150 hover:text-gray-800 dark:text-gray-100 dark:hover:text-gray-200"
-                        href="index.html">
-                        <svg class="h-5 w-5" aria-hidden="true" fill="none" stroke-linecap="round" stroke-linejoin="round"
-                            stroke-width="2" viewBox="0 0 24 24" stroke="currentColor">
-                            <path
-                                d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6">
-                            </path>
-                        </svg>
-                        <span class="ml-4">Dashboard</span>
-                    </a>
-                </li>
-            </ul>
-            <ul>
-                <li class="relative px-6 py-3">
-                    <router-link
-                        class="inline-flex w-full items-center text-sm font-semibold transition-colors duration-150 hover:text-gray-800 dark:hover:text-gray-200"
-                        to="/services">
-                        <svg class="h-5 w-5" aria-hidden="true" fill="none" stroke-linecap="round" stroke-linejoin="round"
-                            stroke-width="2" viewBox="0 0 24 24" stroke="currentColor">
-                            <path
-                                d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01">
-                            </path>
-                        </svg>
-                        <span class="ml-4">Services</span>
-                    </router-link>
-                </li>
-                <li class="relative px-6 py-3">
-                    <router-link
-                        class="inline-flex w-full items-center text-sm font-semibold transition-colors duration-150 hover:text-gray-800 dark:hover:text-gray-200"
-                        to="/settings">
-                        <svg class="h-5 w-5" aria-hidden="true" fill="none" stroke-linecap="round" stroke-linejoin="round"
-                            stroke-width="2" viewBox="0 0 24 24" stroke="currentColor">
-                            <path
-                                d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10">
-                            </path>
-                        </svg>
-                        <span class="ml-4">Settings</span>
-                    </router-link>
-                </li>
-                <li class="relative px-6 py-3">
-                    <a class="inline-flex w-full items-center text-sm font-semibold transition-colors duration-150 hover:text-gray-800 dark:hover:text-gray-200"
-                        href="charts.html">
-                        <svg class="h-5 w-5" aria-hidden="true" fill="none" stroke-linecap="round" stroke-linejoin="round"
-                            stroke-width="2" viewBox="0 0 24 24" stroke="currentColor">
-                            <path d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z"></path>
-                            <path d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z"></path>
-                        </svg>
-                        <span class="ml-4">Automation</span>
-                    </a>
-                </li>
-            </ul>
-        </div>
-    </aside>
+  <aside class="z-20 hidden w-64 flex-shrink-0 overflow-y-auto bg-white dark:bg-gray-800 md:block">
+    <div class="py-4 text-gray-500 dark:text-gray-400">
+      <Logo />
+      <ul class="mt-6">
+        <MenuItem to="/">
+          <template #svgPath>
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25"></path>
+          </template>
+          Dashboard
+        </MenuItem>
+        <MenuItem to="/services">
+          <template #svgPath>
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z"></path>
+          </template>
+          Services
+        </MenuItem>
+        <MenuItem to="/settings">
+          <template #svgPath>
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              d="M21.75 6.75a4.5 4.5 0 01-4.884 4.484c-1.076-.091-2.264.071-2.95.904l-7.152 8.684a2.548 2.548 0 11-3.586-3.586l8.684-7.152c.833-.686.995-1.874.904-2.95a4.5 4.5 0 016.336-4.486l-3.276 3.276a3.004 3.004 0 002.25 2.25l3.276-3.276c.256.565.398 1.192.398 1.852z"></path>
+            <path stroke-linecap="round" stroke-linejoin="round" d="M4.867 19.125h.008v.008h-.008v-.008z"></path>
+          </template>
+          Settings
+        </MenuItem>
+        <MenuItem to="/schedule">
+          <template #svgPath>
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </template>
+          Schedule
+        </MenuItem>
+      </ul>
+    </div>
+  </aside>
 </template>
 <script lang="ts" setup>
 import Logo from '~/components/Logo.vue'
+import MenuItem from '~/components/Sidebar/MenuItem.vue'
 </script>
