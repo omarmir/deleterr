@@ -6,7 +6,7 @@
                 <Header />
                 <main class="h-full overflow-y-auto">
                     <div class="container mx-auto grid px-6">
-                        <router-view />
+                        <router-view></router-view>
                     </div>
                 </main>
             </div>

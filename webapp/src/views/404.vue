@@ -10,9 +10,9 @@
         </h1>
         <p class="text-gray-700 dark:text-gray-300">
             Page not found. Check the address or
-            <a class="text-purple-600 hover:underline dark:text-purple-300" href="/">
+            <router-link class="text-purple-600 hover:underline dark:text-purple-300" to="/">
                 go back home
-            </a>
+            </router-link>
             .
         </p>
     </div>
