@@ -12,7 +12,7 @@
                     <div class="absolute inset-0 rounded-full shadow-inner" aria-hidden="true"></div>
                 </div>
                 <div>
-                    <p class="font-semibold">Hans Burger</p>
+                    <p class="font-semibold">{{ request?.mediaRequest.id }}</p>
                     <p class="text-xs text-gray-600 dark:text-gray-400">10x Developer</p>
                 </div>
             </div>
@@ -26,4 +26,10 @@
 </template>
 <script lang="ts" setup>
 import StatusPill from '~/components/StatusPill.vue'
+import { PropType } from 'vue'
+import { RequestStatus } from '~/@types/deleterr.ts'
+
+defineProps({
+    request: { required: false, type: Object as PropType<RequestStatus> },
+})
 </script>

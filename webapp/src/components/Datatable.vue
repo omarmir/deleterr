@@ -10,10 +10,16 @@
             </tr>
         </thead>
         <tbody class="divide-y bg-white dark:divide-gray-700 dark:bg-gray-800">
-            <DatatableRow />
+            <DatatableRow v-for="request in requests" :key="request.mediaRequest.id" :request="request" />
         </tbody>
     </table>
 </template>
 <script lang="ts" setup>
+import { PropType } from 'vue'
 import DatatableRow from '~/components/DatatableRow.vue'
+import { RequestStatus } from '~/@types/deleterr.ts'
+
+defineProps({
+    requests: { required: false, type: Array as PropType<RequestStatus[]> },
+})
 </script>
