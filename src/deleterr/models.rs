@@ -1,6 +1,7 @@
 use crate::overseerr::models::{MediaInfo, MediaRequest};
 use crate::tautulli::models::UserWatchHistory;
 use serde::{Deserialize, Serialize};
+use serde_aux::prelude::{deserialize_bool_from_anything, deserialize_option_number_from_string};
 
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -17,11 +18,12 @@ pub struct QueryParms {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
 pub struct ServiceInfo {
     pub host: String,
+    #[serde(deserialize_with = "deserialize_option_number_from_string")]
     pub port: Option<u8>,
     pub api_key: String,
+    #[serde(deserialize_with = "deserialize_bool_from_anything")]
     pub use_ssl: bool,
     pub service: Services,
 }
