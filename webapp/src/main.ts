@@ -1,10 +1,20 @@
 import { createApp } from 'vue'
-import App from './App.vue'
-import './style.css'
-import Dashboard from './views/Dashboard.vue'
+import App from '~/App.vue'
+import '~/style.css'
+import Dashboard from '~/views/Dashboard.vue'
+import Services from '~/views/Services.vue'
+import NotFound from '~/views/404.vue'
 import { createRouter, createWebHashHistory } from 'vue-router'
 
-const routes = [{ path: '/', component: Dashboard }]
+const routes = [
+    { path: '/services', component: Services },
+    { path: '/', component: Dashboard },
+    {
+        path: '/:catchAll(.*)',
+        component: NotFound,
+        name: 'NotFound',
+    },
+]
 
 const router = createRouter({
     history: createWebHashHistory(),
