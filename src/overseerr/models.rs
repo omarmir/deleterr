@@ -82,13 +82,3 @@ pub struct MediaInfoQueryParms {
     pub media_type: MediaType,
     pub id: usize,
 }
-
-#[derive(Deserialize, Serialize, Debug, Clone)]
-#[serde(rename_all = "camelCase")]
-pub struct AboutServer {
-    version: String,
-    total_requests: usize,
-    total_media_items: usize,
-    tz: String,
-    app_data_path: String,
-}

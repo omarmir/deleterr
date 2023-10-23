@@ -1,5 +1,5 @@
 use super::models::{
-    AboutServer, MediaInfo, MediaRequest, MediaType, OverseerrListResponse, OverseerrRequestsCount,
+    MediaInfo, MediaRequest, MediaType, OverseerrListResponse, OverseerrRequestsCount,
 };
 use crate::common::models::{APIResponse, APIServiceStatus, DeleterrError};
 use crate::common::services::{make_api_call, map_to_api_response};
