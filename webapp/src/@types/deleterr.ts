@@ -1,6 +1,6 @@
 export interface APIResponse<T> {
-    code: number,
-    success: boolean,
+    code: number
+    success: boolean
     data: T
 }
 export interface MediaRequest {
@@ -15,7 +15,7 @@ export interface Media {
     mediaType?: MediaType
     tmdbId?: number
     tvdbId?: number
-    ratingKey?: bigint
+    ratingKey?: number
     status: number
 }
 
@@ -32,16 +32,18 @@ export interface User {
     userType: number
     email?: string
     plexUsername?: string
-    plexId?: bigint
+    plexId?: number
+    avatar: string
 }
 
 export interface UserWatchHistory {
     user: string
     friendlyName: string
-    userId: bigint
+    userId: number
     fullTitle: string
     watchedStatus: number
-    ratingKey: bigint
-    parentRatingKey?: bigint
-    grandparentRatingKey?: bigint
+    ratingKey: number
+    parentRatingKey?: number
+    grandparentRatingKey?: number
+    userThumb?: string
 }

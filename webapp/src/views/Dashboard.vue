@@ -1,20 +1,16 @@
 <template>
     <h2 class="my-6 text-2xl font-semibold text-gray-700 dark:text-gray-200">Dashboard</h2>
-    <!-- CTA -->
-    <!-- Cards -->
-    <!-- New Table -->
-    <div class="shadow-xs w-full overflow-hidden rounded-lg">
-        <div class="w-full overflow-x-auto">
-            <button @click="getRequests()">Get it!</button>
-            <Datatable :requests="requests"></Datatable>
-        </div>
+    <div class="mb-4">
+        <ButtonsRegular @click="getRequests()">Get it!</ButtonsRegular>
     </div>
+    <Datatable :requests="requests"></Datatable>
 </template>
 <script setup lang="ts">
 import Datatable from '~/components/Datatable.vue'
 import type { Ref } from 'vue'
 import { ref } from 'vue'
 import { RequestStatus, APIResponse } from '~/@types/deleterr.ts'
+import ButtonsRegular from '~/components/Buttons/Regular.vue'
 
 const requests: Ref<RequestStatus[]> = ref([])
 
