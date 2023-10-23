@@ -6,7 +6,7 @@
     <Datatable :requests="requests"></Datatable>
 </template>
 <script setup lang="ts">
-import Datatable from '~/components/Datatable.vue'
+import Datatable from '~/components/Table/Datatable.vue'
 import type { Ref } from 'vue'
 import { ref } from 'vue'
 import { RequestStatus, APIResponse } from '~/@types/deleterr.ts'

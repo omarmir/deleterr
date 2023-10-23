@@ -8,6 +8,7 @@ export default {
         extend: {
             fontFamily: {
                 lato: 'lato, open-sans, sans-serif',
+                inter: 'inter, ui-sans-serif, system-ui, sans-serif'
             },
             maxHeight: {
                 0: '0',

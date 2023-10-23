@@ -21,7 +21,7 @@
 </template>
 <script lang="ts" setup>
 import { PropType } from 'vue'
-import DatatableRow from '~/components/DatatableRow.vue'
+import DatatableRow from '~/components/Table/DatatableRow.vue'
 import { RequestStatus } from '~/@types/deleterr.ts'
 
 defineProps({

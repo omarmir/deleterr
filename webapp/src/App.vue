@@ -1,5 +1,5 @@
 <template>
-    <div :class="{ dark: isDarkModeEnabled }">
+    <div :class="{ dark: isDarkModeEnabled }" class="font-inter">
         <div class="flex h-screen bg-gray-50 dark:bg-gray-900">
             <Sidebar></Sidebar>
             <div class="flex w-full flex-1 flex-col pb-2">
