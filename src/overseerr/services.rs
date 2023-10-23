@@ -1,6 +1,9 @@
 use std::time::Duration;
 
-use super::models::{MediaRequest, OverseerrListResponse, OverseerrRequestsCount};
+use super::models::{
+    MediaInfo, MediaInfoQueryParms, MediaRequest, MediaType, OverseerrListResponse,
+    OverseerrRequestsCount,
+};
 use crate::common::models::{APIResponse, DeleterrError};
 use crate::common::services::{make_api_call, map_to_api_response, process_request};
 use actix_web::{get, web, Responder};
@@ -67,7 +70,31 @@ async fn get_requests_count_json() -> impl Responder {
     return process_request(count_response);
 }
 
+pub async fn get_media_info(
+    media_type: &MediaType,
+    id: usize,
+) -> Result<APIResponse<MediaInfo>, DeleterrError> {
+    let endpoint: String = match media_type {
+        MediaType::TV => format!("tv/{id}"),
+        MediaType::Movie => format!("movie/{id}"),
+    };
+    let client_req = get_api_endpoint(endpoint)?;
+    let request_response = make_api_call(client_req).await?;
+    let resp = request_response.response.json::<MediaInfo>().await?;
+
+    let api_response =
+        map_to_api_response(resp, request_response.code, request_response.status).await?;
+    Ok(api_response)
+}
+
+#[get("/requests/mediainfo")]
+async fn get_media_info_json(info: web::Query<MediaInfoQueryParms>) -> impl Responder {
+    let media_info = get_media_info(&info.media_type, info.id).await;
+    return process_request(media_info);
+}
+
 pub fn config(cfg: &mut web::ServiceConfig) {
     cfg.service(get_requests_json)
-        .service(get_requests_count_json);
+        .service(get_requests_count_json)
+        .service(get_media_info_json);
 }

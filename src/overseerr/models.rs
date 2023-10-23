@@ -62,7 +62,23 @@ pub struct Media {
 
 #[derive(Deserialize, Serialize, Debug, Clone)]
 #[serde(rename_all = "lowercase")]
-enum MediaType {
+pub enum MediaType {
     Movie,
     TV,
+}
+
+#[derive(Deserialize, Serialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct MediaInfo {
+    poster_path: Option<String>,
+    #[serde(alias = "firstAirDate")]
+    release_date: Option<String>, //firstAirDate
+    #[serde(alias = "name")]
+    title: String, //name
+}
+
+#[derive(Deserialize, Serialize, Debug, Clone)]
+pub struct MediaInfoQueryParms {
+    pub media_type: MediaType,
+    pub id: usize,
 }
