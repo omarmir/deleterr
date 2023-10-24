@@ -3,6 +3,7 @@ use std::error::Error;
 use std::fmt;
 
 #[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
 pub enum APIServiceStatus {
     Success,
     WrongAPIKey,

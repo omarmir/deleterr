@@ -21,7 +21,7 @@ pub struct QueryParms {
 pub struct ServiceInfo {
     pub host: String,
     #[serde(deserialize_with = "deserialize_option_number_from_string")]
-    pub port: Option<u8>,
+    pub port: Option<u16>,
     pub api_key: String,
     #[serde(deserialize_with = "deserialize_bool_from_anything")]
     pub use_ssl: bool,

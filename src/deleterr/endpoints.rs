@@ -17,7 +17,7 @@ async fn get_requests_count_json() -> impl Responder {
 }
 
 #[post("/api/v1/json/service/status")]
-async fn get_service_status_json(form: web::Form<ServiceInfo>) -> impl Responder {
+async fn get_service_status_json(web::Form(form): web::Form<ServiceInfo>) -> impl Responder {
     let service_status = match form.service {
         Services::Overseer => crate::os_serv::get_overseerr_status().await,
         Services::Tautulli => crate::tt_serv::get_tautulli_status().await,
