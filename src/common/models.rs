@@ -34,7 +34,7 @@ pub enum APIStatus {
 #[serde(rename_all = "lowercase")]
 pub enum Services {
     Tautulli,
-    Overseer,
+    Overseerr,
 }
 
 pub struct RequestResponse {

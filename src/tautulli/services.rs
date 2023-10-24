@@ -57,13 +57,13 @@ pub async fn get_tautulli_status() -> Result<APIResponse<APIServiceStatus>, Dele
                 },
                 _ => APIServiceStatus {
                     status: APIStatus::Other,
-                    service: Services::Overseer,
+                    service: Services::Tautulli,
                     is_success: false,
                 },
             },
             _ => APIServiceStatus {
                 status: APIStatus::Other,
-                service: Services::Overseer,
+                service: Services::Tautulli,
                 is_success: false,
             },
         },
