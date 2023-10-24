@@ -1,5 +1,5 @@
 use super::models::{
-    MediaInfo, MediaRequest, MediaType, OverseerrListResponse, OverseerrRequestsCount,
+    AboutServer, MediaInfo, MediaRequest, MediaType, OverseerrListResponse, OverseerrRequestsCount,
 };
 use crate::common::models::{
     APIResponse, APIServiceStatus, APIStatus, DeleterrError, ServiceInfo, Services,
@@ -121,23 +121,32 @@ pub async fn get_overseerr_status(
     let endpoint: String = "settings/about".to_string();
     let client_req = get_api_endpoint(endpoint, service_info)?;
     let request_response = make_api_call(client_req).await?;
+    // We need to make sure its actaully the response from Overseer and not just an OK response
+    let resp = request_response.response.json::<AboutServer>().await;
 
     //This is a nested match which is a bit messy but the if let statements were harder to parse mentally
-    let service_status = match request_response.code {
-        200 => APIServiceStatus {
+    let service_status = match resp {
+        Ok(_) => APIServiceStatus {
             status: APIStatus::Success,
             service: Services::Overseerr,
             is_success: true,
         },
-        403 => APIServiceStatus {
-            status: APIStatus::WrongAPIKey,
-            service: Services::Overseerr,
-            is_success: false,
-        },
-        _ => APIServiceStatus {
-            status: APIStatus::Other,
-            service: Services::Overseerr,
-            is_success: false,
+        _ => match &request_response.code {
+            200 => APIServiceStatus {
+                status: APIStatus::Success,
+                service: Services::Overseerr,
+                is_success: true,
+            },
+            403 => APIServiceStatus {
+                status: APIStatus::WrongAPIKey,
+                service: Services::Overseerr,
+                is_success: false,
+            },
+            _ => APIServiceStatus {
+                status: APIStatus::Other,
+                service: Services::Overseerr,
+                is_success: false,
+            },
         },
     };
 
