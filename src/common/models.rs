@@ -4,10 +4,25 @@ use std::fmt;
 
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
-pub enum APIServiceStatus {
+pub struct APIServiceStatus {
+    pub service: Services,
+    pub is_success: bool,
+    pub status: APIStatus,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum APIStatus {
     Success,
     WrongAPIKey,
     Other,
+}
+
+#[derive(Deserialize, Serialize, Debug, Clone)]
+#[serde(rename_all = "lowercase")]
+pub enum Services {
+    Tautulli,
+    Overseer,
 }
 
 pub struct RequestResponse {

@@ -1,7 +1,7 @@
 use super::models::{
     MediaInfo, MediaRequest, MediaType, OverseerrListResponse, OverseerrRequestsCount,
 };
-use crate::common::models::{APIResponse, APIServiceStatus, DeleterrError};
+use crate::common::models::{APIResponse, APIServiceStatus, APIStatus, DeleterrError, Services};
 use crate::common::services::{make_api_call, map_to_api_response};
 use dotenv::dotenv;
 use reqwest::{header::ACCEPT, Error};
@@ -75,9 +75,21 @@ pub async fn get_overseerr_status() -> Result<APIResponse<APIServiceStatus>, Del
 
     //This is a nested match which is a bit messy but the if let statements were harder to parse mentally
     let service_status = match request_response.code {
-        200 => APIServiceStatus::Success,
-        403 => APIServiceStatus::WrongAPIKey,
-        _ => APIServiceStatus::Other,
+        200 => APIServiceStatus {
+            status: APIStatus::Success,
+            service: Services::Overseer,
+            is_success: true,
+        },
+        403 => APIServiceStatus {
+            status: APIStatus::WrongAPIKey,
+            service: Services::Overseer,
+            is_success: false,
+        },
+        _ => APIServiceStatus {
+            status: APIStatus::Other,
+            service: Services::Overseer,
+            is_success: false,
+        },
     };
 
     let api_response = map_to_api_response(service_status, 200, "Failure".to_string()).await?;

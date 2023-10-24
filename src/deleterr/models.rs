@@ -1,3 +1,4 @@
+use crate::common::models::Services;
 use crate::overseerr::models::{MediaInfo, MediaRequest};
 use crate::tautulli::models::UserWatchHistory;
 use serde::{Deserialize, Serialize};
@@ -26,11 +27,4 @@ pub struct ServiceInfo {
     #[serde(deserialize_with = "deserialize_bool_from_anything")]
     pub use_ssl: bool,
     pub service: Services,
-}
-
-#[derive(Deserialize, Serialize, Debug, Clone)]
-#[serde(rename_all = "lowercase")]
-pub enum Services {
-    Tautulli,
-    Overseer,
 }

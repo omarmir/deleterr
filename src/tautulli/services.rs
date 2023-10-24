@@ -1,6 +1,6 @@
 use super::models::TautulliResponse;
-use crate::common::models::APIServiceStatus;
 use crate::common::models::{APIResponse, DeleterrError};
+use crate::common::models::{APIServiceStatus, APIStatus, Services};
 use crate::common::services::{make_api_call, map_to_api_response};
 use dotenv::dotenv;
 use reqwest::{header::ACCEPT, Error};
@@ -43,13 +43,29 @@ pub async fn get_tautulli_status() -> Result<APIResponse<APIServiceStatus>, Dele
 
     //This is a nested match which is a bit messy but the if let statements were harder to parse mentally
     let service_status = match resp.response.result {
-        super::models::Result::Success => APIServiceStatus::Success,
+        super::models::Result::Success => APIServiceStatus {
+            status: APIStatus::Success,
+            service: Services::Tautulli,
+            is_success: true,
+        },
         _ => match resp.response.message {
             Some(msg) => match msg.as_str() {
-                "Invalid apikey" => APIServiceStatus::WrongAPIKey,
-                _ => APIServiceStatus::Other,
+                "Invalid apikey" => APIServiceStatus {
+                    status: APIStatus::WrongAPIKey,
+                    service: Services::Tautulli,
+                    is_success: false,
+                },
+                _ => APIServiceStatus {
+                    status: APIStatus::Other,
+                    service: Services::Overseer,
+                    is_success: false,
+                },
             },
-            _ => APIServiceStatus::Other,
+            _ => APIServiceStatus {
+                status: APIStatus::Other,
+                service: Services::Overseer,
+                is_success: false,
+            },
         },
     };
 
