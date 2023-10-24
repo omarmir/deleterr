@@ -1,7 +1,6 @@
 use super::services::match_requests_to_watched;
-use crate::common::models::Services;
+use crate::common::{models::ServiceInfo, models::Services, services::process_request};
 use crate::deleterr::models::QueryParms;
-use crate::{common::services::process_request, deleterr::models::ServiceInfo};
 use actix_web::{get, post, web, Responder};
 
 #[get("/api/v1/json/requests")]
