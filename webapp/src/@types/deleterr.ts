@@ -27,6 +27,11 @@ export interface RequestStatus {
   mediaInfo?: MediaInfo
 }
 
+export interface RequestStatusWithRecordInfo {
+  allRequests: number
+  requests: RequestStatus[]
+}
+
 export interface User {
   id: number
   username?: string
