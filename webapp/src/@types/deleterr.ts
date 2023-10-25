@@ -74,4 +74,4 @@ export interface ServiceInfo {
   service: Services
 }
 
-export type Services = 'tautulli' | 'overseerr'
+export type Services = 'tautulli' | 'overseerr' | 'radarr' | 'sonarr'

@@ -19,7 +19,8 @@
 <script lang="ts" setup>
 import type { Ref } from 'vue'
 import { ref } from 'vue'
-import { ServiceInfo } from '~/@types/deleterr'
+import { PropType } from 'vue'
+import { ServiceInfo, Services } from '~/@types/deleterr'
 import { useServiceTest } from '~/composables/useServiceTest'
 import InputsInput from '~/components/Inputs/Input.vue'
 import InputsCheckbox from '~/components/Inputs/Checkbox.vue'
@@ -27,17 +28,21 @@ import { InputType } from '~/@types/deleterr.ts'
 import ButtonsRegular from '~/components/Buttons/Regular.vue'
 import ButtonsOutline from '~/components/Buttons/Outline.vue'
 
-const serviceInfo: Ref<ServiceInfo> = ref({
-  host: '192.168.2.102',
-  apiKey: '',
-  port: '5055',
-  useSsl: false,
-  service: 'overseerr',
-})
-
-defineProps({
+const props = defineProps({
   logo: { type: String, required: true },
+  service: {
+    type: String as PropType<Services>,
+    required: true,
+  },
 })
 
 const { testService } = useServiceTest()
+
+const serviceInfo: Ref<ServiceInfo> = ref({
+  host: '',
+  apiKey: '',
+  port: '',
+  useSsl: false,
+  service: props.service,
+})
 </script>
