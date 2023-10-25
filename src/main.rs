@@ -13,7 +13,7 @@ mod polodb;
 mod tautulli;
 
 struct AppData {
-    _db: polodb_core::Database,
+    pub db: polodb_core::Database,
 }
 
 #[actix_web::main]
@@ -23,7 +23,7 @@ async fn main() -> std::io::Result<()> {
     env_logger::init();
 
     let app_state = AppData {
-        _db: polo_serv::get_database().expect("Unable to open db. Exiting."),
+        db: polo_serv::get_database().expect("Unable to open db. Exiting."),
     };
 
     let data = web::Data::new(app_state);

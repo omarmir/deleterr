@@ -1,7 +1,13 @@
 use super::services::match_requests_to_watched;
 use crate::common::{models::ServiceInfo, models::Services, services::process_request};
 use crate::deleterr::models::QueryParms;
-use actix_web::{get, post, web, Responder};
+use crate::polodb::services::save_service;
+use crate::AppData;
+use actix_web::{
+    get, post,
+    web::{self, Data},
+    Responder,
+};
 
 #[get("/api/v1/json/requests")]
 async fn get_all_requests_json(info: web::Query<QueryParms>) -> impl Responder {
@@ -26,8 +32,19 @@ async fn get_service_status_json(
     return process_request(service_status);
 }
 
+#[post("/api/v1/json/service/save")]
+async fn get_service_submit_json(
+    app_data: Data<AppData>,
+    web::Json(service_info): web::Json<ServiceInfo>,
+) -> impl Responder {
+    let db = &app_data.db;
+    let inserted_result = save_service(db, service_info).await;
+    return process_request(inserted_result);
+}
+
 pub fn config(cfg: &mut web::ServiceConfig) {
     cfg.service(get_all_requests_json)
         .service(get_requests_count_json)
-        .service(get_service_status_json);
+        .service(get_service_status_json)
+        .service(get_service_submit_json);
 }

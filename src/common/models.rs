@@ -88,3 +88,9 @@ impl From<reqwest::Error> for DeleterrError {
         DeleterrError::new(err.to_string().as_str())
     }
 }
+
+impl From<polodb_core::Error> for DeleterrError {
+    fn from(cause: polodb_core::Error) -> Self {
+        DeleterrError::new(cause.to_string().as_str())
+    }
+}
