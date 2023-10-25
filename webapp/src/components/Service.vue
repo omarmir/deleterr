@@ -5,28 +5,37 @@
       <slot></slot>
     </h4>
     <div class="flex flex-col space-y-6 rounded-lg bg-white px-4 py-3 shadow-md dark:bg-gray-800">
-      <InputsInput v-model="serviceInfo.host" label="Host" placeholder="Host"></InputsInput>
-      <InputsInput v-model="serviceInfo.port" label="Port" placeholder="Port" :type="InputType.number"></InputsInput>
-      <InputsInput v-model="serviceInfo.apiKey" label="API Key" placeholder="API Key"></InputsInput>
-      <InputsCheckbox v-model="serviceInfo.useSsl">Use SSL</InputsCheckbox>
-      <div class="flex justify-end space-x-4">
-        <ButtonsOutline @click="testService(serviceInfo)">Test</ButtonsOutline>
-        <ButtonsRegular>Save</ButtonsRegular>
-      </div>
+      <form class="flex flex-col space-y-3" @submit.prevent="submitForm">
+        <InputsInput v-model="serviceInfo.host" :required="true" label="Host" placeholder="Host"></InputsInput>
+        <p v-for="error in v$.host.$errors" :key="error.$uid" class="text-xs text-red-600">
+          {{ error.$message }}
+        </p>
+        <InputsInput v-model="serviceInfo.port" label="Port" placeholder="Port" :type="InputType.number"></InputsInput>
+        <InputsInput v-model="serviceInfo.apiKey" :required="true" label="API Key" placeholder="API Key"></InputsInput>
+        <p v-for="error in v$.apiKey.$errors" :key="error.$uid" class="text-xs text-red-600">
+          {{ error.$message }}
+        </p>
+        <InputsCheckbox v-model="serviceInfo.useSsl">Use SSL</InputsCheckbox>
+        <div class="flex justify-end space-x-4">
+          <ButtonsOutline @click="testService(serviceInfo)">Test</ButtonsOutline>
+          <ButtonsRegular :is-submit="true">Save</ButtonsRegular>
+        </div>
+      </form>
     </div>
   </div>
 </template>
 <script lang="ts" setup>
-import type { Ref } from 'vue'
-import { ref } from 'vue'
+import { reactive } from 'vue'
 import { PropType } from 'vue'
 import { ServiceInfo, Services } from '~/@types/deleterr'
 import { useServiceTest } from '~/composables/useServiceTest'
-import InputsInput from '~/components/Inputs/Input.vue'
-import InputsCheckbox from '~/components/Inputs/Checkbox.vue'
 import { InputType } from '~/@types/deleterr.ts'
+import { useVuelidate } from '@vuelidate/core'
+import { required } from '@vuelidate/validators'
 import ButtonsRegular from '~/components/Buttons/Regular.vue'
 import ButtonsOutline from '~/components/Buttons/Outline.vue'
+import InputsInput from '~/components/Inputs/Input.vue'
+import InputsCheckbox from '~/components/Inputs/Checkbox.vue'
 
 const props = defineProps({
   logo: { type: String, required: true },
@@ -38,11 +47,26 @@ const props = defineProps({
 
 const { testService } = useServiceTest()
 
-const serviceInfo: Ref<ServiceInfo> = ref({
+const serviceInfo: ServiceInfo = reactive({
   host: '',
   apiKey: '',
   port: '',
   useSsl: false,
   service: props.service,
 })
+
+const rules = {
+  host: { required },
+  apiKey: { required },
+}
+
+const submitForm = async () => {
+  const result = await v$.value.$validate()
+
+  if (result) {
+    alert('do something!')
+  }
+}
+
+const v$ = useVuelidate(rules, serviceInfo as any)
 </script>
