@@ -16,9 +16,11 @@ async fn get_requests_count_json() -> impl Responder {
 }
 
 #[post("/api/v1/json/service/status")]
-async fn get_service_status_json(web::Form(form): web::Form<ServiceInfo>) -> impl Responder {
-    let service_status = match form.service {
-        Services::Overseerr => crate::os_serv::get_overseerr_status(form).await,
+async fn get_service_status_json(
+    web::Json(service_info): web::Json<ServiceInfo>,
+) -> impl Responder {
+    let service_status = match service_info.service {
+        Services::Overseerr => crate::os_serv::get_overseerr_status(service_info).await,
         Services::Tautulli => crate::tt_serv::get_tautulli_status().await,
     };
     return process_request(service_status);
