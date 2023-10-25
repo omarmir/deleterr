@@ -4,10 +4,11 @@ use std::error::Error;
 use std::fmt;
 
 #[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct ServiceInfo {
     pub host: String,
     #[serde(deserialize_with = "deserialize_option_number_from_string")]
-    pub port: Option<u16>,
+    pub port: Option<String>,
     pub api_key: String,
     #[serde(deserialize_with = "deserialize_bool_from_anything")]
     pub use_ssl: bool,

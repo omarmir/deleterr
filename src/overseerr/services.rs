@@ -52,7 +52,7 @@ fn build_service_info() -> ServiceInfo {
     let os_port = std::env::var("OS_PORT").expect("os_port must be set.");
     let os_use_ssl = std::env::var("OS_USE_SSL").expect("os_use_ssl must be set.");
 
-    let parsed_port = os_port.parse::<u16>().ok();
+    let parsed_port = os_port.parse::<String>().ok();
 
     return ServiceInfo {
         host: os_host,
