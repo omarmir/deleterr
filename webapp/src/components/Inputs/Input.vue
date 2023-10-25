@@ -4,9 +4,10 @@
       {{ label }}
     </span>
     <input
-      class="dark:focus:shadow-outline-gray form-input mt-1 block w-full rounded-md border p-2 text-sm focus:border-purple-400 focus:shadow-outline-purple focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+      class="form-input mt-1 block w-full rounded-md border p-2 text-sm focus:border-purple-400 focus:shadow-outline-purple focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:focus:shadow-outline-gray"
       :placeholder="placeholder"
       :type="type"
+      :value="modelValue"
       @input="setValue" />
   </label>
 </template>
@@ -19,7 +20,7 @@ const props = defineProps({
   placeholder: String,
   modelValue: String,
   type: {
-    type: Object as PropType<InputType>,
+    type: String as PropType<InputType>,
     required: false,
     default: InputType.text,
   },

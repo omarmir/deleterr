@@ -65,3 +65,13 @@ export enum InputType {
   number = 'number',
   password = 'password',
 }
+
+export interface ServiceInfo {
+  host: string
+  port?: string
+  apiKey: string
+  useSsl: boolean
+  service: Services
+}
+
+export type Services = 'tautulli' | 'overseerr'
