@@ -10,6 +10,13 @@ pub struct RequestStatus {
     pub media_info: Option<MediaInfo>,
 }
 
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct RequestStatusWithRecordInfo {
+    pub all_requests: usize,
+    pub requests: Vec<RequestStatus>,
+}
+
 #[derive(Deserialize)]
 pub struct QueryParms {
     pub take: Option<usize>,

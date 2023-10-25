@@ -1,4 +1,4 @@
-use super::models::RequestStatus;
+use super::models::{RequestStatus, RequestStatusWithRecordInfo};
 use crate::common::models::{APIData, APIResponse, DeleterrError};
 use crate::common::services::map_to_api_response;
 
@@ -106,21 +106,22 @@ async fn make_tt_history_chunk_query(os_requests: Vec<MediaRequest>) -> Vec<Requ
 
 /*
  * This function splits up the OS requests in 10 request chunks and then
- * spawns 10 threads (in theory)
  */
 pub async fn match_requests_to_watched(
     take: Option<usize>,
     skip: Option<usize>,
-) -> Result<APIResponse<Vec<RequestStatus>>, DeleterrError> {
-    //Our chunk size is 10 so that we don't DDOS our own server if we have thousands of requests
+) -> Result<APIResponse<RequestStatusWithRecordInfo>, DeleterrError> {
+    // Our chunk size is 10 so that we don't DDOS our own server if we have thousands of requests
     // This app uses tokio's spawn function which is concurrent
-    //We take the lesser of our specified take or 10
-    //So that if we getting sent a take of 60,000 we do it 10 at a time
+    // We take the lesser of our specified take or 10
+    // So that if we getting sent a take of 60,000 we do it 10 at a time
     let chunk_size = std::cmp::min(10, take.unwrap_or(10));
     let skip_val = skip.unwrap_or(0);
 
     let (os_requests, page_info) = get_os_requests(chunk_size, skip_val).await?;
     let result_or_take = std::cmp::min(page_info.results, take.unwrap_or(page_info.results)); //Length of the vector that holds the final result is the lesser or take or results
+
+    // If the skip is greater than the take (we are skipping past all records) then 0 otherwise, take - skip
     let final_result_count = match result_or_take <= skip_val {
         false => result_or_take - skip_val,
         true => 0,
@@ -128,9 +129,15 @@ pub async fn match_requests_to_watched(
 
     let mut matched_requests: Vec<RequestStatus> = Vec::with_capacity(final_result_count);
 
+    // No results found
     if final_result_count == 0 {
+        let request_status_with_record_info = RequestStatusWithRecordInfo {
+            all_requests: page_info.results,
+            requests: matched_requests,
+        };
         let api_response =
-            map_to_api_response(matched_requests, 200, "Failure".to_string()).await?;
+            map_to_api_response(request_status_with_record_info, 200, "Failure".to_string())
+                .await?;
         return Ok(api_response);
     }
 
@@ -143,8 +150,13 @@ pub async fn match_requests_to_watched(
     // Less than/Equal to 10 requests requires no further requests to overseerr
     // so make an api response and sent it
     if final_result_count <= chunk_size {
+        let request_status_with_record_info = RequestStatusWithRecordInfo {
+            all_requests: page_info.results,
+            requests: matched_requests,
+        };
         let api_response =
-            map_to_api_response(matched_requests, 200, "Failure".to_string()).await?;
+            map_to_api_response(request_status_with_record_info, 200, "Failure".to_string())
+                .await?;
         return Ok(api_response);
     }
 
@@ -161,7 +173,13 @@ pub async fn match_requests_to_watched(
         matched_requests.extend(make_tt_history_chunk_query(os_requests).await);
     }
 
-    let api_response = map_to_api_response(matched_requests, 200, "Success".to_string()).await?;
+    let request_status_with_record_info = RequestStatusWithRecordInfo {
+        all_requests: page_info.results,
+        requests: matched_requests,
+    };
+
+    let api_response =
+        map_to_api_response(request_status_with_record_info, 200, "Success".to_string()).await?;
 
     Ok(api_response)
 }
