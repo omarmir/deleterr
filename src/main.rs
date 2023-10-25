@@ -1,3 +1,4 @@
+use actix_cors::Cors;
 use actix_web::{middleware::Logger, web, App, HttpServer};
 use actix_web_lab::web as lab_web;
 use deleterr::endpoints as dr_serv;
@@ -29,10 +30,11 @@ async fn main() -> std::io::Result<()> {
 
     HttpServer::new(move || {
         let app_data = &data;
-
         let logger = Logger::default();
+        let cors = Cors::permissive();
 
         App::new()
+            .wrap(cors)
             .wrap(logger)
             .app_data(app_data.clone())
             .configure(dr_serv::config)
