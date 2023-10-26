@@ -38,6 +38,15 @@ pub enum Services {
     Overseerr,
 }
 
+impl From<Services> for String {
+    fn from(service: Services) -> Self {
+        match service {
+            Services::Overseerr => "overseerr".to_string(),
+            Services::Tautulli => "tautulli".to_string()
+        }
+    }
+}
+
 pub struct RequestResponse {
     pub code: u16,
     pub status: String,
