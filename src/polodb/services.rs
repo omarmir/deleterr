@@ -3,10 +3,10 @@ use polodb_core::{
     Database, Error,
 };
 
-use crate::common::{
+use crate::{common::{
     models::{APIResponse, DeleterrError, ServiceInfo},
     services::map_to_api_response,
-};
+}, deleterr::models::RequestStatus};
 
 pub fn get_database() -> Result<Database, Error> {
     let db = Database::open_file("deleterr.db")?;
@@ -38,12 +38,21 @@ pub async fn get_service(
         _ => collection.find(None),
     }?;
 
-    let mut results = vec![];
-    for document in service {
-        let document = document?;
-        results.push(document)
-    }
+    let results = service.filter_map(|service_info| service_info.ok()).collect();
 
+    let api_response = map_to_api_response(results, 200, "Failure".to_string()).await?;
+
+    Ok(api_response)
+}
+
+pub async fn _get_requests(
+    db: &Database,
+    take: usize,
+    skip: usize,
+) -> Result<APIResponse<Vec<RequestStatus>>, DeleterrError> {
+    let collection = db.collection::<RequestStatus>("requests");
+    let requests = collection.find(None)?;
+    let results = requests.skip(skip).take(take).filter_map(|request| request.ok()).collect();
     let api_response = map_to_api_response(results, 200, "Failure".to_string()).await?;
 
     Ok(api_response)
