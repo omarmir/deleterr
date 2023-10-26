@@ -1,7 +1,7 @@
 use super::services::match_requests_to_watched;
 use crate::common::{models::ServiceInfo, models::Services, services::process_request};
 use crate::deleterr::models::QueryParms;
-use crate::polodb::services::save_service;
+use crate::polodb::services::{get_service, save_service};
 use crate::AppData;
 use actix_web::{
     get, post,
@@ -42,9 +42,28 @@ async fn get_service_submit_json(
     return process_request(inserted_result);
 }
 
+#[get("/api/v1/json/service/get")]
+async fn get_all_services_json(app_data: Data<AppData>) -> impl Responder {
+    let db = &app_data.db;
+    let service_info = get_service(db, None).await;
+    return process_request(service_info);
+}
+
+#[get("/api/v1/json/service/get/{service_name}")]
+async fn get_service_by_name_json(
+    app_data: Data<AppData>,
+    service_name: web::Path<String>,
+) -> impl Responder {
+    let db = &app_data.db;
+    let service_info = get_service(db, Some(service_name.into_inner())).await;
+    return process_request(service_info);
+}
+
 pub fn config(cfg: &mut web::ServiceConfig) {
     cfg.service(get_all_requests_json)
         .service(get_requests_count_json)
         .service(get_service_status_json)
-        .service(get_service_submit_json);
+        .service(get_service_submit_json)
+        .service(get_service_by_name_json)
+        .service(get_all_services_json);
 }
