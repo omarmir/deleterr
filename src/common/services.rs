@@ -1,6 +1,10 @@
 use super::models::{APIData, APIResponse, DeleterrError, RequestResponse, ServiceInfo};
 use actix_web::{HttpResponse, Responder};
-use reqwest::Error;
+use reqwest::{
+    header::{HeaderMap, HeaderValue, ACCEPT},
+    Error,
+};
+use std::time::Duration;
 
 pub async fn make_api_call(
     client_request: reqwest::RequestBuilder,
@@ -84,4 +88,29 @@ pub fn create_api_url(endpoint: &String, service_info: &ServiceInfo) -> String {
     let url = format!("{result}{endpoint}");
 
     return url;
+}
+
+pub fn get_api_endpoint(
+    url: String,
+    query: Vec<(&str, &str)>,
+    api_key: Option<String>,
+) -> Result<reqwest::RequestBuilder, Error> {
+    let mut headers = HeaderMap::new();
+
+    headers.insert(ACCEPT, HeaderValue::from_static("application/json"));
+    if let Some(set_api_key) = api_key {
+        let str = set_api_key.as_str();
+        headers.insert(
+            "X-Api-Key",
+            HeaderValue::from_str(str).unwrap_or(HeaderValue::from_static("")), // Handling the case where someone gives us a bad API Key value
+        );
+    };
+
+    let req_client = reqwest::Client::new()
+        .get(url)
+        .query(&query)
+        .timeout(Duration::from_secs(15))
+        .headers(headers);
+
+    Ok(req_client)
 }

@@ -1,23 +1,10 @@
 use super::models::TautulliResponse;
 use crate::common::models::{APIResponse, DeleterrError, ServiceInfo};
 use crate::common::models::{APIServiceStatus, APIStatus, Services};
-use crate::common::services::{create_api_url, make_api_call, map_to_api_response};
+use crate::common::services::{
+    create_api_url, get_api_endpoint, make_api_call, map_to_api_response,
+};
 use dotenv::dotenv;
-use reqwest::{header::ACCEPT, Error};
-use std::time::Duration;
-
-fn get_api_endpoint(
-    url: String,
-    query: Vec<(&str, &str)>,
-) -> Result<reqwest::RequestBuilder, Error> {
-    let req_client = reqwest::Client::new()
-        .get(url)
-        .query(&query)
-        .timeout(Duration::from_secs(15))
-        .header(ACCEPT, "application/json");
-
-    Ok(req_client)
-}
 
 fn build_service_info() -> ServiceInfo {
     dotenv().ok();
@@ -47,11 +34,12 @@ pub async fn get_item_history(
     let api_url = create_api_url(&endpoint, &service_info);
     let query = vec![
         ("cmd", "get_history"),
+        ("apikey", service_info.api_key.as_str()),
         ("rating_key", rating_key),
         ("user_id", user_id),
     ];
 
-    let client_req = get_api_endpoint(api_url, query)?;
+    let client_req = get_api_endpoint(api_url, query, None)?;
     let request_response = make_api_call(client_req).await?;
     let resp = request_response.response.json::<TautulliResponse>().await?;
     let api_response =
@@ -63,8 +51,8 @@ pub async fn get_tautulli_status() -> Result<APIResponse<APIServiceStatus>, Dele
     let endpoint = format!("api/v2");
     let service_info = build_service_info();
     let api_url = create_api_url(&endpoint, &service_info);
-    let query = vec![("cmd", "status")];
-    let client_req = get_api_endpoint(api_url, query)?;
+    let query = vec![("cmd", "status"), ("apikey", service_info.api_key.as_str())];
+    let client_req = get_api_endpoint(api_url, query, None)?;
     let request_response = make_api_call(client_req).await?;
     let resp = request_response.response.json::<TautulliResponse>().await?;
 
