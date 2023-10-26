@@ -9,7 +9,10 @@ async fn get_os_requests(
     take: usize,
     skip: usize,
 ) -> Result<(Vec<MediaRequest>, PageInfo), DeleterrError> {
-    let os_requests = crate::os_serv::get_requests(take, skip).await?.data;
+    let os_requests =
+        crate::os_serv::get_requests(take.to_string().as_str(), skip.to_string().as_str())
+            .await?
+            .data;
     match os_requests {
         APIData::Success(data) => {
             let requests = data.results;
@@ -21,10 +24,13 @@ async fn get_os_requests(
 }
 
 async fn get_tau_history_by_key_user(rating_key: u64, user_id: u64) -> Option<UserWatchHistory> {
-    let tt_request = crate::tt_serv::get_item_history(rating_key, user_id)
-        .await
-        .ok()?
-        .data;
+    let tt_request = crate::tt_serv::get_item_history(
+        rating_key.to_string().as_str(),
+        user_id.to_string().as_str(),
+    )
+    .await
+    .ok()?
+    .data;
 
     let tt_matches = match tt_request {
         APIData::Success(tt_response) => tt_response.response.data.data,

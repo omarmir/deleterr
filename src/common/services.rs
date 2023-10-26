@@ -1,4 +1,4 @@
-use super::models::{APIData, APIResponse, DeleterrError, RequestResponse};
+use super::models::{APIData, APIResponse, DeleterrError, RequestResponse, ServiceInfo};
 use actix_web::{HttpResponse, Responder};
 use reqwest::Error;
 
@@ -56,4 +56,32 @@ where
     };
 
     Ok(api_response)
+}
+
+pub fn create_api_url(endpoint: &String, service_info: &ServiceInfo) -> String {
+    let proto = if service_info.use_ssl {
+        "https://"
+    } else {
+        "http://"
+    };
+
+    let mut builder = String::new();
+
+    builder.push_str(proto);
+    builder.push_str(service_info.host.as_str());
+
+    if let Some(port) = &service_info.port {
+        builder.push(':');
+        builder.push_str(port.clone().as_str())
+    }
+
+    if !service_info.host.ends_with('/') {
+        builder.push('/');
+    }
+
+    let result = builder;
+
+    let url = format!("{result}{endpoint}");
+
+    return url;
 }

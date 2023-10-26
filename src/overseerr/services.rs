@@ -4,42 +4,22 @@ use super::models::{
 use crate::common::models::{
     APIResponse, APIServiceStatus, APIStatus, DeleterrError, ServiceInfo, Services,
 };
-use crate::common::services::{make_api_call, map_to_api_response};
+use crate::common::services::{create_api_url, make_api_call, map_to_api_response};
 use dotenv::dotenv;
 use reqwest::{header::ACCEPT, Error};
 use std::time::Duration;
 
 fn get_api_endpoint(
-    endpoint: String,
-    service_info: ServiceInfo,
+    url: String,
+    query: Vec<(&str, &str)>,
 ) -> Result<reqwest::RequestBuilder, Error> {
-    let mut builder = String::new();
-    builder.push_str(if service_info.use_ssl {
-        "https://"
-    } else {
-        "http://"
-    });
-    builder.push_str(service_info.host.as_str());
-
-    if service_info.port.is_some() {
-        builder.push(':');
-        builder.push_str(service_info.port.unwrap().to_string().as_str());
-    }
-
-    if !service_info.host.ends_with('/') {
-        builder.push('/');
-    }
-
-    builder.push_str("api/v1/");
-
-    let result = builder;
-
-    let url = format!("{result}{endpoint}");
+    let api_key = "sjsjsj".to_string();
 
     let req_client = reqwest::Client::new()
         .get(url)
+        .query(&query)
         .timeout(Duration::from_secs(15))
-        .header("X-Api-Key", service_info.api_key)
+        .header("X-Api-Key", api_key)
         .header(ACCEPT, "application/json");
 
     Ok(req_client)
@@ -64,13 +44,21 @@ fn build_service_info() -> ServiceInfo {
 }
 
 pub async fn get_requests(
-    take: usize,
-    skip: usize,
+    take: &str,
+    skip: &str,
 ) -> Result<APIResponse<OverseerrListResponse<MediaRequest>>, DeleterrError> {
-    let endpoint = format!("request?take={take}&skip={skip}&sort=added&filter=available");
+    let endpoint = format!("api/v1/request");
     let service_info = build_service_info();
 
-    let client_req = get_api_endpoint(endpoint, service_info)?;
+    let api_url = create_api_url(&endpoint, &service_info);
+    let query = vec![
+        ("take", take),
+        ("skip", skip),
+        ("sort", "added"),
+        ("filter", "available"),
+    ];
+    let client_req = get_api_endpoint(api_url, query)?;
+
     let request_response = make_api_call(client_req).await?;
     let resp = request_response
         .response
@@ -83,10 +71,13 @@ pub async fn get_requests(
 }
 
 pub async fn get_requests_count() -> Result<APIResponse<OverseerrRequestsCount>, DeleterrError> {
-    let endpoint: String = "request/count".to_string();
+    let endpoint = "api/v1/request/count".to_string();
     let service_info = build_service_info();
 
-    let client_req = get_api_endpoint(endpoint, service_info)?;
+    let api_url = create_api_url(&endpoint, &service_info);
+    let query: Vec<(&str, &str)> = Vec::with_capacity(0);
+
+    let client_req = get_api_endpoint(api_url, query)?;
     let request_response = make_api_call(client_req).await?;
     let resp = request_response
         .response
@@ -103,12 +94,15 @@ pub async fn get_media_info(
     id: &usize,
 ) -> Result<MediaInfo, DeleterrError> {
     let endpoint: String = match media_type {
-        MediaType::TV => format!("tv/{id}"),
-        MediaType::Movie => format!("movie/{id}"),
+        MediaType::TV => format!("api/v1/tv/{id}"),
+        MediaType::Movie => format!("api/v1/movie/{id}"),
     };
     let service_info = build_service_info();
 
-    let client_req = get_api_endpoint(endpoint, service_info)?;
+    let api_url = create_api_url(&endpoint, &service_info);
+    let query = vec![("sort", "added"), ("filter", "available")];
+
+    let client_req = get_api_endpoint(api_url, query)?;
     let request_response = make_api_call(client_req).await?;
     let resp = request_response.response.json::<MediaInfo>().await?;
 
@@ -118,8 +112,13 @@ pub async fn get_media_info(
 pub async fn get_overseerr_status(
     service_info: ServiceInfo,
 ) -> Result<APIResponse<APIServiceStatus>, DeleterrError> {
-    let endpoint: String = "settings/about".to_string();
-    let client_req = get_api_endpoint(endpoint, service_info)?;
+    let endpoint: String = "api/v1/settings/about".to_string();
+
+    let api_url = create_api_url(&endpoint, &service_info);
+    let query: Vec<(&str, &str)> = Vec::with_capacity(0);
+
+    let client_req = get_api_endpoint(api_url, query)?;
+
     let request_response = make_api_call(client_req).await?;
     // We need to make sure its actaully the response from Overseer and not just an OK response
     let resp = request_response.response.json::<AboutServer>().await;
