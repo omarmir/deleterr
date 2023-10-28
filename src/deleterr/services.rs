@@ -56,6 +56,7 @@ pub async fn match_requests_to_watched(
     let (os_requests, page_info) = get_os_requests().await?;
     let mut matched_requests: Vec<RequestStatus> = Vec::with_capacity(page_info.results);
 
+    // TODO: Change this - maybe do a query first on the count?
     for i in 0..5 {
         let media_request = &os_requests[i];
         let (media_type, req_id, rating_key, user_id) = (
