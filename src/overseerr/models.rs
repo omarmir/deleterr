@@ -30,7 +30,7 @@ pub struct PageInfo {
 #[derive(Deserialize, Serialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct MediaRequest {
-    pub id: u32,
+    pub id: usize,
     pub status: u8, // Status of the request. 1 = PENDING APPROVAL, 2 = APPROVED, 3 = DECLINED
     pub requested_by: User,
     pub media: Media,
@@ -52,7 +52,7 @@ pub struct User {
 #[serde(rename_all = "camelCase")]
 pub struct Media {
     id: u32,
-    pub media_type: Option<MediaType>,
+    pub media_type: MediaType,
     pub tmdb_id: Option<usize>,
     tvdb_id: Option<u32>,
     #[serde(deserialize_with = "deserialize_option_number_from_string")]

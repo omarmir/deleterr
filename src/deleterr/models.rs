@@ -20,5 +20,4 @@ pub struct RequestStatusWithRecordInfo {
 #[derive(Deserialize)]
 pub struct QueryParms {
     pub take: Option<usize>,
-    pub skip: Option<usize>,
 }

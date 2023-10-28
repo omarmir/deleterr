@@ -42,7 +42,7 @@ impl From<Services> for String {
     fn from(service: Services) -> Self {
         match service {
             Services::Overseerr => "overseerr".to_string(),
-            Services::Tautulli => "tautulli".to_string()
+            Services::Tautulli => "tautulli".to_string(),
         }
     }
 }
@@ -95,11 +95,5 @@ impl Error for DeleterrError {
 impl From<reqwest::Error> for DeleterrError {
     fn from(err: reqwest::Error) -> Self {
         DeleterrError::new(err.to_string().as_str())
-    }
-}
-
-impl From<polodb_core::Error> for DeleterrError {
-    fn from(cause: polodb_core::Error) -> Self {
-        DeleterrError::new(cause.to_string().as_str())
     }
 }

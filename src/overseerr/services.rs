@@ -1,11 +1,9 @@
 use super::models::{
     AboutServer, MediaInfo, MediaRequest, MediaType, OverseerrListResponse, OverseerrRequestsCount,
 };
-use crate::common::models::{
-    APIResponse, APIServiceStatus, APIStatus, DeleterrError, ServiceInfo, Services,
-};
-use crate::common::services::{
-    create_api_url, get_api_endpoint, make_api_call, map_to_api_response,
+use crate::common::{
+    models::{APIResponse, APIServiceStatus, APIStatus, DeleterrError, ServiceInfo, Services},
+    services::{create_api_url, get_api_endpoint, make_api_call, map_to_api_response},
 };
 use dotenv::dotenv;
 
@@ -28,19 +26,12 @@ fn build_service_info() -> ServiceInfo {
 }
 
 pub async fn get_requests(
-    take: &str,
-    skip: &str,
 ) -> Result<APIResponse<OverseerrListResponse<MediaRequest>>, DeleterrError> {
     let endpoint = format!("api/v1/request");
     let service_info = build_service_info();
 
     let api_url = create_api_url(&endpoint, &service_info);
-    let query = vec![
-        ("take", take),
-        ("skip", skip),
-        ("sort", "added"),
-        ("filter", "available"),
-    ];
+    let query = vec![("sort", "added"), ("filter", "available")];
     let client_req = get_api_endpoint(api_url, query, Some(service_info.api_key))?;
 
     let request_response = make_api_call(client_req).await?;
@@ -84,7 +75,7 @@ pub async fn get_media_info(
     let service_info = build_service_info();
 
     let api_url = create_api_url(&endpoint, &service_info);
-    let query = vec![("sort", "added"), ("filter", "available")];
+    let query = vec![];
 
     let client_req = get_api_endpoint(api_url, query, Some(service_info.api_key))?;
     let request_response = make_api_call(client_req).await?;
