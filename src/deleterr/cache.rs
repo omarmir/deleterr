@@ -13,7 +13,7 @@ use super::{
 fn update_cache(app_data: &Data<AppData>, new_data: RequestStatusWithRecordInfo) {
     let mut update_cache = app_data
         .request_cache
-        .write()
+        .write() // ! This could leave the app timed out waiting for a write lock - I can't think when/why this would happen
         .expect("Unable to access cache");
 
     *update_cache = Some(new_data);
@@ -52,7 +52,7 @@ pub async fn get_requests_from_cache_or_update_cache(
     Ok(req)
 }
 
-pub fn make_vector_of_results(
+pub fn make_filtered_sized_vector_of_results(
     params: QueryParms,
     requests: RequestStatusWithRecordInfo,
 ) -> RequestStatusWithRecordInfoVector {
@@ -63,9 +63,9 @@ pub fn make_vector_of_results(
                 let empty_slice: &[RequestStatus; 0] = &[];
                 empty_slice
             } else {
-                if take > vec.len() {
-                    // ! This is wrong - it needs to not exceed vec.len - skip
-                    take = vec.len()
+                let max_len = vec.len() - skip;
+                if take > max_len {
+                    take = max_len
                 }
                 &vec[skip..(skip + take)]
             }
@@ -101,7 +101,7 @@ pub async fn get_requests_and_update_cache(
 ) -> Result<RequestStatusWithRecordInfoVector, DeleterrError> {
     let cache = get_cached(&app_data);
     let requests = get_requests_from_cache_or_update_cache(cache, app_data, params.take).await?;
-    let req_status_info = make_vector_of_results(params, requests);
+    let req_status_info = make_filtered_sized_vector_of_results(params, requests);
 
     Ok(req_status_info)
 }
