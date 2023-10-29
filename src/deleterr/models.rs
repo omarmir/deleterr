@@ -1,10 +1,11 @@
-use std::collections::HashMap;
-use std::sync::RwLock;
-use std::time::SystemTime;
-
 use crate::overseerr::models::{MediaInfo, MediaRequest};
 use crate::tautulli::models::UserWatchHistory;
 use serde::{Deserialize, Serialize};
+
+use serde_map_to_array::{DefaultLabels, HashMapToArray};
+use std::collections::HashMap;
+use std::sync::RwLock;
+use std::time::SystemTime;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
@@ -18,6 +19,7 @@ pub struct RequestStatus {
 #[serde(rename_all = "camelCase")]
 pub struct RequestStatusWithRecordInfo {
     pub all_requests: usize,
+    #[serde(with = "HashMapToArray::<usize, RequestStatus, DefaultLabels>")]
     pub requests: HashMap<usize, RequestStatus>,
 }
 
