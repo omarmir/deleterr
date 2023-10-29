@@ -2,8 +2,8 @@ use super::models::{
     AboutServer, MediaInfo, MediaRequest, MediaType, OverseerrListResponse, OverseerrRequestsCount,
 };
 use crate::common::{
-    models::{APIResponse, APIServiceStatus, APIStatus, DeleterrError, ServiceInfo, Services},
-    services::{create_api_url, get_api_endpoint, make_api_call, map_to_api_response},
+    models::{APIServiceStatus, APIStatus, DeleterrError, ServiceInfo, Services},
+    services::{create_api_url, get_api_endpoint, make_api_call},
 };
 use dotenv::dotenv;
 
@@ -25,13 +25,18 @@ fn build_service_info() -> ServiceInfo {
     };
 }
 
-pub async fn get_requests(
-) -> Result<APIResponse<OverseerrListResponse<MediaRequest>>, DeleterrError> {
+pub async fn get_requests() -> Result<OverseerrListResponse<MediaRequest>, DeleterrError> {
     let endpoint = format!("api/v1/request");
     let service_info = build_service_info();
 
+    let total_count = get_requests_count().await?.available.to_string();
+
     let api_url = create_api_url(&endpoint, &service_info);
-    let query = vec![("sort", "added"), ("filter", "available")];
+    let query = vec![
+        ("sort", "added"),
+        ("filter", "available"),
+        ("take", total_count.as_str()),
+    ];
     let client_req = get_api_endpoint(api_url, query, Some(service_info.api_key))?;
 
     let request_response = make_api_call(client_req).await?;
@@ -40,12 +45,10 @@ pub async fn get_requests(
         .json::<OverseerrListResponse<MediaRequest>>()
         .await?;
 
-    let api_response =
-        map_to_api_response(resp, request_response.code, request_response.status).await?;
-    Ok(api_response)
+    Ok(resp)
 }
 
-pub async fn get_requests_count() -> Result<APIResponse<OverseerrRequestsCount>, DeleterrError> {
+pub async fn get_requests_count() -> Result<OverseerrRequestsCount, DeleterrError> {
     let endpoint = "api/v1/request/count".to_string();
     let service_info = build_service_info();
 
@@ -59,34 +62,37 @@ pub async fn get_requests_count() -> Result<APIResponse<OverseerrRequestsCount>,
         .json::<OverseerrRequestsCount>()
         .await?;
 
-    let api_response =
-        map_to_api_response(resp, request_response.code, request_response.status).await?;
-    Ok(api_response)
+    Ok(resp)
 }
 
 pub async fn get_media_info(
     media_type: &MediaType,
-    id: &usize,
-) -> Result<MediaInfo, DeleterrError> {
-    let endpoint: String = match media_type {
-        MediaType::TV => format!("api/v1/tv/{id}"),
-        MediaType::Movie => format!("api/v1/movie/{id}"),
-    };
-    let service_info = build_service_info();
+    tmdb_id: &Option<usize>,
+) -> Result<Option<MediaInfo>, DeleterrError> {
+    match tmdb_id {
+        Some(id) => {
+            let endpoint: String = match media_type {
+                MediaType::TV => format!("api/v1/tv/{id}"),
+                MediaType::Movie => format!("api/v1/movie/{id}"),
+            };
+            let service_info = build_service_info();
 
-    let api_url = create_api_url(&endpoint, &service_info);
-    let query = vec![];
+            let api_url = create_api_url(&endpoint, &service_info);
+            let query = vec![];
 
-    let client_req = get_api_endpoint(api_url, query, Some(service_info.api_key))?;
-    let request_response = make_api_call(client_req).await?;
-    let resp = request_response.response.json::<MediaInfo>().await?;
+            let client_req = get_api_endpoint(api_url, query, Some(service_info.api_key))?;
+            let request_response = make_api_call(client_req).await?;
+            let resp = request_response.response.json::<MediaInfo>().await?;
 
-    Ok(resp)
+            Ok(Some(resp))
+        }
+        None => Ok(None),
+    }
 }
 
 pub async fn get_overseerr_status(
     service_info: ServiceInfo,
-) -> Result<APIResponse<APIServiceStatus>, DeleterrError> {
+) -> Result<APIServiceStatus, DeleterrError> {
     let endpoint: String = "api/v1/settings/about".to_string();
 
     let api_url = create_api_url(&endpoint, &service_info);
@@ -124,6 +130,5 @@ pub async fn get_overseerr_status(
         },
     };
 
-    let api_response = map_to_api_response(service_status, 200, "Failure".to_string()).await?;
-    Ok(api_response)
+    Ok(service_status)
 }

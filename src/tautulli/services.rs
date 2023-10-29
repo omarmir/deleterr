@@ -1,9 +1,7 @@
 use super::models::TautulliResponse;
-use crate::common::models::{APIResponse, DeleterrError, ServiceInfo};
 use crate::common::models::{APIServiceStatus, APIStatus, Services};
-use crate::common::services::{
-    create_api_url, get_api_endpoint, make_api_call, map_to_api_response,
-};
+use crate::common::models::{DeleterrError, ServiceInfo};
+use crate::common::services::{create_api_url, get_api_endpoint, make_api_call};
 use dotenv::dotenv;
 
 fn build_service_info() -> ServiceInfo {
@@ -27,7 +25,7 @@ fn build_service_info() -> ServiceInfo {
 pub async fn get_item_history(
     rating_key: &str,
     user_id: &str,
-) -> Result<APIResponse<TautulliResponse>, DeleterrError> {
+) -> Result<TautulliResponse, DeleterrError> {
     let endpoint = format!("api/v2");
     let service_info = build_service_info();
 
@@ -42,12 +40,10 @@ pub async fn get_item_history(
     let client_req = get_api_endpoint(api_url, query, None)?;
     let request_response = make_api_call(client_req).await?;
     let resp = request_response.response.json::<TautulliResponse>().await?;
-    let api_response =
-        map_to_api_response(resp, request_response.code, request_response.status).await?;
-    Ok(api_response)
+    Ok(resp)
 }
 
-pub async fn get_tautulli_status() -> Result<APIResponse<APIServiceStatus>, DeleterrError> {
+pub async fn get_tautulli_status() -> Result<APIServiceStatus, DeleterrError> {
     let endpoint = format!("api/v2");
     let service_info = build_service_info();
     let api_url = create_api_url(&endpoint, &service_info);
@@ -84,6 +80,5 @@ pub async fn get_tautulli_status() -> Result<APIResponse<APIServiceStatus>, Dele
         },
     };
 
-    let api_response = map_to_api_response(service_status, 200, "Failure".to_string()).await?;
-    Ok(api_response)
+    Ok(service_status)
 }

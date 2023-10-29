@@ -1,21 +1,15 @@
-use std::{collections::HashMap, sync::RwLock, time::SystemTime};
-
 use actix_cors::Cors;
 use actix_web::{middleware::Logger, web, App, HttpServer};
 use actix_web_lab::web as lab_web;
-use deleterr::{endpoints as dr_serv, models::RequestStatusWithRecordInfo};
+use deleterr::{endpoints as dr_serv, models::AppData};
 use overseerr::services as os_serv;
+use std::sync::RwLock;
 use tautulli::services as tt_serv;
 
 mod common;
 mod deleterr;
 mod overseerr;
 mod tautulli;
-
-struct AppData {
-    pub last_update: RwLock<Option<SystemTime>>,
-    pub request_cache: RwLock<Option<RequestStatusWithRecordInfo>>,
-}
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {

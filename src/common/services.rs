@@ -1,4 +1,4 @@
-use super::models::{APIData, APIResponse, DeleterrError, RequestResponse, ServiceInfo};
+use super::models::{APIResponse, DeleterrError, RequestResponse, ServiceInfo};
 use actix_web::{HttpResponse, Responder};
 use reqwest::{
     header::{HeaderMap, HeaderValue, ACCEPT},
@@ -20,46 +20,28 @@ pub async fn make_api_call(
     Ok(request_response)
 }
 
-pub fn process_request<T>(requests: Result<APIResponse<T>, DeleterrError>) -> impl Responder
+pub fn process_request<T>(response: Result<T, DeleterrError>) -> impl Responder
 where
     T: serde::Serialize,
 {
-    return match requests {
-        Ok(response) => HttpResponse::Ok().json(response),
+    return match response {
+        Ok(response_ok) => {
+            let api_response = APIResponse {
+                success: true,
+                data: Some(response_ok),
+                error_msg: None,
+            };
+            HttpResponse::Ok().json(api_response)
+        }
         Err(error) => {
-            let err_response = APIResponse {
+            let err_response: APIResponse<()> = APIResponse {
                 success: false,
-                data: APIData::<String>::Failure(error.to_string()),
-                code: 500,
+                data: None,
+                error_msg: Some(error.to_string()),
             };
             return HttpResponse::Ok().json(err_response);
         }
     };
-}
-
-pub async fn map_to_api_response<T>(
-    service_reponse: T,
-    code: u16,
-    failure_status: String,
-) -> Result<APIResponse<T>, DeleterrError>
-where
-    for<'a> T: serde::Deserialize<'a>,
-{
-    if code != 200 {
-        return Ok(APIResponse {
-            success: false,
-            data: APIData::Failure(failure_status),
-            code,
-        });
-    };
-
-    let api_response = APIResponse {
-        success: true,
-        data: APIData::Success(service_reponse),
-        code,
-    };
-
-    Ok(api_response)
 }
 
 pub fn create_api_url(endpoint: &String, service_info: &ServiceInfo) -> String {

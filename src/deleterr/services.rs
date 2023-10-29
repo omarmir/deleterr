@@ -1,22 +1,14 @@
-use std::collections::HashMap;
-
 use super::models::{RequestStatus, RequestStatusWithRecordInfo};
-use crate::common::models::{APIData, APIResponse, DeleterrError};
-use crate::common::services::map_to_api_response;
-
+use crate::common::models::DeleterrError;
 use crate::overseerr::models::{MediaRequest, PageInfo};
 use crate::tautulli::models::UserWatchHistory;
+use std::collections::HashMap;
 
 async fn get_os_requests() -> Result<(Vec<MediaRequest>, PageInfo), DeleterrError> {
-    let os_requests = crate::os_serv::get_requests().await?.data;
-    match os_requests {
-        APIData::Success(data) => {
-            let requests = data.results;
-            let page_info = data.page_info;
-            Ok((requests, page_info))
-        }
-        APIData::Failure(err) => Err(DeleterrError::new(err.as_str())),
-    }
+    let os_requests = crate::os_serv::get_requests().await?;
+    let vec_requests = os_requests.results;
+    let page_info = os_requests.page_info;
+    Ok((vec_requests, page_info))
 }
 
 async fn get_tau_history_by_key_user(rating_key: &u64, user_id: &u64) -> Option<UserWatchHistory> {
@@ -24,13 +16,18 @@ async fn get_tau_history_by_key_user(rating_key: &u64, user_id: &u64) -> Option<
         rating_key.to_string().as_str(),
         user_id.to_string().as_str(),
     )
-    .await
-    .ok()?
-    .data;
+    .await;
 
-    let tt_matches = match tt_request {
-        APIData::Success(tt_response) => tt_response.response.data.data,
-        _ => None,
+    let tt_match = match tt_request {
+        Ok(request_match) => request_match.response.data.data,
+        Err(err) => {
+            println!(
+                "Unable to get data from tautulli for rating key: {} and user id: {}",
+                rating_key, user_id
+            );
+            println!("Error: {}", err.to_string());
+            return None;
+        }
     };
 
     /*
@@ -38,7 +35,7 @@ async fn get_tau_history_by_key_user(rating_key: &u64, user_id: &u64) -> Option<
      * we provided both a ratingKey and userId. If there is more than one result
      * then we did something wrong.
      */
-    return match tt_matches {
+    return match tt_match {
         Some(histories) => {
             if histories.len() == 1 {
                 Some(histories[0].clone())
@@ -60,17 +57,16 @@ pub async fn match_requests_to_watched(
         HashMap::with_capacity(page_info.results);
 
     // TODO: Change this - maybe do a query first on the count?
-    for i in 0..5 {
+    for i in 0..os_requests.len() {
         let media_request = &os_requests[i];
-        let (media_type, req_id, rating_key, user_id) = (
+        let (media_type, tmdb_id, rating_key, user_id) = (
             &media_request.media.media_type,
-            &media_request.id,
+            &media_request.media.tmdb_id,
             &media_request.media.rating_key,
             &media_request.requested_by.plex_id,
         );
 
-        let media_info =
-            Some(crate::overseerr::services::get_media_info(&media_type, &req_id).await?);
+        let media_info = crate::overseerr::services::get_media_info(&media_type, &tmdb_id).await?;
         let user_watch_history = match (rating_key, user_id) {
             (Some(rating_key), Some(user_id)) => {
                 get_tau_history_by_key_user(&rating_key, &user_id).await

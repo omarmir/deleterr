@@ -1,4 +1,6 @@
 use std::collections::HashMap;
+use std::sync::RwLock;
+use std::time::SystemTime;
 
 use crate::overseerr::models::{MediaInfo, MediaRequest};
 use crate::tautulli::models::UserWatchHistory;
@@ -22,4 +24,9 @@ pub struct RequestStatusWithRecordInfo {
 #[derive(Deserialize)]
 pub struct QueryParms {
     pub take: Option<usize>,
+}
+
+pub struct AppData {
+    pub last_update: RwLock<Option<SystemTime>>,
+    pub request_cache: RwLock<Option<RequestStatusWithRecordInfo>>,
 }
