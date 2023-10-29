@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use super::models::{RequestStatus, RequestStatusWithRecordInfo};
 use crate::common::models::{APIData, APIResponse, DeleterrError};
 use crate::common::services::map_to_api_response;
@@ -50,11 +52,12 @@ async fn get_tau_history_by_key_user(rating_key: &u64, user_id: &u64) -> Option<
 
 pub async fn match_requests_to_watched(
     take: Option<usize>,
-) -> Result<APIResponse<RequestStatusWithRecordInfo>, DeleterrError> {
+) -> Result<RequestStatusWithRecordInfo, DeleterrError> {
     let chunk_size = take.unwrap_or(10);
     // ! Note that the default take is 10 at overseerr if unspecified!
     let (os_requests, page_info) = get_os_requests().await?;
-    let mut matched_requests: Vec<RequestStatus> = Vec::with_capacity(page_info.results);
+    let mut matched_requests: HashMap<usize, RequestStatus> =
+        HashMap::with_capacity(page_info.results);
 
     // TODO: Change this - maybe do a query first on the count?
     for i in 0..5 {
@@ -87,7 +90,7 @@ pub async fn match_requests_to_watched(
             tokio::time::sleep(std::time::Duration::from_secs(2)).await;
         }
 
-        matched_requests.push(request_status)
+        matched_requests.insert(request_status.media_request.id, request_status);
     }
 
     let request_status_with_record_info = RequestStatusWithRecordInfo {
@@ -95,8 +98,5 @@ pub async fn match_requests_to_watched(
         requests: matched_requests,
     };
 
-    let api_response =
-        map_to_api_response(request_status_with_record_info, 200, "Success".to_string()).await?;
-
-    Ok(api_response)
+    Ok(request_status_with_record_info)
 }

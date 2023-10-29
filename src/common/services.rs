@@ -41,7 +41,7 @@ pub async fn map_to_api_response<T>(
     service_reponse: T,
     code: u16,
     failure_status: String,
-) -> Result<APIResponse<T>, Error>
+) -> Result<APIResponse<T>, DeleterrError>
 where
     for<'a> T: serde::Deserialize<'a>,
 {

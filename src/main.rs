@@ -1,9 +1,9 @@
-use std::{collections::HashMap, sync::Mutex, time::SystemTime};
+use std::{collections::HashMap, sync::RwLock, time::SystemTime};
 
 use actix_cors::Cors;
 use actix_web::{middleware::Logger, web, App, HttpServer};
 use actix_web_lab::web as lab_web;
-use deleterr::endpoints as dr_serv;
+use deleterr::{endpoints as dr_serv, models::RequestStatusWithRecordInfo};
 use overseerr::services as os_serv;
 use tautulli::services as tt_serv;
 
@@ -13,8 +13,8 @@ mod overseerr;
 mod tautulli;
 
 struct AppData {
-    pub last_update: Mutex<Option<SystemTime>>,
-    pub request_cache: Mutex<Option<HashMap<u32, deleterr::models::RequestStatus>>>,
+    pub last_update: RwLock<Option<SystemTime>>,
+    pub request_cache: RwLock<Option<RequestStatusWithRecordInfo>>,
 }
 
 #[actix_web::main]
@@ -24,8 +24,8 @@ async fn main() -> std::io::Result<()> {
     env_logger::init();
 
     let app_state = AppData {
-        last_update: Mutex::new(None),
-        request_cache: Mutex::new(None),
+        last_update: RwLock::new(None),
+        request_cache: RwLock::new(None),
     };
 
     let data = web::Data::new(app_state);

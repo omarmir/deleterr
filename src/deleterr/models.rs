@@ -1,8 +1,10 @@
+use std::collections::HashMap;
+
 use crate::overseerr::models::{MediaInfo, MediaRequest};
 use crate::tautulli::models::UserWatchHistory;
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct RequestStatus {
     pub media_request: MediaRequest,
@@ -10,11 +12,11 @@ pub struct RequestStatus {
     pub media_info: Option<MediaInfo>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct RequestStatusWithRecordInfo {
     pub all_requests: usize,
-    pub requests: Vec<RequestStatus>,
+    pub requests: HashMap<usize, RequestStatus>,
 }
 
 #[derive(Deserialize)]
