@@ -4,7 +4,7 @@
     "semi": false,
     "singleQuote": true,
     "singleAttributePerLine": false,
-    "printWidth": 90,
+    "printWidth": 120,
     "bracketSameLine": true,
     "htmlWhitespaceSensitivity": "ignore",
     "plugins": ["prettier-plugin-tailwindcss"]

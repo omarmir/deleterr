@@ -19,7 +19,7 @@ const allRequests: Ref<number> = ref(0)
 
 const getRequests = async () => {
   try {
-    const response = await fetch('http://localhost:8080/api/v1/json/requests?take=11&skip=0')
+    const response = await fetch('http://localhost:8080/api/v1/json/requests')
     let apiResponse: APIResponse<RequestStatusWithRecordInfo> = await response.json()
     requests.value = apiResponse.data.requests
     allRequests.value = apiResponse.data.allRequests
