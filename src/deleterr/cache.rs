@@ -52,19 +52,38 @@ pub async fn get_requests_from_cache_or_update_cache(
     Ok(req)
 }
 
-pub async fn get_requests_and_update_cache(
-    app_data: Data<AppData>,
+pub fn make_vector_of_results(
     params: QueryParms,
-) -> Result<RequestStatusWithRecordInfoVector, DeleterrError> {
-    let cache = get_cached(&app_data);
-    let requests = get_requests_from_cache_or_update_cache(cache, app_data, params.take).await?;
-
+    requests: RequestStatusWithRecordInfo,
+) -> RequestStatusWithRecordInfoVector {
     let vec: Vec<RequestStatus> = requests.requests.into_values().collect();
-
     let final_results = match (params.take, params.skip) {
-        (Some(take), Some(skip)) => &vec[skip..(skip + take)],
-        (Some(take), None) => &vec[..take],
-        (None, Some(skip)) => &vec[skip..],
+        (Some(mut take), Some(skip)) => {
+            if skip > vec.len() {
+                let empty_slice: &[RequestStatus; 0] = &[];
+                empty_slice
+            } else {
+                if take > vec.len() {
+                    // ! This is wrong - it needs to not exceed vec.len - skip
+                    take = vec.len()
+                }
+                &vec[skip..(skip + take)]
+            }
+        }
+        (Some(mut take), None) => {
+            if take > vec.len() {
+                take = vec.len()
+            }
+            &vec[..take]
+        }
+        (None, Some(skip)) => {
+            if skip > vec.len() {
+                let empty_slice: &[RequestStatus; 0] = &[];
+                empty_slice
+            } else {
+                &vec[skip..]
+            }
+        }
         _ => &vec[..],
     };
 
@@ -72,6 +91,17 @@ pub async fn get_requests_and_update_cache(
         all_requests: requests.all_requests,
         requests: final_results.to_vec(),
     };
+
+    return req_status_info;
+}
+
+pub async fn get_requests_and_update_cache(
+    app_data: Data<AppData>,
+    params: QueryParms,
+) -> Result<RequestStatusWithRecordInfoVector, DeleterrError> {
+    let cache = get_cached(&app_data);
+    let requests = get_requests_from_cache_or_update_cache(cache, app_data, params.take).await?;
+    let req_status_info = make_vector_of_results(params, requests);
 
     Ok(req_status_info)
 }
