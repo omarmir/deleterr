@@ -48,9 +48,9 @@ async fn get_tau_history_by_key_user(rating_key: &u64, user_id: &u64) -> Option<
 }
 
 pub async fn match_requests_to_watched(
-    take: Option<usize>,
+    chunk: Option<usize>,
 ) -> Result<RequestStatusWithRecordInfo, DeleterrError> {
-    let chunk_size = take.unwrap_or(10);
+    let chunk_size = chunk.unwrap_or(10);
     // ! Note that the default take is 10 at overseerr if unspecified!
     let (os_requests, page_info) = get_os_requests().await?;
     let mut matched_requests: HashMap<usize, RequestStatus> =

@@ -23,9 +23,18 @@ pub struct RequestStatusWithRecordInfo {
     pub requests: HashMap<usize, RequestStatus>,
 }
 
+#[derive(Debug, Serialize, Deserialize, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct RequestStatusWithRecordInfoVector {
+    pub all_requests: usize,
+    pub requests: Vec<RequestStatus>,
+}
+
 #[derive(Deserialize)]
 pub struct QueryParms {
     pub take: Option<usize>,
+    pub skip: Option<usize>,
+    pub chunk: Option<usize>,
 }
 
 pub struct AppData {

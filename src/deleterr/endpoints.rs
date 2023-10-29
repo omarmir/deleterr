@@ -13,7 +13,7 @@ async fn get_all_requests_json(
     app_data: Data<AppData>,
     info: web::Query<QueryParms>,
 ) -> impl Responder {
-    let matched_results = get_requests_and_update_cache(app_data, info.take).await;
+    let matched_results = get_requests_and_update_cache(app_data, info.into_inner()).await;
     return process_request(matched_results);
 }
 
