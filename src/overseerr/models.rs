@@ -1,3 +1,4 @@
+use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use serde_aux::prelude::deserialize_option_number_from_string;
 
@@ -34,13 +35,14 @@ pub struct MediaRequest {
     pub status: u8, // Status of the request. 1 = PENDING APPROVAL, 2 = APPROVED, 3 = DECLINED
     pub requested_by: User,
     pub media: Media,
+    pub created_at: DateTime<Utc>,
 }
 
 #[derive(Deserialize, Serialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct User {
     id: u32,
-    username: Option<String>,
+    pub username: Option<String>,
     user_type: u32,
     email: Option<String>,
     plex_username: Option<String>,
@@ -70,11 +72,11 @@ pub enum MediaType {
 #[derive(Deserialize, Serialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct MediaInfo {
-    poster_path: Option<String>,
+    pub poster_path: Option<String>,
     #[serde(alias = "firstAirDate")]
-    release_date: Option<String>, //firstAirDate
+    pub release_date: Option<String>, //firstAirDate
     #[serde(alias = "name")]
-    title: String, //name
+    pub title: String, //name
 }
 
 #[derive(Deserialize, Serialize, Debug, Clone)]

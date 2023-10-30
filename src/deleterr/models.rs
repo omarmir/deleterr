@@ -12,7 +12,7 @@ use std::time::SystemTime;
 pub struct RequestStatus {
     pub media_request: MediaRequest,
     pub user_watch_history: Option<UserWatchHistory>,
-    pub media_info: Option<MediaInfo>,
+    pub media_info: MediaInfo,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -31,10 +31,22 @@ pub struct RequestStatusWithRecordInfoVector {
 }
 
 #[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct QueryParms {
     pub take: Option<usize>,
     pub skip: Option<usize>,
     pub chunk: Option<usize>,
+    pub sort_by: Option<SortableProps>,
+}
+
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub enum SortableProps {
+    Name,
+    RequestedDate,
+    MediaType,
+    Watched,
+    User,
 }
 
 pub struct AppData {

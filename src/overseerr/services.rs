@@ -68,7 +68,7 @@ pub async fn get_requests_count() -> Result<OverseerrRequestsCount, DeleterrErro
 pub async fn get_media_info(
     media_type: &MediaType,
     tmdb_id: &Option<usize>,
-) -> Result<Option<MediaInfo>, DeleterrError> {
+) -> Result<MediaInfo, DeleterrError> {
     match tmdb_id {
         Some(id) => {
             let endpoint: String = match media_type {
@@ -84,9 +84,15 @@ pub async fn get_media_info(
             let request_response = make_api_call(client_req).await?;
             let resp = request_response.response.json::<MediaInfo>().await?;
 
-            Ok(Some(resp))
+            Ok(resp)
         }
-        None => Ok(None),
+        None => Ok({
+            MediaInfo {
+                title: "Unknown".to_string(),
+                poster_path: None,
+                release_date: None,
+            }
+        }),
     }
 }
 

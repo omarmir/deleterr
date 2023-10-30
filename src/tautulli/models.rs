@@ -32,7 +32,7 @@ pub struct UserWatchHistory {
     friendly_name: String,
     user_id: u64, // same is plex_id on tautulli
     full_title: String,
-    watched_status: f32, //0: Unwatched or less than half, 0.5: watched more than 50%, and 1: Watched
+    pub watched_status: f32, //0: Unwatched or less than half, 0.5: watched more than 50%, and 1: Watched
     rating_key: u64,
     #[serde(deserialize_with = "deserialize_option_number_from_string")]
     parent_rating_key: Option<u64>,

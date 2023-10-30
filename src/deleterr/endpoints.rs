@@ -1,6 +1,6 @@
 use crate::common::{models::ServiceInfo, models::Services, services::process_request};
-use crate::deleterr::cache::get_requests_and_update_cache;
 use crate::deleterr::models::QueryParms;
+use crate::deleterr::requests::get_requests_and_update_cache;
 use crate::AppData;
 use actix_web::{
     get, post,

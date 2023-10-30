@@ -22,3 +22,4 @@ actix-web-lab = { version = "0.20.0", features = ["spa"] }
 num-integer = "0.1.45"
 actix-cors = "0.6.4"
 serde-map-to-array = { version = "1.1.1", features = ["std"] }
+chrono = { version = "0.4.31", features = ["serde"] }
