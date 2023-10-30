@@ -13,7 +13,7 @@
           </tr>
         </thead>
         <tbody class="divide-y bg-white dark:divide-gray-700 dark:bg-gray-800">
-          <DatatableRow v-for="request in requests" :key="request.key" :request="request.value" />
+          <DatatableRow v-for="request in requests" :key="request.mediaRequest.id" :request="request" />
         </tbody>
       </table>
     </div>

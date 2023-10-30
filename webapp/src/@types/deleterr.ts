@@ -22,11 +22,6 @@ export interface Media {
 export type MediaType = 'movie' | 'tv'
 
 export interface RequestStatus {
-  key: number
-  value: RequestStatusValue
-}
-
-export interface RequestStatusValue {
   mediaRequest: MediaRequest
   userWatchHistory?: UserWatchHistory
   mediaInfo?: MediaInfo
