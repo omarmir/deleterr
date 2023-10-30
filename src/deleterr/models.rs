@@ -37,6 +37,8 @@ pub struct QueryParms {
     pub skip: Option<usize>,
     pub chunk: Option<usize>,
     pub sort_by: Option<SortableProps>,
+    pub is_descending: Option<bool>,
+    pub search: Option<String>,
 }
 
 #[derive(Deserialize)]
