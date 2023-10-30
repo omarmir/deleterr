@@ -6,6 +6,7 @@
           <tr
             class="border-b bg-gray-50 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400">
             <th class="px-4 py-3">Media</th>
+            <th class="px-4 py-3">Requested</th>
             <th class="px-4 py-3">Type</th>
             <th class="px-4 py-3">Watched</th>
             <th class="px-4 py-3">Plex Username</th>

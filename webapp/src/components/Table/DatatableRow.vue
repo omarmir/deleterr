@@ -13,6 +13,10 @@
         </div>
       </div>
     </td>
+    <td class="px-4 py-3">
+      <p class="text-sm">{{ getDate(request?.mediaRequest.createdAt) }}</p>
+      <p class="text-xs">{{ getTime(request?.mediaRequest.createdAt) }}</p>
+    </td>
     <td class="px-4 py-3 text-sm" :data-media-type="request?.mediaRequest.media.mediaType">
       {{ request?.mediaRequest.media.mediaType }}
     </td>
@@ -49,15 +53,18 @@
 </template>
 <script lang="ts" setup>
 import { PropType } from 'vue'
-import { RequestStatusValue } from '~/@types/deleterr.ts'
+import { RequestStatus } from '~/@types/deleterr.ts'
 import StatusPill from '~/components/StatusPill.vue'
 import Actions from '~/components/Actions.vue'
 
 defineProps({
-  request: { required: false, type: Object as PropType<RequestStatusValue> },
+  request: { required: false, type: Object as PropType<RequestStatus> },
 })
 
 const userType = (userType?: number): 'Local User' | 'Plex User' => (userType == 1 ? 'Plex User' : 'Local User')
+// YYYY-MM-DD - dont like it? Make your own app. Just be happy its not my preferred 24H
+const getDate = (newDate?: string) => (newDate ? new Date(newDate).toLocaleDateString('en-CA') : 'N/A')
+const getTime = (newDate?: string) => (newDate ? new Date(newDate).toLocaleTimeString('en-CA') : 'N/A')
 </script>
 <style lang="postcss" scoped>
 [data-user-type='1'] {

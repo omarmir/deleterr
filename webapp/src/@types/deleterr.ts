@@ -8,6 +8,7 @@ export interface MediaRequest {
   status: number
   requestedBy: User
   media: Media
+  createdAt: string
 }
 
 export interface Media {
