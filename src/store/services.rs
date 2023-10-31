@@ -3,7 +3,7 @@
 
 use persy::{Config, Persy, PersyId};
 
-use crate::common::models::ServiceInfo;
+use crate::common::models::{ServiceInfo, Services};
 
 pub fn create_store() {
     //Create the file
@@ -16,15 +16,23 @@ pub fn save_service(service_info: ServiceInfo) -> PersyId {
     let mut tx = persy.begin().unwrap();
     //Create a segment called "seg" using the started tx.
     tx.create_segment(service_info.service.as_str()).unwrap();
-    //Prepere some raw data
-    let encoded: Vec<u8> = bincode::serialize(&service_info).unwrap();
-    //Insert the data inside the segment with the current tx.
     let id = tx
-        .insert(service_info.service.as_str(), encoded.as_slice())
+        .insert(service_info.service.as_str(), &service_info.as_bytes())
         .unwrap();
     //Commit the tx.
     let prepared = tx.prepare().unwrap();
     prepared.commit().unwrap();
 
     return id;
+}
+
+pub fn get_service(service_name: Services) -> Option<ServiceInfo> {
+    let persy = Persy::open("./deleterr.persy", Config::new()).unwrap();
+    for (read_id, content) in persy.scan(service_name.as_str()).unwrap() {
+        //.... do something with the record.id and record.content
+        //let service = bincode::deserialize(&content).unwrap();
+        let service = ServiceInfo::from(content);
+        return Some(service);
+    }
+    None
 }

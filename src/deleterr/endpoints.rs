@@ -1,7 +1,6 @@
 use crate::common::{models::ServiceInfo, models::Services, services::process_request};
 use crate::deleterr::models::QueryParms;
 use crate::deleterr::requests::get_requests_and_update_cache;
-use crate::store::services::save_service;
 use crate::AppData;
 use actix_web::{
     get, post,
@@ -39,13 +38,19 @@ async fn get_service_status_json(
 async fn save_service_submit_json(
     web::Json(service_info): web::Json<ServiceInfo>,
 ) -> impl Responder {
-    let inserted_result = save_service(service_info);
+    let inserted_result = crate::st_serv::save_service(service_info);
     return actix_web::HttpResponse::Ok().json(inserted_result.to_string());
+}
+#[get("/api/v1/json/service/get/{service_name}")]
+async fn get_service_json(path: web::Path<Services>) -> impl Responder {
+    let service_info = crate::st_serv::get_service(path.into_inner()).unwrap();
+    return actix_web::HttpResponse::Ok().json(service_info);
 }
 
 pub fn config(cfg: &mut web::ServiceConfig) {
     cfg.service(get_all_requests_json)
         .service(get_requests_count_json)
         .service(get_service_status_json)
-        .service(save_service_submit_json);
+        .service(save_service_submit_json)
+        .service(get_service_json);
 }

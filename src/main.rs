@@ -4,7 +4,7 @@ use actix_web_lab::web as lab_web;
 use deleterr::{endpoints as dr_serv, models::AppData};
 use overseerr::services as os_serv;
 use std::sync::RwLock;
-use store::services::create_store;
+use store::services as st_serv;
 use tautulli::services as tt_serv;
 
 mod common;
@@ -24,7 +24,7 @@ async fn main() -> std::io::Result<()> {
         request_cache: RwLock::new(None),
     };
 
-    create_store();
+    //crate::st_serv::create_store();
 
     let data = web::Data::new(app_state);
 
