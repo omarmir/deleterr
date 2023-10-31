@@ -4,3 +4,4 @@
 *.db
 /webapp/node_modules
 /webapp/dist
+*.persy

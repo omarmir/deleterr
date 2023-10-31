@@ -38,11 +38,11 @@ pub enum Services {
     Overseerr,
 }
 
-impl From<Services> for String {
-    fn from(service: Services) -> Self {
-        match service {
-            Services::Overseerr => "overseerr".to_string(),
-            Services::Tautulli => "tautulli".to_string(),
+impl Services {
+    pub fn as_str(&self) -> &str {
+        match self {
+            Services::Tautulli => "tautulli",
+            Services::Overseerr => "overseerr",
         }
     }
 }
