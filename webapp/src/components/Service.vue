@@ -2,7 +2,9 @@
   <div>
     <h4 class="mb-4 text-lg font-semibold text-gray-600 dark:text-gray-300">
       <img :src="logo" class="mr-2 inline h-6 w-6" />
-      <slot></slot>
+      <span class="capitalize">
+        {{ serviceType }}
+      </span>
     </h4>
     <div class="flex flex-col space-y-6 rounded-lg bg-white px-4 py-3 shadow-md dark:bg-gray-800">
       <form class="flex flex-col space-y-3" @submit.prevent="submitForm">
@@ -29,6 +31,7 @@ import { reactive } from 'vue'
 import { PropType } from 'vue'
 import { ServiceInfo, Services } from '~/@types/deleterr'
 import { useServiceTest } from '~/composables/useServiceTest'
+import { useServiceSave } from '~/composables/useServiceSave'
 import { InputType } from '~/@types/deleterr.ts'
 import { useVuelidate } from '@vuelidate/core'
 import { required } from '@vuelidate/validators'
@@ -40,19 +43,24 @@ import InputsCheckbox from '~/components/Inputs/Checkbox.vue'
 const props = defineProps({
   logo: { type: String, required: true },
   service: {
+    type: Object as PropType<ServiceInfo>,
+    required: false,
+  },
+  serviceType: {
     type: String as PropType<Services>,
     required: true,
   },
 })
 
 const { testService } = useServiceTest()
+const { saveService } = useServiceSave()
 
 const serviceInfo: ServiceInfo = reactive({
-  host: '',
-  apiKey: '',
-  port: '',
-  useSsl: false,
-  service: props.service,
+  host: props.service?.host ?? '',
+  apiKey: props.service?.apiKey ?? '',
+  port: props.service?.port ?? '',
+  useSsl: props.service?.useSsl ?? false,
+  service: props.serviceType,
 })
 
 const rules = {
@@ -64,7 +72,7 @@ const submitForm = async () => {
   const result = await v$.value.$validate()
 
   if (result) {
-    alert('do something!')
+    saveService(serviceInfo)
   }
 }
 
