@@ -24,8 +24,6 @@ async fn main() -> std::io::Result<()> {
         request_cache: RwLock::new(None),
     };
 
-    //crate::st_serv::create_store();
-
     let data = web::Data::new(app_state);
 
     HttpServer::new(move || {

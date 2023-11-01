@@ -60,10 +60,10 @@ pub enum Services {
 }
 
 impl Services {
-    pub fn as_str(&self) -> &str {
+    pub fn to_string(&self) -> String {
         match self {
-            Services::Tautulli => "tautulli",
-            Services::Overseerr => "overseerr",
+            Services::Tautulli => "tautulli".to_string(),
+            Services::Overseerr => "overseerr".to_string(),
         }
     }
 }

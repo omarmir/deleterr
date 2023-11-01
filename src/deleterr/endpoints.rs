@@ -38,9 +38,16 @@ async fn get_service_status_json(
 async fn save_service_submit_json(
     web::Json(service_info): web::Json<ServiceInfo>,
 ) -> impl Responder {
-    let inserted_result = crate::st_serv::save_service(service_info);
+    let inserted_result = crate::st_serv::upsert_service(service_info);
     return actix_web::HttpResponse::Ok().json(inserted_result.to_string());
 }
+
+#[get("/api/v1/json/service/get")]
+async fn get_all_service_json() -> impl Responder {
+    let service_info = crate::st_serv::get_all_services();
+    return actix_web::HttpResponse::Ok().json(service_info);
+}
+
 #[get("/api/v1/json/service/get/{service_name}")]
 async fn get_service_json(path: web::Path<Services>) -> impl Responder {
     let service_info = crate::st_serv::get_service(path.into_inner()).unwrap();
@@ -52,5 +59,6 @@ pub fn config(cfg: &mut web::ServiceConfig) {
         .service(get_requests_count_json)
         .service(get_service_status_json)
         .service(save_service_submit_json)
-        .service(get_service_json);
+        .service(get_service_json)
+        .service(get_all_service_json);
 }
