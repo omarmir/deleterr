@@ -1,7 +1,7 @@
 #![allow(dead_code)]
 #![allow(unused_variables)]
 
-use std::path::Path;
+use std::{collections::HashMap, path::Path};
 
 use persy::{Config, OpenError, Persy, PersyId, ValueMode, PE};
 
@@ -82,13 +82,20 @@ pub fn get_service(service_name: Services) -> Result<Option<ServiceInfo>, Delete
     }
 }
 
-pub fn get_all_services() -> Result<Vec<ServiceInfo>, DeleterrError> {
+pub fn get_all_services() -> Result<HashMap<String, Option<ServiceInfo>>, DeleterrError> {
     let persy = get_store()?;
-    let mut services: Vec<ServiceInfo> = vec![];
+    // TODO: once we have the other services this needs to be updated
+    let mut all_services: HashMap<String, Option<ServiceInfo>> = HashMap::from([
+        (Services::Overseerr.to_string(), None),
+        (Services::Tautulli.to_string(), None),
+        ("radarr".to_string(), None),
+        ("sonarr".to_string(), None),
+    ]);
+
     for (read_id, content) in persy.scan("services")? {
         let service = ServiceInfo::from(content);
-        services.push(service);
+        all_services.insert(service.service.to_string(), Some(service));
     }
 
-    Ok(services)
+    Ok(all_services)
 }
