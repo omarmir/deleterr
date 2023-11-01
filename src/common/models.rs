@@ -111,3 +111,62 @@ impl From<reqwest::Error> for DeleterrError {
         DeleterrError::new(err.to_string().as_str())
     }
 }
+
+impl From<persy::PE<persy::IndexOpsError>> for DeleterrError {
+    fn from(err: persy::PE<persy::IndexOpsError>) -> Self {
+        DeleterrError::new(err.to_string().as_str())
+    }
+}
+
+impl From<persy::PE<persy::OpenError>> for DeleterrError {
+    fn from(err: persy::PE<persy::OpenError>) -> Self {
+        DeleterrError::new(err.to_string().as_str())
+    }
+}
+
+impl From<persy::PE<persy::BeginTransactionError>> for DeleterrError {
+    fn from(err: persy::PE<persy::BeginTransactionError>) -> Self {
+        DeleterrError::new(err.to_string().as_str())
+    }
+}
+
+impl From<persy::PE<persy::PrepareError>> for DeleterrError {
+    fn from(err: persy::PE<persy::PrepareError>) -> Self {
+        DeleterrError::new(err.to_string().as_str())
+    }
+}
+
+impl From<persy::PE<persy::GenericError>> for DeleterrError {
+    fn from(err: persy::PE<persy::GenericError>) -> Self {
+        DeleterrError::new(err.to_string().as_str())
+    }
+}
+
+impl From<persy::PE<persy::InsertError>> for DeleterrError {
+    fn from(err: persy::PE<persy::InsertError>) -> Self {
+        DeleterrError::new(err.to_string().as_str())
+    }
+}
+
+impl From<persy::PE<persy::IndexPutError>> for DeleterrError {
+    fn from(err: persy::PE<persy::IndexPutError>) -> Self {
+        DeleterrError::new(err.to_string().as_str())
+    }
+}
+
+impl From<persy::PE<persy::ReadError>> for DeleterrError {
+    fn from(err: persy::PE<persy::ReadError>) -> Self {
+        DeleterrError::new(err.to_string().as_str())
+    }
+}
+
+impl From<persy::PE<persy::SegmentError>> for DeleterrError {
+    fn from(err: persy::PE<persy::SegmentError>) -> Self {
+        DeleterrError::new(err.to_string().as_str())
+    }
+}
+impl From<persy::PE<persy::UpdateError>> for DeleterrError {
+    fn from(err: persy::PE<persy::UpdateError>) -> Self {
+        DeleterrError::new(err.to_string().as_str())
+    }
+}

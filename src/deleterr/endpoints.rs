@@ -39,19 +39,19 @@ async fn save_service_submit_json(
     web::Json(service_info): web::Json<ServiceInfo>,
 ) -> impl Responder {
     let inserted_result = crate::st_serv::upsert_service(service_info);
-    return actix_web::HttpResponse::Ok().json(inserted_result.to_string());
+    return process_request(inserted_result);
 }
 
 #[get("/api/v1/json/service/get")]
 async fn get_all_service_json() -> impl Responder {
     let service_info = crate::st_serv::get_all_services();
-    return actix_web::HttpResponse::Ok().json(service_info);
+    return process_request(service_info);
 }
 
 #[get("/api/v1/json/service/get/{service_name}")]
 async fn get_service_json(path: web::Path<Services>) -> impl Responder {
-    let service_info = crate::st_serv::get_service(path.into_inner()).unwrap();
-    return actix_web::HttpResponse::Ok().json(service_info);
+    let service_info = crate::st_serv::get_service(path.into_inner());
+    return process_request(service_info);
 }
 
 pub fn config(cfg: &mut web::ServiceConfig) {
