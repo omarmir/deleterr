@@ -22,6 +22,11 @@
           <ButtonsStatused :button-state="testState" @click="testService(serviceInfo)">Test</ButtonsStatused>
           <ButtonsBase :is-submit="true" :is-outlined="false">Save</ButtonsBase>
         </div>
+        <div class="capitalize-first text-sm text-red-400">
+          <p v-if="testState === TestState.failure">
+            {{ errorMsg }}
+          </p>
+        </div>
       </form>
     </div>
   </div>
@@ -29,7 +34,7 @@
 <script lang="ts" setup>
 import { reactive } from 'vue'
 import { PropType } from 'vue'
-import { ServiceInfo, Services } from '~/@types/deleterr'
+import { TestState, ServiceInfo, Services } from '~/@types/deleterr'
 import { useServiceTest } from '~/composables/useServiceTest'
 import { useServiceSave } from '~/composables/useServiceSave'
 import { InputType } from '~/@types/deleterr.ts'
@@ -52,7 +57,7 @@ const props = defineProps({
   },
 })
 
-const { testService, testState } = useServiceTest()
+const { testService, testState, errorMsg } = useServiceTest()
 const { saveService } = useServiceSave()
 
 const serviceInfo: ServiceInfo = reactive({
@@ -78,3 +83,8 @@ const submitForm = async () => {
 
 const v$ = useVuelidate(rules, serviceInfo as any)
 </script>
+<style lang="postcss" scoped>
+.capitalize-first::first-letter {
+  text-transform: uppercase;
+}
+</style>

@@ -1,7 +1,7 @@
 export interface APIResponse<T> {
   success: boolean
   data?: T
-  error_msg?: String
+  error_msg?: string
 }
 export interface MediaRequest {
   id: number
@@ -67,7 +67,7 @@ export enum InputType {
   password = 'password',
 }
 
-export enum ButtonState {
+export enum TestState {
   loading,
   success,
   failure,

@@ -1,8 +1,9 @@
 import { ref } from 'vue'
-import { ServiceInfo, APIResponse, ButtonState } from '~/@types/deleterr'
+import { ServiceInfo, APIResponse, TestState } from '~/@types/deleterr'
 
 export function useServiceTest() {
-  const testState = ref(ButtonState.hidden)
+  const testState = ref(TestState.hidden)
+  const errorMsg = ref('')
 
   const testService = async (serviceInfo: ServiceInfo) => {
     const requestOptions = {
@@ -12,26 +13,29 @@ export function useServiceTest() {
     }
 
     try {
-      testState.value = ButtonState.loading
+      testState.value = TestState.loading
       const response = await fetch('http://localhost:8080/api/v1/json/service/status', requestOptions)
       let apiResponse: APIResponse<ServiceInfo> = await response.json()
 
       if (apiResponse.success) {
-        testState.value = ButtonState.success
+        testState.value = TestState.success
         setTimeout(() => {
-          testState.value = ButtonState.hidden
+          testState.value = TestState.hidden
         }, 5000)
       } else {
-        testState.value = ButtonState.failure
+        testState.value = TestState.failure
+        errorMsg.value = apiResponse.error_msg ?? ''
       }
     } catch (error: any) {
       console.error(error)
-      testState.value = ButtonState.failure
+      testState.value = TestState.failure
+      errorMsg.value = error
     }
   }
 
   return {
     testService,
     testState,
+    errorMsg,
   }
 }
