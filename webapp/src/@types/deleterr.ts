@@ -1,6 +1,6 @@
 export interface APIResponse<T> {
   success: boolean
-  data: T
+  data?: T
   error_msg?: String
 }
 export interface MediaRequest {
@@ -65,6 +65,13 @@ export enum InputType {
   text = 'text',
   number = 'number',
   password = 'password',
+}
+
+export enum ButtonState {
+  loading,
+  success,
+  failure,
+  hidden,
 }
 
 export interface ServiceInfo {
