@@ -19,8 +19,8 @@
         </p>
         <InputsCheckbox v-model="serviceInfo.useSsl">Use SSL</InputsCheckbox>
         <div class="flex justify-end space-x-4">
-          <ButtonsOutline @click="testService(serviceInfo)">Test</ButtonsOutline>
-          <ButtonsRegular :is-submit="true">Save</ButtonsRegular>
+          <ButtonsStatused :button-state="testState" @click="testService(serviceInfo)">Test</ButtonsStatused>
+          <ButtonsBase :is-submit="true" :is-outlined="false">Save</ButtonsBase>
         </div>
       </form>
     </div>
@@ -35,8 +35,8 @@ import { useServiceSave } from '~/composables/useServiceSave'
 import { InputType } from '~/@types/deleterr.ts'
 import { useVuelidate } from '@vuelidate/core'
 import { required } from '@vuelidate/validators'
-import ButtonsRegular from '~/components/Buttons/Regular.vue'
-import ButtonsOutline from '~/components/Buttons/Outline.vue'
+import ButtonsBase from '~/components/Buttons/Base.vue'
+import ButtonsStatused from '~/components/Buttons/Statused.vue'
 import InputsInput from '~/components/Inputs/Input.vue'
 import InputsCheckbox from '~/components/Inputs/Checkbox.vue'
 
@@ -52,7 +52,7 @@ const props = defineProps({
   },
 })
 
-const { testService } = useServiceTest()
+const { testService, testState } = useServiceTest()
 const { saveService } = useServiceSave()
 
 const serviceInfo: ServiceInfo = reactive({
