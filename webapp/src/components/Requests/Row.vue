@@ -18,6 +18,7 @@
     </td>
     <td class="px-4 py-3 text-xs">
       <StatusPill :watched-status="request?.userWatchHistory?.watchedStatus" />
+      {{ request?.userWatchHistory?.watchedStatus }}
     </td>
     <td class="px-4 py-3 text-sm">
       <div class="flex items-center text-sm">
