@@ -29,8 +29,8 @@ fn compare_user_watch_history(
 ) -> Ordering {
     let media_variants = if is_descending { (a, b) } else { (b, a) };
     match media_variants {
-        (Some(_), None) => Ordering::Less,    // None < Some
-        (None, Some(_)) => Ordering::Greater, // Some < None
+        (Some(_), None) => Ordering::Greater, // None < Some
+        (None, Some(_)) => Ordering::Less,    // Some < None
         (Some(a), Some(b)) => a
             .watched_status
             .partial_cmp(&b.watched_status)
