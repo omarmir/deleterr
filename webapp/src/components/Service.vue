@@ -19,11 +19,14 @@
         </p>
         <InputsCheckbox v-model="serviceInfo.useSsl">Use SSL</InputsCheckbox>
         <div class="flex justify-end space-x-4">
-          <ButtonsStatused :button-state="testState" @click="testService(serviceInfo)">Test</ButtonsStatused>
-          <ButtonsBase :is-submit="true" :is-outlined="false">Save</ButtonsBase>
+          <ButtonsStatused :button-state="operationState.test" @click="saveTestService(serviceInfo, ServiceOperations.Test)">Test</ButtonsStatused>
+          <ButtonsStatused :button-state="operationState.save" :is-submit="true" :is-outlined="false">Save</ButtonsStatused>
         </div>
         <div class="capitalize-first text-sm text-red-400">
-          <p v-if="testState === TestState.failure">
+          <p v-if="operationState.save === TestState.failure">
+            {{ errorMsg }}
+          </p>
+          <p v-if="operationState.test === TestState.failure">
             {{ errorMsg }}
           </p>
         </div>
@@ -35,12 +38,10 @@
 import { reactive } from 'vue'
 import { PropType } from 'vue'
 import { TestState, ServiceInfo, Services } from '~/@types/deleterr'
-import { useServiceTest } from '~/composables/useServiceTest'
-import { useServiceSave } from '~/composables/useServiceSave'
+import { useServiceSaveTest } from '~/composables/useServiceSaveTest.ts'
 import { InputType } from '~/@types/deleterr.ts'
 import { useVuelidate } from '@vuelidate/core'
 import { required } from '@vuelidate/validators'
-import ButtonsBase from '~/components/Buttons/Base.vue'
 import ButtonsStatused from '~/components/Buttons/Statused.vue'
 import InputsInput from '~/components/Inputs/Input.vue'
 import InputsCheckbox from '~/components/Inputs/Checkbox.vue'
@@ -57,8 +58,7 @@ const props = defineProps({
   },
 })
 
-const { testService, testState, errorMsg } = useServiceTest()
-const { saveService } = useServiceSave()
+const { saveTestService, operationState, errorMsg, ServiceOperations } = useServiceSaveTest()
 
 const serviceInfo: ServiceInfo = reactive({
   host: props.service?.host ?? '',
@@ -77,7 +77,7 @@ const submitForm = async () => {
   const result = await v$.value.$validate()
 
   if (result) {
-    saveService(serviceInfo)
+    saveTestService(serviceInfo, ServiceOperations.Save)
   }
 }
 
