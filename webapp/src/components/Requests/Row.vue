@@ -1,8 +1,8 @@
 <template>
-  <tr class="text-gray-700 dark:text-gray-400">
+  <tr class="h-24 text-gray-700 dark:text-gray-400">
     <td class="px-4 py-3">
       <div class="flex items-center space-x-5 text-sm">
-        <img class="h-full w-10 object-cover" :src="'https://image.tmdb.org/t/p/w600_and_h900_bestv2' + request?.mediaInfo?.posterPath" alt="" loading="lazy" />
+        <img class="h-16 object-cover" :src="'https://image.tmdb.org/t/p/w600_and_h900_bestv2' + request?.mediaInfo?.posterPath" alt="" loading="lazy" />
         <div class="flex flex-col space-y-1">
           <p class="font-semibold">{{ request?.mediaInfo?.title ?? 'N/A' }}</p>
           <p class="text-xs">Release: {{ request?.mediaInfo?.releaseDate }}</p>
