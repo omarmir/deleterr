@@ -36,13 +36,15 @@ interface TableState {
   isDescending?: boolean
   take?: number
   skip?: number
+  search?: string
 }
 
 const tableState: TableState = reactive({
   sortBy: 'requestedDate',
   isDescending: true,
-  take: 100,
+  take: 5,
   skip: undefined,
+  search: undefined,
 })
 
 const resort = (sorter: Sortables) => {
