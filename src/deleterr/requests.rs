@@ -29,13 +29,13 @@ fn compare_user_watch_history(
 ) -> Ordering {
     let media_variants = if is_descending { (a, b) } else { (b, a) };
     match media_variants {
-        (Some(_), None) => Ordering::Greater, // None < Some
-        (None, Some(_)) => Ordering::Less,    // Some < None
         (Some(a), Some(b)) => a
             .watched_status
             .partial_cmp(&b.watched_status)
             .unwrap_or(Ordering::Equal),
-        _ => Ordering::Equal, // Both None
+        (None, Some(_)) => Ordering::Less,    // None < Some
+        (Some(_), None) => Ordering::Greater, // Some < None
+        _ => Ordering::Equal,                 // Both None
     }
 }
 fn update_cache(app_data: &Data<AppData>, new_data: RequestStatusWithRecordInfo) {
@@ -166,8 +166,8 @@ pub fn sort_requests_vector(
             |a, b| {
                 a.media_request
                     .requested_by
-                    .username
-                    .partial_cmp(&b.media_request.requested_by.username)
+                    .plex_id
+                    .partial_cmp(&b.media_request.requested_by.plex_id)
                     .unwrap_or(Ordering::Equal)
             },
             is_descending,
