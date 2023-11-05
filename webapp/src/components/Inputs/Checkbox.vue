@@ -1,6 +1,7 @@
 <template>
   <label class="flex items-center dark:text-gray-400">
     <input
+      :checked="modelValue"
       type="checkbox"
       :placeholder="placeholder"
       :value="modelValue"
