@@ -16,12 +16,14 @@
           <Row v-for="request in requests" :key="request.mediaRequest.id" :request="request" />
         </tbody>
       </table>
+      <Pagination :selected-page="0" :page-count="16"></Pagination>
     </div>
   </div>
 </template>
 <script lang="ts" setup>
 import Row from './Row.vue'
 import Heading from './Heading.vue'
+import Pagination from '~/components/Pagination.vue'
 import { useRequests } from '~/composables/useRequests'
 
 const { requests, tableState, resort, getRequests } = useRequests()
