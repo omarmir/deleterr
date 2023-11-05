@@ -2,11 +2,7 @@
   <tr class="text-gray-700 dark:text-gray-400">
     <td class="px-4 py-3">
       <div class="flex items-center space-x-5 text-sm">
-        <img
-          class="h-full w-10 object-cover"
-          :src="'https://image.tmdb.org/t/p/w600_and_h900_bestv2' + request?.mediaInfo?.posterPath"
-          alt=""
-          loading="lazy" />
+        <img class="h-full w-10 object-cover" :src="'https://image.tmdb.org/t/p/w600_and_h900_bestv2' + request?.mediaInfo?.posterPath" alt="" loading="lazy" />
         <div class="flex flex-col space-y-1">
           <p class="font-semibold">{{ request?.mediaInfo?.title ?? 'N/A' }}</p>
           <p class="text-xs">Release: {{ request?.mediaInfo?.releaseDate }}</p>
@@ -27,11 +23,7 @@
       <div class="flex items-center text-sm">
         <!-- Avatar with inset shadow -->
         <div class="relative mr-3 hidden h-8 w-8 rounded-full md:block">
-          <img
-            class="h-full w-full rounded-full object-cover"
-            :src="request?.mediaRequest.requestedBy.avatar"
-            alt=""
-            loading="lazy" />
+          <img class="h-full w-full rounded-full object-cover" :src="request?.mediaRequest.requestedBy.avatar" alt="" loading="lazy" />
           <div class="absolute inset-0 rounded-full shadow-inner" aria-hidden="true"></div>
         </div>
         <div class="flex flex-col space-y-1">
@@ -39,9 +31,7 @@
             {{ request?.mediaRequest.requestedBy.plexUsername ?? request?.mediaRequest.requestedBy.username }}
           </p>
           <p class="text-xs">
-            <span
-              :data-user-type="request?.mediaRequest.requestedBy.userType"
-              class="rounded-md px-2 py-[2px] text-white">
+            <span :data-user-type="request?.mediaRequest.requestedBy.userType" class="rounded-md px-2 py-[2px] text-white">
               {{ userType(request?.mediaRequest.requestedBy.userType) }}
             </span>
           </p>
