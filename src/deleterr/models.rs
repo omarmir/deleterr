@@ -27,6 +27,7 @@ pub struct RequestStatusWithRecordInfo {
 #[serde(rename_all = "camelCase")]
 pub struct RequestStatusWithRecordInfoVector {
     pub all_requests: usize,
+    pub filtered_requests: usize,
     pub requests: Vec<RequestStatus>,
 }
 

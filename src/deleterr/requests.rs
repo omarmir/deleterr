@@ -86,6 +86,7 @@ pub fn make_filtered_sized_vector_of_results(
     vec: Vec<RequestStatus>,
     all_requests: usize,
 ) -> RequestStatusWithRecordInfoVector {
+    let filtered_requests = vec.len();
     let final_results = match (take_opt, skip_opt) {
         (Some(mut take), Some(skip)) => {
             if skip > vec.len() {
@@ -117,7 +118,8 @@ pub fn make_filtered_sized_vector_of_results(
     };
 
     let req_status_info = RequestStatusWithRecordInfoVector {
-        all_requests: all_requests,
+        filtered_requests,
+        all_requests,
         requests: final_results.to_vec(),
     };
 

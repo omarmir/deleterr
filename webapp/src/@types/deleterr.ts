@@ -30,6 +30,7 @@ export interface RequestStatus {
 
 export interface RequestStatusWithRecordInfo {
   allRequests: number
+  filteredRequests: number
   requests: RequestStatus[]
 }
 
