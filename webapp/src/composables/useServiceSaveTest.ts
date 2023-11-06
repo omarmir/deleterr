@@ -17,7 +17,10 @@ export function useServiceSaveTest() {
       body: JSON.stringify(serviceInfo),
     }
 
-    const apiEndpoint = operation === ServiceOperations.Save ? 'http://localhost:8080/api/v1/json/service/save' : 'http://localhost:8080/api/v1/json/service/status'
+    const apiEndpoint =
+      operation === ServiceOperations.Save
+        ? 'http://localhost:8080/api/v1/json/service/save'
+        : 'http://localhost:8080/api/v1/json/service/status'
 
     try {
       operationState.value[operation] = TestState.loading

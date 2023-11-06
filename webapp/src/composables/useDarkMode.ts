@@ -5,15 +5,15 @@ const lsIsDark: boolean = localStorage.getItem('isDark') === 'true'
 const isDark: Ref<boolean> = ref(lsIsDark)
 
 export function useDarkMode() {
-    const toggleDarkMode = () => {
-        isDark.value = !isDark.value
-        localStorage.setItem('isDark', isDark.value.toString())
-    }
+  const toggleDarkMode = () => {
+    isDark.value = !isDark.value
+    localStorage.setItem('isDark', isDark.value.toString())
+  }
 
-    const isDarkModeEnabled: Ref<boolean> = isDark
+  const isDarkModeEnabled: Ref<boolean> = isDark
 
-    return {
-        toggleDarkMode,
-        isDarkModeEnabled,
-    }
+  return {
+    toggleDarkMode,
+    isDarkModeEnabled,
+  }
 }
