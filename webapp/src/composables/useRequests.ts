@@ -7,7 +7,7 @@ type Sortables = 'name' | 'requestedDate' | 'mediaType' | 'watched' | 'user'
 interface TableState {
     sortBy?: Sortables
     isDescending?: boolean
-    take?: number
+    take: number
     skip?: number
     search?: string
 }
@@ -23,6 +23,8 @@ const tableState: TableState = reactive({
 export function useRequests() {
     const requests: Ref<RequestStatus[] | undefined> = ref([])
     const allRequests: Ref<number> = ref(0)
+    const currentPage: Ref<number> = ref(0)
+    const pageCount: Ref<number> = ref(0)
 
     const resort = (sorter: Sortables) => {
         if (tableState.sortBy === sorter) {
@@ -32,7 +34,18 @@ export function useRequests() {
         }
     }
 
-    watch(tableState, (_newState: TableState) => getRequests())
+    watch(tableState, (_newState: TableState) => {
+        if (tableState.search) {
+            currentPage.value = 1
+            tableState.skip = 0
+        }
+
+        getRequests()
+    })
+
+    const changePage = (page: number) => {
+        tableState.skip = page * tableState.take
+    }
 
     const getRequests = async () => {
         try {
@@ -47,6 +60,8 @@ export function useRequests() {
             let apiResponse: APIResponse<RequestStatusWithRecordInfo> = await response.json()
             requests.value = apiResponse.data?.requests
             allRequests.value = apiResponse.data?.allRequests ?? 0
+            currentPage.value = (tableState.skip ?? 0) / tableState.take
+            pageCount.value = Math.ceil(allRequests.value / (tableState.take ?? 1))
         } catch (error) {
             console.error(error)
         }
@@ -57,6 +72,9 @@ export function useRequests() {
         requests,
         allRequests,
         tableState,
-        getRequests
+        getRequests,
+        currentPage,
+        pageCount,
+        changePage
     }
 }

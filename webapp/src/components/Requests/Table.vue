@@ -16,7 +16,7 @@
           <Row v-for="request in requests" :key="request.mediaRequest.id" :request="request" />
         </tbody>
       </table>
-      <Pagination :selected-page="0" :page-count="16"></Pagination>
+      <Pagination :take="tableState.take" :all-requests="allRequests" :selected-page="currentPage" :page-count="pageCount ?? 1" @change-page="changePage"></Pagination>
     </div>
   </div>
 </template>
@@ -26,7 +26,7 @@ import Heading from './Heading.vue'
 import Pagination from '~/components/Pagination.vue'
 import { useRequests } from '~/composables/useRequests'
 
-const { requests, tableState, resort, getRequests } = useRequests()
+const { requests, tableState, resort, getRequests, pageCount, currentPage, changePage, allRequests } = useRequests()
 
 await getRequests()
 </script>
