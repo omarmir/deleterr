@@ -2,7 +2,8 @@
   <div
     class="grid border-t bg-gray-50 px-4 py-3 text-xs font-semibold uppercase tracking-wide text-gray-500 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 sm:grid-cols-9">
     <span class="col-span-3 flex items-center">
-      Showing {{ take * selectedPage + 1 }}-{{ Math.min(take * selectedPage + 5, allRequests) }} of {{ allRequests }}
+      Showing {{ take * selectedPage + 1 }}-{{ Math.min(take * selectedPage + 5, filteredRequests) }} of
+      {{ filteredRequests }}
     </span>
     <span class="col-span-2"></span>
     <!-- Pagination -->
@@ -92,7 +93,7 @@ const props = defineProps({
   pageCount: { type: Number, required: true },
   selectedPage: { type: Number, required: true },
   take: { type: Number, required: true },
-  allRequests: { type: Number, required: false, default: 0 },
+  filteredRequests: { type: Number, required: true, default: 0 },
 })
 
 const emit = defineEmits<{

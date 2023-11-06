@@ -1,30 +1,22 @@
-import { reactive, ref, watch } from 'vue'
-import type { Ref } from 'vue'
+import { defineStore } from 'pinia'
+import { reactive, ref, Ref, watch } from 'vue'
 import { APIResponse, RequestStatus, RequestStatusWithRecordInfo } from '~/@types/deleterr'
 
-type Sortables = 'name' | 'requestedDate' | 'mediaType' | 'watched' | 'user'
-
-interface TableState {
-  sortBy?: Sortables
-  isDescending?: boolean
-  take: number
-  skip?: number
-  search?: string
-}
-
-const tableState: TableState = reactive({
-  sortBy: 'requestedDate',
-  isDescending: true,
-  take: 5,
-  skip: undefined,
-  search: undefined,
-})
-
-export function useRequests() {
+export const useRequestsStore = defineStore('requests', () => {
   const requests: Ref<RequestStatus[] | undefined> = ref([])
   const allRequests: Ref<number> = ref(0)
   const currentPage: Ref<number> = ref(0)
   const pageCount: Ref<number> = ref(0)
+  const filteredRequests: Ref<number> = ref(0)
+  const search: Ref<string> = ref('')
+
+  const tableState: TableState = reactive({
+    sortBy: 'requestedDate',
+    isDescending: true,
+    take: 5,
+    skip: undefined,
+    search: undefined,
+  })
 
   const resort = (sorter: Sortables) => {
     if (tableState.sortBy === sorter) {
@@ -32,19 +24,6 @@ export function useRequests() {
     } else {
       ;[tableState.sortBy, tableState.isDescending] = [sorter, false]
     }
-  }
-
-  watch(tableState, (_newState: TableState) => {
-    if (tableState.search) {
-      currentPage.value = 1
-      tableState.skip = 0
-    }
-
-    getRequests()
-  })
-
-  const changePage = (page: number) => {
-    tableState.skip = page * tableState.take
   }
 
   const getRequests = async () => {
@@ -61,10 +40,27 @@ export function useRequests() {
       requests.value = apiResponse.data?.requests
       allRequests.value = apiResponse.data?.allRequests ?? 0
       currentPage.value = (tableState.skip ?? 0) / tableState.take
-      pageCount.value = Math.ceil(allRequests.value / (tableState.take ?? 1))
+      filteredRequests.value = apiResponse.data?.filteredRequests ?? 0
+      pageCount.value = Math.ceil(filteredRequests.value / tableState.take)
     } catch (error) {
       console.error(error)
     }
+  }
+
+  watch(tableState, (newValue, oldValue) => {
+    console.log(newValue)
+    console.log(oldValue)
+    console.log(tableState)
+  })
+
+  watch(search, (newValue, oldValue) => {
+    console.log(newValue)
+    console.log(oldValue)
+    console.log(tableState)
+  })
+
+  const changePage = (page: number) => {
+    tableState.skip = page * tableState.take
   }
 
   return {
@@ -76,5 +72,7 @@ export function useRequests() {
     currentPage,
     pageCount,
     changePage,
+    filteredRequests,
+    search,
   }
-}
+})

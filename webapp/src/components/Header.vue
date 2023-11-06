@@ -24,7 +24,7 @@
             </svg>
           </div>
           <input
-            v-model="tableState.search"
+            v-model="store.search"
             class="form-input w-full rounded-md border-0 bg-gray-100 py-2 pl-8 pr-2 text-sm text-gray-700 placeholder-gray-600 focus:border-purple-300 focus:bg-white focus:placeholder-gray-500 focus:shadow-outline-purple focus:outline-none focus:ring-0 dark:bg-gray-700 dark:text-gray-200 dark:placeholder-gray-500 dark:focus:placeholder-gray-600 dark:focus:shadow-outline-gray"
             type="text"
             placeholder="Search for requests"
@@ -194,10 +194,10 @@
 import { ref } from 'vue'
 import type { Ref } from 'vue'
 import { useDarkMode } from '~/composables/useDarkMode'
-import { useRequests } from '~/composables/useRequests'
+import { useRequestsStore } from '~/stores/requests'
 
+const store = useRequestsStore()
 const { toggleDarkMode, isDarkModeEnabled } = useDarkMode()
-const { tableState } = useRequests()
 
 let isNotificationsMenuOpen: Ref<Boolean> = ref(false)
 let isProfileMenuOpen: Ref<Boolean> = ref(false)

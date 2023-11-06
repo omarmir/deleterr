@@ -5,20 +5,23 @@ import Dashboard from '~/views/Dashboard.vue'
 import Services from '~/views/Services.vue'
 import NotFound from '~/views/404.vue'
 import { createRouter, createWebHashHistory } from 'vue-router'
+import { createPinia } from 'pinia'
 
 const routes = [
-    { path: '/services', component: Services },
-    { path: '/', component: Dashboard },
-    {
-        path: '/:catchAll(.*)',
-        component: NotFound,
-        name: 'NotFound',
-    },
+  { path: '/services', component: Services },
+  { path: '/', component: Dashboard },
+  {
+    path: '/:catchAll(.*)',
+    component: NotFound,
+    name: 'NotFound',
+  },
 ]
 
 const router = createRouter({
-    history: createWebHashHistory(),
-    routes,
+  history: createWebHashHistory(),
+  routes,
 })
 
-createApp(App).use(router).mount('#app')
+const pinia = createPinia()
+
+createApp(App).use(router).use(pinia).mount('#app')
