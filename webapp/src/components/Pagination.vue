@@ -1,14 +1,18 @@
 <template>
   <div
     class="grid border-t bg-gray-50 px-4 py-3 text-xs font-semibold uppercase tracking-wide text-gray-500 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 sm:grid-cols-9">
-    <span class="col-span-3 flex items-center">Showing {{ take * selectedPage + 1 }}-{{ Math.min(take * selectedPage + 5, allRequests) }} of {{ allRequests }}</span>
+    <span class="col-span-3 flex items-center">
+      Showing {{ take * selectedPage + 1 }}-{{ Math.min(take * selectedPage + 5, allRequests) }} of {{ allRequests }}
+    </span>
     <span class="col-span-2"></span>
     <!-- Pagination -->
     <span class="col-span-4 mt-2 flex sm:mt-auto sm:justify-end">
       <nav aria-label="Table navigation">
         <ul v-if="pageCount > 10" class="inline-flex items-center">
           <li>
-            <button class="rounded-md rounded-l-lg px-3 py-1 focus:shadow-outline-purple focus:outline-none" aria-label="Previous">
+            <button
+              class="rounded-md rounded-l-lg px-3 py-1 focus:shadow-outline-purple focus:outline-none"
+              aria-label="Previous">
               <svg aria-hidden="true" class="h-4 w-4 fill-current" viewBox="0 0 20 20">
                 <path
                   d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z"
@@ -52,7 +56,9 @@
             </button>
           </li>
           <li>
-            <button class="rounded-md rounded-r-lg px-3 py-1 focus:shadow-outline-purple focus:outline-none" aria-label="Next">
+            <button
+              class="rounded-md rounded-r-lg px-3 py-1 focus:shadow-outline-purple focus:outline-none"
+              aria-label="Next">
               <svg class="h-4 w-4 fill-current" aria-hidden="true" viewBox="0 0 20 20">
                 <path
                   d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
