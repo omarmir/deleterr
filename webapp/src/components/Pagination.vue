@@ -72,11 +72,9 @@
         <ul v-else class="inline-flex items-center">
           <li v-for="item in pageCount" :key="item">
             <button
-              :class="[item == selectedPage ? 'current' : '']"
+              :class="[item == selectedPage + 1 ? 'current' : '']"
               class="rounded-md rounded-l-lg px-3 py-1 hover:bg-purple-500 hover:bg-opacity-20 focus:shadow-outline-purple focus:outline-none"
-              :current-page="item"
-              :selected-page="selectedPage"
-              @change-page="setPage">
+              @click="setPage(item - 1)">
               {{ item }}
             </button>
           </li>

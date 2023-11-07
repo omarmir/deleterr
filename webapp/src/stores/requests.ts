@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { reactive, ref, Ref, watch } from 'vue'
+import { reactive, readonly, ref, Ref, watch } from 'vue'
 import { APIResponse, RequestStatus, RequestStatusWithRecordInfo } from '~/@types/deleterr'
 
 export const useRequestsStore = defineStore('requests', () => {
@@ -8,6 +8,11 @@ export const useRequestsStore = defineStore('requests', () => {
   const currentPage: Ref<number> = ref(0)
   const pageCount: Ref<number> = ref(0)
   const filteredRequests: Ref<number> = ref(0)
+  /**
+   * Search needs to be managed as a seperate ref because there needs to be comparision
+   * and reactive objects do not allow comparision from old to new value since it points
+   * to the same place.
+   */
   const search: Ref<string> = ref('')
 
   const tableState: TableState = reactive({
@@ -18,13 +23,8 @@ export const useRequestsStore = defineStore('requests', () => {
     search: undefined,
   })
 
-  const resort = (sorter: Sortables) => {
-    if (tableState.sortBy === sorter) {
-      tableState.isDescending = !tableState.isDescending
-    } else {
-      ;[tableState.sortBy, tableState.isDescending] = [sorter, false]
-    }
-  }
+  // TODO: Have this be read only so that commands are sent instead of binding directly to tablestate
+  const copy: Readonly<TableState> = readonly(tableState)
 
   const getRequests = async () => {
     try {
@@ -47,17 +47,22 @@ export const useRequestsStore = defineStore('requests', () => {
     }
   }
 
-  watch(tableState, (newValue, oldValue) => {
-    console.log(newValue)
-    console.log(oldValue)
-    console.log(tableState)
-  })
+  watch(tableState, (_newState: TableState) => getRequests())
 
   watch(search, (newValue, oldValue) => {
-    console.log(newValue)
-    console.log(oldValue)
-    console.log(tableState)
+    if (newValue != oldValue) {
+      [tableState.search, tableState.skip] = [newValue, 0]
+      currentPage.value = 0
+    }
   })
+
+  const resort = (sorter: Sortables) => {
+    if (tableState.sortBy === sorter) {
+      tableState.isDescending = !tableState.isDescending
+    } else {
+      ;[tableState.sortBy, tableState.isDescending] = [sorter, false]
+    }
+  }
 
   const changePage = (page: number) => {
     tableState.skip = page * tableState.take
