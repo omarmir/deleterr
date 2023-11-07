@@ -8,14 +8,8 @@ export const useRequestsStore = defineStore('requests', () => {
   const currentPage: Ref<number> = ref(0)
   const pageCount: Ref<number> = ref(0)
   const filteredRequests: Ref<number> = ref(0)
-  /**
-   * Search needs to be managed as a seperate ref because there needs to be comparision
-   * and reactive objects do not allow comparision from old to new value since it points
-   * to the same place.
-   */
-  const search: Ref<string> = ref('')
 
-  const tableState: TableState = reactive({
+  const internalTableState: TableState = reactive({
     sortBy: 'requestedDate',
     isDescending: true,
     take: 5,
@@ -23,8 +17,7 @@ export const useRequestsStore = defineStore('requests', () => {
     search: undefined,
   })
 
-  // TODO: Have this be read only so that commands are sent instead of binding directly to tablestate
-  const copy: Readonly<TableState> = readonly(tableState)
+  const tableState: Readonly<TableState> = readonly(internalTableState)
 
   const getRequests = async () => {
     try {
@@ -49,35 +42,38 @@ export const useRequestsStore = defineStore('requests', () => {
 
   watch(tableState, (_newState: TableState) => getRequests())
 
-  watch(search, (newValue, oldValue) => {
-    if (newValue != oldValue) {
-      [tableState.search, tableState.skip] = [newValue, 0]
+  const search = (evt: InputEvent) => {
+    const searchStr = (evt.target as any).value
+    if (searchStr != internalTableState.search) {
+      ;[internalTableState.search, internalTableState.skip] = [searchStr, 0]
       currentPage.value = 0
     }
-  })
+  }
 
   const resort = (sorter: Sortables) => {
     if (tableState.sortBy === sorter) {
-      tableState.isDescending = !tableState.isDescending
+      internalTableState.isDescending = !internalTableState.isDescending
     } else {
-      ;[tableState.sortBy, tableState.isDescending] = [sorter, false]
+      ;[internalTableState.sortBy, internalTableState.isDescending] = [sorter, false]
     }
   }
 
   const changePage = (page: number) => {
-    tableState.skip = page * tableState.take
+    internalTableState.skip = page * internalTableState.take
   }
 
   return {
-    resort,
+    // States
+    tableState,
     requests,
     allRequests,
-    tableState,
     getRequests,
     currentPage,
     pageCount,
-    changePage,
     filteredRequests,
+    // Commands
     search,
+    resort,
+    changePage,
   }
 })
