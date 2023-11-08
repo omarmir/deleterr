@@ -5,38 +5,16 @@
         <thead>
           <tr
             class="border-b bg-gray-50 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400">
-            <Heading
-              class="w-1/3"
-              :sort-icon="store.tableState.sortBy === 'name'"
-              :is-descending="store.tableState.isDescending"
-              @sort-clicked="store.resort('name')">
+            <Heading class="w-1/3" name="name" :table-state="store.tableState" @sort-clicked="store.resort">
               Media
             </Heading>
-            <Heading
-              :sort-icon="store.tableState.sortBy === 'requestedDate'"
-              :is-descending="store.tableState.isDescending"
-              @sort-clicked="store.resort('requestedDate')">
+            <Heading name="requestedDate" :table-state="store.tableState" @sort-clicked="store.resort">
               Requested
             </Heading>
-            <Heading
-              :sort-icon="store.tableState.sortBy === 'mediaType'"
-              :is-descending="store.tableState.isDescending"
-              @sort-clicked="store.resort('mediaType')">
-              Type
-            </Heading>
-            <Heading
-              :sort-icon="store.tableState.sortBy === 'watched'"
-              :is-descending="store.tableState.isDescending"
-              @sort-clicked="store.resort('watched')">
-              Watched
-            </Heading>
-            <Heading
-              :sort-icon="store.tableState.sortBy === 'user'"
-              :is-descending="store.tableState.isDescending"
-              @sort-clicked="store.resort('user')">
-              Plex Username
-            </Heading>
-            <Heading :sort-icon="false">Actions</Heading>
+            <Heading name="mediaType" :table-state="store.tableState" @sort-clicked="store.resort">Type</Heading>
+            <Heading name="watched" :table-state="store.tableState" @sort-clicked="store.resort">Watched</Heading>
+            <Heading name="user" :table-state="store.tableState" @sort-clicked="store.resort">Plex Username</Heading>
+            <Heading name="actions" :table-state="store.tableState">Actions</Heading>
           </tr>
         </thead>
         <tbody class="divide-y bg-white dark:divide-gray-700 dark:bg-gray-800">
