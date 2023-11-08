@@ -1,11 +1,12 @@
 <template>
   <div class="shadow-xs w-full overflow-hidden rounded-lg">
     <div class="w-full overflow-x-auto">
-      <table class="whitespace-no-wrap w-full">
+      <table class="whitespace-no-wrap w-full table-fixed">
         <thead>
           <tr
             class="border-b bg-gray-50 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400">
             <Heading
+              class="w-1/3"
               :sort-icon="store.tableState.sortBy === 'name'"
               :is-descending="store.tableState.isDescending"
               @sort-clicked="store.resort('name')">
