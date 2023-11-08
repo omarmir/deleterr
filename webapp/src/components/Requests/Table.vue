@@ -13,7 +13,7 @@
             </Heading>
             <Heading name="mediaType" :table-state="store.tableState" @sort-clicked="store.resort">Type</Heading>
             <Heading name="watched" :table-state="store.tableState" @sort-clicked="store.resort">Watched</Heading>
-            <Heading name="user" :table-state="store.tableState" @sort-clicked="store.resort">Plex Username</Heading>
+            <Heading name="user" :table-state="store.tableState" @sort-clicked="store.resort">Username</Heading>
             <Heading name="actions" :table-state="store.tableState">Actions</Heading>
           </tr>
         </thead>
