@@ -8,6 +8,7 @@ export const useRequestsStore = defineStore('requests', () => {
   const currentPage: Ref<number> = ref(0)
   const pageCount: Ref<number> = ref(0)
   const filteredRequests: Ref<number> = ref(0)
+  const error: Ref<any | null> = ref(null)
 
   const internalTableState: TableState = reactive({
     sortBy: 'requestedDate',
@@ -35,8 +36,10 @@ export const useRequestsStore = defineStore('requests', () => {
       currentPage.value = (tableState.skip ?? 0) / tableState.take
       filteredRequests.value = apiResponse.data?.filteredRequests ?? 0
       pageCount.value = Math.ceil(filteredRequests.value / tableState.take)
-    } catch (error) {
-      console.error(error)
+      error.value = null
+    } catch (err) {
+      console.error(err)
+      error.value = err
     }
   }
 
@@ -71,6 +74,7 @@ export const useRequestsStore = defineStore('requests', () => {
     currentPage,
     pageCount,
     filteredRequests,
+    error,
     // Commands
     search,
     resort,

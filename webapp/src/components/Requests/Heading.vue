@@ -1,5 +1,5 @@
 <template>
-  <th class="cursor-pointer px-4 py-3" alt="Sort" aria-sort="none" @click="$emit('sortClicked', name)">
+  <th class="cursor-pointer p-4" alt="Sort" aria-sort="none" @click="$emit('sortClicked', name)">
     <div class="flex gap-2">
       <slot></slot>
       <div

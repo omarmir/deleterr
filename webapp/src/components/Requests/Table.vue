@@ -1,6 +1,9 @@
 <template>
   <div class="shadow-xs w-full overflow-hidden rounded-lg">
-    <div class="w-full overflow-x-auto">
+    <div v-if="store.error" class="text-red-400">
+      {{ store.error.toString() }}
+    </div>
+    <div v-if="!store.error" class="w-full overflow-x-auto">
       <table class="whitespace-no-wrap w-full table-fixed">
         <thead>
           <tr
