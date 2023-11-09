@@ -24,19 +24,19 @@
           <Row v-for="request in store.requests" :key="request.mediaRequest.id" :request="request" />
         </tbody>
       </table>
-      <Pagination
+      <PaginationWrapper
         :take="store.tableState.take"
         :filtered-requests="store.filteredRequests"
         :selected-page="store.currentPage"
         :page-count="store.pageCount ?? 1"
-        @change-page="store.changePage"></Pagination>
+        @change-page="store.changePage" />
     </div>
   </div>
 </template>
 <script lang="ts" setup>
 import Row from './Row.vue'
 import Heading from './Heading.vue'
-import Pagination from '~/components/Pagination.vue'
+import PaginationWrapper from '~/components/Pagination/Wrapper.vue'
 import { useRequestsStore } from '~/stores/requests'
 
 const store = useRequestsStore()
