@@ -11,4 +11,5 @@
 </template>
 <script lang="ts" setup async>
 import AllServices from '~/components/AllServices.vue'
+import PageLoading from '~/components/PageLoading.vue'
 </script>
