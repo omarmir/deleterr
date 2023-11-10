@@ -4,6 +4,7 @@ use actix_web_lab::web as lab_web;
 use deleterr::{endpoints as dr_serv, models::AppData};
 use overseerr::services as os_serv;
 use std::sync::RwLock;
+use store::exemptions as st_exempt;
 use store::services as st_serv;
 use tautulli::services as tt_serv;
 

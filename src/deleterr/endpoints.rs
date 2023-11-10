@@ -54,11 +54,26 @@ async fn get_service_json(path: web::Path<Services>) -> impl Responder {
     return process_request(service_info);
 }
 
+#[get("/api/v1/json/request/exemptions/get")]
+async fn get_media_exemption() -> impl Responder {
+    let media_exemptions = crate::st_exempt::get_all_exemptions();
+    return process_request(media_exemptions);
+}
+
+#[post("/api/v1/json/request/exemptions/save/{id}")]
+async fn save_media_exemption(path: web::Path<usize>) -> impl Responder {
+    let media_id = path.into_inner();
+    let exempted_result = crate::st_exempt::upsert_media_exemption(media_id);
+    return process_request(exempted_result);
+}
+
 pub fn config(cfg: &mut web::ServiceConfig) {
     cfg.service(get_all_requests_json)
         .service(get_requests_count_json)
         .service(get_service_status_json)
         .service(save_service_submit_json)
         .service(get_service_json)
-        .service(get_all_service_json);
+        .service(get_all_service_json)
+        .service(get_media_exemption)
+        .service(save_media_exemption);
 }

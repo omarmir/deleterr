@@ -59,8 +59,8 @@ pub enum Services {
     Overseerr,
 }
 
-impl Services {
-    pub fn to_string(&self) -> String {
+impl ToString for Services {
+    fn to_string(&self) -> String {
         match self {
             Services::Tautulli => "tautulli".to_string(),
             Services::Overseerr => "overseerr".to_string(),
