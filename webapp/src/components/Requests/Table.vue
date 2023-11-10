@@ -41,9 +41,10 @@
 import Row from './Row.vue'
 import Heading from './Heading.vue'
 import PaginationWrapper from '~/components/Pagination/Wrapper.vue'
-import { useRequestsStore } from '~/stores/requests'
+import { useRequestsStore } from '~/stores/requests.store'
 
 const store = useRequestsStore()
 
 await store.getRequests()
 </script>
+~/stores/requests.store

@@ -194,7 +194,7 @@
 import { ref } from 'vue'
 import type { Ref } from 'vue'
 import { useDarkMode } from '~/composables/useDarkMode'
-import { useRequestsStore } from '~/stores/requests'
+import { useRequestsStore } from '~/stores/requests.store'
 
 const store = useRequestsStore()
 const { toggleDarkMode, isDarkModeEnabled } = useDarkMode()
@@ -202,3 +202,4 @@ const { toggleDarkMode, isDarkModeEnabled } = useDarkMode()
 let isNotificationsMenuOpen: Ref<Boolean> = ref(false)
 let isProfileMenuOpen: Ref<Boolean> = ref(false)
 </script>
+~/stores/requests.store
