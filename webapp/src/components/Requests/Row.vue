@@ -86,6 +86,7 @@ import Actions from '~/components/Actions.vue'
 
 defineProps({
   request: { required: false, type: Object as PropType<RequestStatus> },
+  isExempt: { required: true, type: Boolean, default: false },
 })
 
 const userType = (userType?: number): 'Local User' | 'Plex User' => (userType == 1 ? 'Plex User' : 'Local User')

@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { reactive, readonly, ref, Ref, watch } from 'vue'
-import { APIResponse, RequestStatus, RequestStatusWithRecordInfo } from '~/@types/deleterr'
+import { APIResponse, MediaExemptions, RequestStatus, RequestStatusWithRecordInfo } from '~/@types/deleterr'
 
 export const useRequestsStore = defineStore('requests', () => {
   const requests: Ref<RequestStatus[] | undefined> = ref([])
@@ -9,6 +9,7 @@ export const useRequestsStore = defineStore('requests', () => {
   const pageCount: Ref<number> = ref(0)
   const filteredRequests: Ref<number> = ref(0)
   const error: Ref<any | null> = ref(null)
+  const mediaExemptions: Ref<MediaExemptions> = ref({})
 
   const internalTableState: TableState = reactive({
     sortBy: 'requestedDate',
@@ -28,13 +29,25 @@ export const useRequestsStore = defineStore('requests', () => {
         .join('&')
 
       const urlWithQueryParams = `http://localhost:8080/api/v1/json/requests?${queryString}`
+      const mediaExemptionsEndpoint = 'http://localhost:8080/api/v1/json/request/exemptions/get'
 
-      const response = await fetch(urlWithQueryParams)
-      let apiResponse: APIResponse<RequestStatusWithRecordInfo> = await response.json()
-      requests.value = apiResponse.data?.requests
-      allRequests.value = apiResponse.data?.allRequests ?? 0
+      // Use Promise.all to run both promises in parallel
+      const [requestsResponse, mediaExemptionsResponse] = await Promise.all([
+        fetch(urlWithQueryParams),
+        fetch(mediaExemptionsEndpoint),
+      ])
+
+      // Use Promise.all again to extract JSON from the responses in parallel
+      const [requestsResult, mediaExemptionsResult] = await Promise.all([
+        requestsResponse.json() as Promise<APIResponse<RequestStatusWithRecordInfo>>,
+        mediaExemptionsResponse.json() as Promise<APIResponse<MediaExemptions>>,
+      ])
+
+      requests.value = requestsResult.data?.requests
+      mediaExemptions.value = mediaExemptionsResult.data ?? {}
+      allRequests.value = requestsResult.data?.allRequests ?? 0
       currentPage.value = (tableState.skip ?? 0) / tableState.take
-      filteredRequests.value = apiResponse.data?.filteredRequests ?? 0
+      filteredRequests.value = requestsResult.data?.filteredRequests ?? 0
       pageCount.value = Math.ceil(filteredRequests.value / tableState.take)
       error.value = null
     } catch (err) {
@@ -75,6 +88,7 @@ export const useRequestsStore = defineStore('requests', () => {
     pageCount,
     filteredRequests,
     error,
+    mediaExemptions,
     // Commands
     search,
     resort,

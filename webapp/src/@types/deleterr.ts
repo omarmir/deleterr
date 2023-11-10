@@ -34,6 +34,8 @@ export interface RequestStatusWithRecordInfo {
   requests: RequestStatus[]
 }
 
+export type MediaExemptions = { [key: number]: number }
+
 export interface User {
   id: number
   username?: string

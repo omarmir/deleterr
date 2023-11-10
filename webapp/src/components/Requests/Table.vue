@@ -21,9 +21,15 @@
           </tr>
         </thead>
         <tbody class="divide-y bg-white dark:divide-gray-700 dark:bg-gray-800">
-          <Row v-for="request in store.requests" :key="request.mediaRequest.id" :request="request" />
+          <Row
+            v-for="request in store.requests"
+            :key="request.mediaRequest.id"
+            :request="request"
+            :is-exempt="store.mediaExemptions.hasOwnProperty(request.mediaRequest.id)" />
         </tbody>
       </table>
+
+      {{ store.mediaExemptions }}
       <PaginationWrapper
         :take="store.tableState.take"
         :filtered-requests="store.filteredRequests"
