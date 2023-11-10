@@ -28,8 +28,6 @@
             :is-exempt="store.mediaExemptions.hasOwnProperty(request.mediaRequest.id)" />
         </tbody>
       </table>
-
-      {{ store.mediaExemptions }}
       <PaginationWrapper
         :take="store.tableState.take"
         :filtered-requests="store.filteredRequests"
