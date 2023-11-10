@@ -6,6 +6,7 @@ use crate::common::models::{DeleterrError, MediaExemption};
 use persy::PersyId;
 use std::collections::HashMap;
 
+// TODO: We need to update the cache to reflect the media exemption
 pub fn upsert_media_exemption(media_exemption: MediaExemption) -> Result<String, DeleterrError> {
     let persy = get_store()?;
     let key = media_exemption.request_id.to_string();
