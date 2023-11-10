@@ -1,3 +1,4 @@
+use crate::common::models::MediaExemption;
 use crate::common::{models::ServiceInfo, models::Services, services::process_request};
 use crate::deleterr::models::QueryParms;
 use crate::deleterr::requests::get_requests_and_update_cache;
@@ -60,10 +61,11 @@ async fn get_media_exemption() -> impl Responder {
     return process_request(media_exemptions);
 }
 
-#[post("/api/v1/json/request/exemptions/save/{id}")]
-async fn save_media_exemption(path: web::Path<usize>) -> impl Responder {
-    let media_id = path.into_inner();
-    let exempted_result = crate::st_exempt::upsert_media_exemption(media_id);
+#[post("/api/v1/json/request/exemptions/save")]
+async fn save_media_exemption(
+    web::Json(media_exemption): web::Json<MediaExemption>,
+) -> impl Responder {
+    let exempted_result = crate::st_exempt::upsert_media_exemption(media_exemption);
     return process_request(exempted_result);
 }
 

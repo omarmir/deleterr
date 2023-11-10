@@ -13,6 +13,7 @@ pub struct RequestStatus {
     pub media_request: MediaRequest,
     pub user_watch_history: Option<UserWatchHistory>,
     pub media_info: MediaInfo,
+    pub media_exempt: bool,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]

@@ -47,8 +47,9 @@ async fn get_tau_history_by_key_user(rating_key: &u64, user_id: &u64) -> Option<
     };
 }
 
-pub async fn match_requests_to_watched(
+pub async fn match_requests_to_watched_and_exemptions(
     chunk: Option<usize>,
+    exemptions: HashMap<usize, usize>,
 ) -> Result<RequestStatusWithRecordInfo, DeleterrError> {
     let chunk_size = chunk.unwrap_or(10);
     // ! Note that the default take is 10 at overseerr if unspecified!
@@ -74,10 +75,16 @@ pub async fn match_requests_to_watched(
             _ => None,
         };
 
+        let media_exempt = match exemptions.get(&media_request.id) {
+            None => false,
+            Some(_) => true,
+        };
+
         let request_status = RequestStatus {
             media_info,
             user_watch_history,
             media_request: media_request.clone(),
+            media_exempt,
         };
 
         // Delay

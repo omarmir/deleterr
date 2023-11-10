@@ -9,7 +9,7 @@ use super::{
         AppData, QueryParms, RequestStatus, RequestStatusWithRecordInfo,
         RequestStatusWithRecordInfoVector, SortableProps,
     },
-    services::match_requests_to_watched,
+    services::match_requests_to_watched_and_exemptions,
 };
 
 fn compare_media_variants(a: &MediaType, b: &MediaType, is_descending: bool) -> Ordering {
@@ -71,7 +71,10 @@ pub async fn get_requests_from_cache_or_update_cache(
     let req = match cache {
         Some(cached) => cached,
         None => {
-            let request_status_with_record_info = match_requests_to_watched(take).await?;
+            let media_exemptions = crate::st_exempt::get_all_exemptions()?;
+
+            let request_status_with_record_info =
+                match_requests_to_watched_and_exemptions(take, media_exemptions).await?;
             update_cache(&app_data, request_status_with_record_info.clone());
             request_status_with_record_info
         }
