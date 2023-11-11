@@ -206,3 +206,8 @@ impl From<persy::PE<persy::UpdateError>> for DeleterrError {
         DeleterrError::new(err.to_string().as_str())
     }
 }
+impl From<persy::PE<persy::DeleteError>> for DeleterrError {
+    fn from(err: persy::PE<persy::DeleteError>) -> Self {
+        DeleterrError::new(err.to_string().as_str())
+    }
+}

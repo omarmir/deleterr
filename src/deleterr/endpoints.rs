@@ -69,6 +69,12 @@ async fn save_media_exemption(
     return process_request(exempted_result);
 }
 
+#[post("/api/v1/json/request/exemptions/remove")]
+async fn remove_media_exemption(web::Json(request_id): web::Json<usize>) -> impl Responder {
+    let deleted_result = crate::st_exempt::remove_media_exemption(request_id);
+    return process_request(deleted_result);
+}
+
 pub fn config(cfg: &mut web::ServiceConfig) {
     cfg.service(get_all_requests_json)
         .service(get_requests_count_json)
@@ -77,5 +83,6 @@ pub fn config(cfg: &mut web::ServiceConfig) {
         .service(get_service_json)
         .service(get_all_service_json)
         .service(get_media_exemption)
-        .service(save_media_exemption);
+        .service(save_media_exemption)
+        .service(remove_media_exemption);
 }

@@ -44,3 +44,20 @@ pub fn get_all_exemptions() -> Result<HashMap<usize, usize>, DeleterrError> {
 
     Ok(media_exemptions)
 }
+
+pub fn remove_media_exemption(request_id: usize) -> Result<bool, DeleterrError> {
+    let persy = get_store()?;
+    let key = request_id.to_string();
+    let persy_id = does_record_exist(&persy, &key, "media_exemption_index")?;
+    let mut tx = persy.begin()?;
+    match persy_id {
+        Some(id) => {
+            tx.delete("media_exemptions", &id)?;
+            tx.remove::<String, PersyId>("media_exemption_index", key, None)?;
+            let prepared = tx.prepare()?;
+            prepared.commit()?;
+            Ok(true)
+        }
+        None => Ok(false),
+    }
+}
