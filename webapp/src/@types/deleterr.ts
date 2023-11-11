@@ -34,7 +34,9 @@ export interface RequestStatusWithRecordInfo {
   requests: RequestStatus[]
 }
 
-export type MediaExemptions = { [key: number]: number }
+export type MediaExemption = { [key: string]: number }
+
+export type SingleMediaExeption = [requestId: number, tmdbId: number]
 
 export interface User {
   id: number

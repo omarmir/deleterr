@@ -21,11 +21,16 @@
           </tr>
         </thead>
         <tbody class="divide-y bg-white dark:divide-gray-700 dark:bg-gray-800">
+          <!--Had to add the data property to force vuejs to update the ui - likely because its tied behind the hasOwnProperty and is not noticing the change-->
           <Row
             v-for="request in store.requests"
             :key="request.mediaRequest.id"
             :request="request"
-            :is-exempt="store.mediaExemptions.hasOwnProperty(request.mediaRequest.id)" />
+            :button-state="store.exemptionsActionState[request.mediaRequest.id]"
+            :is-exempt="store.mediaExemptions.hasOwnProperty(request.mediaRequest.id)"
+            :data-exemption-tmdb="store.mediaExemptions[request.mediaRequest.id]"
+            @add-exemption="store.addMediaExemption"
+            @remove-exemption="store.removeMediaExemption" />
         </tbody>
       </table>
       <PaginationWrapper

@@ -1,6 +1,13 @@
 import { defineStore } from 'pinia'
 import { reactive, readonly, ref, Ref, watch } from 'vue'
-import { APIResponse, MediaExemptions, RequestStatus, RequestStatusWithRecordInfo } from '~/@types/deleterr'
+import {
+  APIResponse,
+  MediaExemption,
+  RequestStatus,
+  RequestStatusWithRecordInfo,
+  SingleMediaExeption,
+  TestState,
+} from '~/@types/deleterr'
 
 export const useRequestsStore = defineStore('requests', () => {
   const requests: Ref<RequestStatus[] | undefined> = ref([])
@@ -9,7 +16,8 @@ export const useRequestsStore = defineStore('requests', () => {
   const pageCount: Ref<number> = ref(0)
   const filteredRequests: Ref<number> = ref(0)
   const error: Ref<any | null> = ref(null)
-  const mediaExemptions: Ref<MediaExemptions> = ref({})
+  const mediaExemptions: Ref<MediaExemption> = ref({})
+  const exemptionsActionState: Ref<{ [key: number]: TestState }> = ref({})
 
   const internalTableState: TableState = reactive({
     sortBy: 'requestedDate',
@@ -40,7 +48,7 @@ export const useRequestsStore = defineStore('requests', () => {
       // Use Promise.all again to extract JSON from the responses in parallel
       const [requestsResult, mediaExemptionsResult] = await Promise.all([
         requestsResponse.json() as Promise<APIResponse<RequestStatusWithRecordInfo>>,
-        mediaExemptionsResponse.json() as Promise<APIResponse<MediaExemptions>>,
+        mediaExemptionsResponse.json() as Promise<APIResponse<MediaExemption>>,
       ])
 
       requests.value = requestsResult.data?.requests
@@ -53,6 +61,75 @@ export const useRequestsStore = defineStore('requests', () => {
     } catch (err) {
       console.error(err)
       error.value = err
+    }
+  }
+
+  const addMediaExemption = async (mediaExemption: SingleMediaExeption) => {
+    const mediaExemptionsEndpoint = 'http://localhost:8080/api/v1/json/request/exemptions/save'
+
+    const requestOptions = {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(mediaExemption),
+    }
+
+    const key = mediaExemption[0]
+    exemptionsActionState.value[key] = TestState.loading
+
+    try {
+      const response = await fetch(mediaExemptionsEndpoint, requestOptions)
+      let apiResponse: APIResponse<string> = await response.json()
+
+      if (apiResponse.success) {
+        mediaExemptions.value[key] = mediaExemption[1]
+        exemptionsActionState.value[key] = TestState.success
+      } else {
+        console.log('Error: ' + apiResponse.error_msg)
+        exemptionsActionState.value[key] = TestState.failure
+        setTimeout(() => {
+          exemptionsActionState.value[key] = TestState.hidden
+        }, 5000)
+      }
+    } catch (err) {
+      console.error(err)
+      exemptionsActionState.value[key] = TestState.failure
+      setTimeout(() => {
+        exemptionsActionState.value[key] = TestState.hidden
+      }, 5000)
+    }
+  }
+
+  const removeMediaExemption = async (mediaExemption: SingleMediaExeption) => {
+    const mediaExemptionsEndpoint = 'http://localhost:8080/api/v1/json/request/exemptions/remove'
+
+    const requestOptions = {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(mediaExemption[0]),
+    }
+
+    const key = mediaExemption[0]
+    exemptionsActionState.value[key] = TestState.loading
+
+    try {
+      const response = await fetch(mediaExemptionsEndpoint, requestOptions)
+      let apiResponse: APIResponse<string> = await response.json()
+      if (apiResponse.success) {
+        delete mediaExemptions.value[key]
+        exemptionsActionState.value[key] = TestState.success
+      } else {
+        console.log('Error: ' + apiResponse.error_msg)
+        exemptionsActionState.value[key] = TestState.failure
+        setTimeout(() => {
+          exemptionsActionState.value[key] = TestState.hidden
+        }, 5000)
+      }
+    } catch (err) {
+      console.error(err)
+      exemptionsActionState.value[key] = TestState.failure
+      setTimeout(() => {
+        exemptionsActionState.value[key] = TestState.hidden
+      }, 5000)
     }
   }
 
@@ -89,9 +166,12 @@ export const useRequestsStore = defineStore('requests', () => {
     filteredRequests,
     error,
     mediaExemptions,
+    exemptionsActionState,
     // Commands
     search,
     resort,
     changePage,
+    addMediaExemption,
+    removeMediaExemption,
   }
 })

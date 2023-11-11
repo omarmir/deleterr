@@ -75,19 +75,35 @@
         </div>
       </div>
     </td>
-    <Actions />
+    <Actions
+      :is-exempt="isExempt"
+      :button-state="buttonState"
+      @toggle-exempt="toggleExempt(isExempt, request?.mediaRequest.id, request?.mediaRequest.media.tmdbId)" />
   </tr>
 </template>
 <script lang="ts" setup>
 import { PropType } from 'vue'
-import { RequestStatus } from '~/@types/deleterr.ts'
+import { RequestStatus, SingleMediaExeption, TestState } from '~/@types/deleterr.ts'
 import StatusPill from '~/components/StatusPill.vue'
 import Actions from '~/components/Actions.vue'
 
 defineProps({
   request: { required: false, type: Object as PropType<RequestStatus> },
   isExempt: { required: true, type: Boolean, default: false },
+  buttonState: { type: Number as PropType<TestState>, required: false, default: TestState.hidden },
 })
+
+const emit = defineEmits<{
+  (e: 'addExemption', exemption: SingleMediaExeption): void
+  (e: 'removeExemption', exemption: SingleMediaExeption): void
+}>()
+
+const toggleExempt = (isExempt: boolean, requestId?: number, tmdbId?: number) => {
+  if (requestId && tmdbId) {
+    let exemption: SingleMediaExeption = [requestId, tmdbId]
+    isExempt ? emit('removeExemption', exemption) : emit('addExemption', exemption)
+  }
+}
 
 const userType = (userType?: number): 'Local User' | 'Plex User' => (userType == 1 ? 'Plex User' : 'Local User')
 // YYYY-MM-DD - dont like it? Make your own app. Just be happy its not my preferred 24H
