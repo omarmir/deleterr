@@ -9,6 +9,8 @@ import {
   TestState,
 } from '~/@types/deleterr'
 
+import { useToast } from '~/composables/useToast'
+
 export const useRequestsStore = defineStore('requests', () => {
   const requests: Ref<RequestStatus[] | undefined> = ref([])
   const allRequests: Ref<number> = ref(0)
@@ -18,6 +20,8 @@ export const useRequestsStore = defineStore('requests', () => {
   const error: Ref<any | null> = ref(null)
   const mediaExemptions: Ref<MediaExemption> = ref({})
   const exemptionsActionState: Ref<{ [key: number]: TestState }> = ref({})
+
+  const { publishToast } = useToast()
 
   const internalTableState: TableState = reactive({
     sortBy: 'requestedDate',
@@ -83,19 +87,12 @@ export const useRequestsStore = defineStore('requests', () => {
       if (apiResponse.success) {
         mediaExemptions.value[key] = mediaExemption[1]
         exemptionsActionState.value[key] = TestState.success
+        publishToast('Exempted', 'This media item will not be automatically deleted at next scheduled run.', 3, false)
       } else {
-        console.log('Error: ' + apiResponse.error_msg)
-        exemptionsActionState.value[key] = TestState.failure
-        setTimeout(() => {
-          exemptionsActionState.value[key] = TestState.hidden
-        }, 5000)
+        handleErrorForExemption(key, apiResponse.error_msg)
       }
     } catch (err) {
-      console.error(err)
-      exemptionsActionState.value[key] = TestState.failure
-      setTimeout(() => {
-        exemptionsActionState.value[key] = TestState.hidden
-      }, 5000)
+      handleErrorForExemption(key, (err as any).toString())
     }
   }
 
@@ -117,20 +114,21 @@ export const useRequestsStore = defineStore('requests', () => {
       if (apiResponse.success) {
         delete mediaExemptions.value[key]
         exemptionsActionState.value[key] = TestState.success
+        publishToast('Exemption removed', 'This media item will be automatically deleted at the next scheduled run.', 3, true)
       } else {
-        console.log('Error: ' + apiResponse.error_msg)
-        exemptionsActionState.value[key] = TestState.failure
-        setTimeout(() => {
-          exemptionsActionState.value[key] = TestState.hidden
-        }, 5000)
+        handleErrorForExemption(key, apiResponse.error_msg)
       }
     } catch (err) {
-      console.error(err)
-      exemptionsActionState.value[key] = TestState.failure
-      setTimeout(() => {
-        exemptionsActionState.value[key] = TestState.hidden
-      }, 5000)
+      handleErrorForExemption(key, (err as any).toString())
     }
+  }
+
+  const handleErrorForExemption = (key: number, errorMsg?: string) => {
+    publishToast('Exemption removed', 'Error: ' + errorMsg ?? 'Unknown!', 3, true)
+    exemptionsActionState.value[key] = TestState.failure
+    setTimeout(() => {
+      exemptionsActionState.value[key] = TestState.hidden
+    }, 5000)
   }
 
   watch(tableState, (_newState: TableState) => getRequests())
