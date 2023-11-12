@@ -93,6 +93,7 @@ pub enum APIStatus {
 pub enum Services {
     Tautulli,
     Overseerr,
+    Radarr,
 }
 
 impl ToString for Services {
@@ -100,6 +101,7 @@ impl ToString for Services {
         match self {
             Services::Tautulli => "tautulli".to_string(),
             Services::Overseerr => "overseerr".to_string(),
+            Services::Radarr => "radarr".to_string(),
         }
     }
 }

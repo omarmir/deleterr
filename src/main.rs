@@ -3,6 +3,7 @@ use actix_web::{middleware::Logger, web, App, HttpServer};
 use actix_web_lab::web as lab_web;
 use deleterr::{endpoints as dr_serv, models::AppData};
 use overseerr::services as os_serv;
+use radarr::services as rd_serv;
 use std::sync::RwLock;
 use store::exemptions as st_exempt;
 use store::services as st_serv;
@@ -11,6 +12,7 @@ use tautulli::services as tt_serv;
 mod common;
 mod deleterr;
 mod overseerr;
+mod radarr;
 mod store;
 mod tautulli;
 
