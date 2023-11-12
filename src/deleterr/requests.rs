@@ -38,13 +38,19 @@ fn compare_user_watch_history(
         _ => Ordering::Equal,                 // Both None
     }
 }
-fn update_cache(app_data: &Data<AppData>, new_data: RequestStatusWithRecordInfo) {
+async fn get_data_update_cache(
+    app_data: &Data<AppData>,
+    take: Option<usize>,
+) -> Result<RequestStatusWithRecordInfo, DeleterrError> {
     let mut update_cache = app_data
         .request_cache
         .write() // ! This could leave the app timed out waiting for a write lock - I can't think when/why this would happen
         .expect("Unable to access cache");
 
-    *update_cache = Some(new_data);
+    let request_status_with_record_info = match_requests_to_watched(take).await?;
+
+    *update_cache = Some(request_status_with_record_info.clone());
+    Ok(request_status_with_record_info)
 }
 
 fn get_cached(app_data: &Data<AppData>) -> Option<RequestStatusWithRecordInfo> {
@@ -70,11 +76,8 @@ pub async fn get_requests_from_cache_or_update_cache(
 ) -> Result<RequestStatusWithRecordInfo, DeleterrError> {
     let req = match cache {
         Some(cached) => cached,
-        None => {
-            let request_status_with_record_info = match_requests_to_watched(take).await?;
-            update_cache(&app_data, request_status_with_record_info.clone());
-            request_status_with_record_info
-        }
+        // Moved the data retrieval into the RWLock so that it cannot be obtained mutiple times at the same time
+        None => get_data_update_cache(&app_data, take).await?,
     };
 
     Ok(req)
