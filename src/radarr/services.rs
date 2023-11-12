@@ -1,9 +1,9 @@
 use crate::{
+    common::models::ResponseCodeBasedAction,
     common::{
         models::{APIStatus, DeleterrError, RequestType, ServiceInfo, Services},
         services::{create_api_url, get_api_endpoint, make_api_call},
     },
-    radarr::models::RadarrDeleteResponse,
 };
 use dotenv::dotenv;
 
@@ -25,7 +25,7 @@ fn build_service_info() -> ServiceInfo {
     };
 }
 
-pub async fn delete_movie(radarr_id: &str) -> Result<RadarrDeleteResponse, DeleterrError> {
+pub async fn delete_movie(radarr_id: &str) -> Result<ResponseCodeBasedAction, DeleterrError> {
     let endpoint = format!("api/v3/movie/{radarr_id}");
     let service_info = build_service_info();
 
@@ -40,19 +40,19 @@ pub async fn delete_movie(radarr_id: &str) -> Result<RadarrDeleteResponse, Delet
     )?;
     let request_response = make_api_call(client_req).await?;
     let resp = match request_response.code {
-        200 => RadarrDeleteResponse {
+        200 => ResponseCodeBasedAction {
             status: APIStatus::Success,
             is_success: true,
         },
-        404 => RadarrDeleteResponse {
+        404 => ResponseCodeBasedAction {
             status: APIStatus::NotFound,
             is_success: false,
         },
-        401 => RadarrDeleteResponse {
+        401 => ResponseCodeBasedAction {
             status: APIStatus::WrongAPIKey,
             is_success: false,
         },
-        _ => RadarrDeleteResponse {
+        _ => ResponseCodeBasedAction {
             status: APIStatus::Other,
             is_success: false,
         },

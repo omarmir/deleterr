@@ -2,7 +2,10 @@ use super::models::{
     AboutServer, MediaInfo, MediaRequest, MediaType, OverseerrListResponse, OverseerrRequestsCount,
 };
 use crate::common::{
-    models::{APIServiceStatus, APIStatus, DeleterrError, RequestType, ServiceInfo, Services},
+    models::{
+        APIServiceStatus, APIStatus, DeleterrError, RequestType, ResponseCodeBasedAction,
+        ServiceInfo, Services,
+    },
     services::{create_api_url, get_api_endpoint, make_api_call},
 };
 use dotenv::dotenv;
@@ -97,6 +100,42 @@ pub async fn get_media_info(
             }
         }),
     }
+}
+
+pub async fn delete_media(media_id: &str) -> Result<ResponseCodeBasedAction, DeleterrError> {
+    let endpoint = format!("api/v1/media/delete/{media_id}");
+    let service_info = build_service_info();
+
+    let api_url = create_api_url(&endpoint, &service_info);
+    let query: Vec<(&str, &str)> = Vec::with_capacity(0);
+
+    let client_req = get_api_endpoint(
+        api_url,
+        query,
+        Some(service_info.api_key),
+        RequestType::Delete,
+    )?;
+    let request_response = make_api_call(client_req).await?;
+    let resp = match request_response.code {
+        204 => ResponseCodeBasedAction {
+            status: APIStatus::Success,
+            is_success: true,
+        },
+        404 => ResponseCodeBasedAction {
+            status: APIStatus::NotFound,
+            is_success: false,
+        },
+        403 => ResponseCodeBasedAction {
+            status: APIStatus::WrongAPIKey,
+            is_success: false,
+        },
+        _ => ResponseCodeBasedAction {
+            status: APIStatus::Other,
+            is_success: false,
+        },
+    };
+
+    Ok(resp)
 }
 
 pub async fn get_overseerr_status(

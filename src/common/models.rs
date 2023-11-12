@@ -20,6 +20,13 @@ pub enum RequestType {
     Delete,
 }
 
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ResponseCodeBasedAction {
+    pub status: APIStatus,
+    pub is_success: bool,
+}
+
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct MediaExemption {
