@@ -1,4 +1,4 @@
-use super::models::{APIResponse, DeleterrError, RequestResponse, ServiceInfo};
+use super::models::{APIResponse, DeleterrError, RequestResponse, RequestType, ServiceInfo};
 use actix_web::{HttpResponse, Responder};
 use reqwest::{
     header::{HeaderMap, HeaderValue, ACCEPT},
@@ -76,6 +76,7 @@ pub fn get_api_endpoint(
     url: String,
     query: Vec<(&str, &str)>,
     api_key: Option<String>,
+    req_type: RequestType,
 ) -> Result<reqwest::RequestBuilder, Error> {
     let mut headers = HeaderMap::new();
 
@@ -88,11 +89,18 @@ pub fn get_api_endpoint(
         );
     };
 
-    let req_client = reqwest::Client::new()
-        .get(url)
-        .query(&query)
-        .timeout(Duration::from_secs(15))
-        .headers(headers);
+    let req_client = match req_type {
+        RequestType::Get => reqwest::Client::new()
+            .get(url)
+            .query(&query)
+            .timeout(Duration::from_secs(15))
+            .headers(headers),
+        RequestType::Delete => reqwest::Client::new()
+            .delete(url)
+            .query(&query)
+            .timeout(Duration::from_secs(15))
+            .headers(headers),
+    };
 
     Ok(req_client)
 }

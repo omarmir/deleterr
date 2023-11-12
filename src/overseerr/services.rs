@@ -2,7 +2,7 @@ use super::models::{
     AboutServer, MediaInfo, MediaRequest, MediaType, OverseerrListResponse, OverseerrRequestsCount,
 };
 use crate::common::{
-    models::{APIServiceStatus, APIStatus, DeleterrError, ServiceInfo, Services},
+    models::{APIServiceStatus, APIStatus, DeleterrError, RequestType, ServiceInfo, Services},
     services::{create_api_url, get_api_endpoint, make_api_call},
 };
 use dotenv::dotenv;
@@ -37,7 +37,8 @@ pub async fn get_requests() -> Result<OverseerrListResponse<MediaRequest>, Delet
         ("filter", "available"),
         ("take", total_count.as_str()),
     ];
-    let client_req = get_api_endpoint(api_url, query, Some(service_info.api_key))?;
+    let client_req =
+        get_api_endpoint(api_url, query, Some(service_info.api_key), RequestType::Get)?;
 
     let request_response = make_api_call(client_req).await?;
     let resp = request_response
@@ -55,7 +56,8 @@ pub async fn get_requests_count() -> Result<OverseerrRequestsCount, DeleterrErro
     let api_url = create_api_url(&endpoint, &service_info);
     let query: Vec<(&str, &str)> = Vec::with_capacity(0);
 
-    let client_req = get_api_endpoint(api_url, query, Some(service_info.api_key))?;
+    let client_req =
+        get_api_endpoint(api_url, query, Some(service_info.api_key), RequestType::Get)?;
     let request_response = make_api_call(client_req).await?;
     let resp = request_response
         .response
@@ -80,7 +82,8 @@ pub async fn get_media_info(
             let api_url = create_api_url(&endpoint, &service_info);
             let query = vec![];
 
-            let client_req = get_api_endpoint(api_url, query, Some(service_info.api_key))?;
+            let client_req =
+                get_api_endpoint(api_url, query, Some(service_info.api_key), RequestType::Get)?;
             let request_response = make_api_call(client_req).await?;
             let resp = request_response.response.json::<MediaInfo>().await?;
 
@@ -104,7 +107,8 @@ pub async fn get_overseerr_status(
     let api_url = create_api_url(&endpoint, &service_info);
     let query: Vec<(&str, &str)> = Vec::with_capacity(0);
 
-    let client_req = get_api_endpoint(api_url, query, Some(service_info.api_key))?;
+    let client_req =
+        get_api_endpoint(api_url, query, Some(service_info.api_key), RequestType::Get)?;
 
     let request_response = make_api_call(client_req).await?;
     // We need to make sure its actaully the response from Overseer and not just an OK response

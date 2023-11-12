@@ -59,6 +59,7 @@ pub struct Media {
     tvdb_id: Option<u32>,
     #[serde(deserialize_with = "deserialize_option_number_from_string")]
     pub rating_key: Option<u64>,
+    pub external_service_id: Option<usize>,
     status: u8, // Availability of the media. 1 = UNKNOWN, 2 = PENDING, 3 = PROCESSING, 4 = PARTIALLY_AVAILABLE, 5 = AVAILABLE
 }
 

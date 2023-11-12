@@ -4,7 +4,7 @@ use crate::deleterr::models::QueryParms;
 use crate::deleterr::requests::get_requests_and_update_cache;
 use crate::AppData;
 use actix_web::{
-    get, post,
+    delete, get, post,
     web::{self, Data},
     Responder,
 };
@@ -77,6 +77,12 @@ async fn remove_media_exemption(web::Json(request_id): web::Json<usize>) -> impl
     return process_request(deleted_result);
 }
 
+#[delete("/api/v1/json/movie/delete/{radarr_id}")]
+async fn delete_movie_file(path: web::Path<usize>) -> impl Responder {
+    let delete_movie = crate::rd_serv::delete_movie(path.into_inner().to_string().as_str()).await;
+    return process_request(delete_movie);
+}
+
 pub fn config(cfg: &mut web::ServiceConfig) {
     cfg.service(get_all_requests_json)
         .service(get_requests_count_json)
@@ -86,5 +92,6 @@ pub fn config(cfg: &mut web::ServiceConfig) {
         .service(get_all_service_json)
         .service(get_media_exemption)
         .service(save_media_exemption)
-        .service(remove_media_exemption);
+        .service(remove_media_exemption)
+        .service(delete_movie_file);
 }

@@ -15,6 +15,11 @@ pub struct ServiceInfo {
     pub service: Services,
 }
 
+pub enum RequestType {
+    Get,
+    Delete,
+}
+
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct MediaExemption {
@@ -86,6 +91,7 @@ pub enum APIStatus {
     Success,
     WrongAPIKey,
     Other,
+    NotFound,
 }
 
 #[derive(Deserialize, Serialize, Debug, Clone)]
