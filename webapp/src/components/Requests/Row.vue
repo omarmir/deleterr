@@ -74,34 +74,48 @@
           </p>
         </div>
       </div>
+      {{ request?.mediaRequest.id }}
+      {{ request?.mediaRequest.media.externalServiceId }}
     </td>
     <Actions
       :is-exempt="isExempt"
-      :button-state="buttonState"
+      :exemption-button-state="exemptionButtonState"
+      :deletion-button-state="deletionButtonState"
+      :external-id="request?.mediaRequest.media.externalServiceId"
+      @delete-media="deleteMedia(request?.mediaRequest.id, request?.mediaRequest.media.externalServiceId)"
       @toggle-exempt="toggleExempt(isExempt, request?.mediaRequest.id, request?.mediaRequest.media.tmdbId)" />
   </tr>
 </template>
 <script lang="ts" setup>
 import { PropType } from 'vue'
-import { RequestStatus, SingleMediaExeption, TestState } from '~/@types/deleterr.ts'
+import { DeleteMedia, RequestStatus, SingleMediaExeption, TestState } from '~/@types/deleterr.ts'
 import StatusPill from '~/components/StatusPill.vue'
 import Actions from '~/components/Actions.vue'
 
 defineProps({
   request: { required: false, type: Object as PropType<RequestStatus> },
   isExempt: { required: true, type: Boolean, default: false },
-  buttonState: { type: Number as PropType<TestState>, required: false, default: TestState.hidden },
+  exemptionButtonState: { type: Number as PropType<TestState>, required: false, default: TestState.hidden },
+  deletionButtonState: { type: Number as PropType<TestState>, required: false, default: TestState.hidden },
 })
 
 const emit = defineEmits<{
   (e: 'addExemption', exemption: SingleMediaExeption): void
   (e: 'removeExemption', exemption: SingleMediaExeption): void
+  (e: 'deleteMedia', deletion: DeleteMedia): void
 }>()
 
 const toggleExempt = (isExempt: boolean, requestId?: number, tmdbId?: number) => {
   if (requestId && tmdbId) {
     let exemption: SingleMediaExeption = [requestId, tmdbId]
     isExempt ? emit('removeExemption', exemption) : emit('addExemption', exemption)
+  }
+}
+
+const deleteMedia = (requestId?: number, id?: number) => {
+  if (id && requestId) {
+    let deletion: DeleteMedia = [requestId, id]
+    emit('deleteMedia', deletion)
   }
 }
 

@@ -29,6 +29,7 @@
             :button-state="store.exemptionsActionState[request.mediaRequest.id]"
             :is-exempt="store.mediaExemptions.hasOwnProperty(request.mediaRequest.id)"
             :data-exemption-tmdb="store.mediaExemptions[request.mediaRequest.id]"
+            @delete-media="store.deleteMovieFile"
             @add-exemption="store.addMediaExemption"
             @remove-exemption="store.removeMediaExemption" />
         </tbody>

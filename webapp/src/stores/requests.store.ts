@@ -2,7 +2,9 @@ import { defineStore } from 'pinia'
 import { reactive, readonly, ref, Ref, watch } from 'vue'
 import {
   APIResponse,
+  DeleteMedia,
   MediaExemption,
+  RadarrDeleteResponse,
   RequestStatus,
   RequestStatusWithRecordInfo,
   SingleMediaExeption,
@@ -20,6 +22,7 @@ export const useRequestsStore = defineStore('requests', () => {
   const error: Ref<any | null> = ref(null)
   const mediaExemptions: Ref<MediaExemption> = ref({})
   const exemptionsActionState: Ref<{ [key: number]: TestState }> = ref({})
+  const deletionActionState: Ref<{ [key: number]: TestState }> = ref({})
 
   const { publishToast } = useToast()
 
@@ -114,9 +117,47 @@ export const useRequestsStore = defineStore('requests', () => {
       if (apiResponse.success) {
         delete mediaExemptions.value[key]
         exemptionsActionState.value[key] = TestState.success
-        publishToast('Exemption removed', 'This media item will be automatically deleted at the next scheduled run.', 3, true)
+        publishToast(
+          'Exemption removed',
+          'This media item will be automatically deleted at the next scheduled run.',
+          3,
+          true
+        )
       } else {
         handleErrorForExemption(key, apiResponse.error_msg)
+      }
+    } catch (err) {
+      handleErrorForExemption(key, (err as any).toString())
+    }
+  }
+
+  const deleteMovieFile = async (deletion: DeleteMedia) => {
+    const mediaDeleteEndpoint = `http://localhost:8080/api/v1/json/movie/delete/${deletion[1]}`
+    const requestOptions = {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+    }
+
+    const key = deletion[0]
+    deletionActionState.value[key] = TestState.loading
+
+    // Simulate delay
+    await new Promise((resolve) => setTimeout(resolve, 2000))
+
+    try {
+      const response = await fetch(mediaDeleteEndpoint, requestOptions)
+      let apiResponse: APIResponse<RadarrDeleteResponse> = await response.json()
+      if (apiResponse.success && apiResponse.data?.isSuccess) {
+        requests.value = requests.value?.filter((req) => req.mediaRequest.id !== deletion[0])
+        deletionActionState.value[key] = TestState.success
+        publishToast(
+          'Movie deleted',
+          'Movie has been deleted! You may need to re-scan on plex for it to vanish',
+          3,
+          true
+        )
+      } else {
+        handleErrorForExemption(key, apiResponse.error_msg ?? apiResponse.data?.status.toString() ?? 'Unknown error')
       }
     } catch (err) {
       handleErrorForExemption(key, (err as any).toString())
@@ -171,5 +212,6 @@ export const useRequestsStore = defineStore('requests', () => {
     changePage,
     addMediaExemption,
     removeMediaExemption,
+    deleteMovieFile,
   }
 })

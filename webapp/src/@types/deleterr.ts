@@ -18,6 +18,7 @@ export interface Media {
   tvdbId?: number
   ratingKey?: number
   status: number
+  externalServiceId: number
 }
 
 export type MediaType = 'movie' | 'tv'
@@ -37,6 +38,20 @@ export interface RequestStatusWithRecordInfo {
 export type MediaExemption = { [key: string]: number }
 
 export type SingleMediaExeption = [requestId: number, tmdbId: number]
+
+export type DeleteMedia = [requestId: number, id: number]
+
+export enum APIStatus {
+  Success,
+  WrongAPIKey,
+  Other,
+  NotFound,
+}
+
+export interface RadarrDeleteResponse {
+  status: APIStatus
+  isSuccess: boolean
+}
 
 export interface User {
   id: number
