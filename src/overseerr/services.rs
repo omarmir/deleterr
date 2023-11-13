@@ -103,7 +103,7 @@ pub async fn get_media_info(
 }
 
 pub async fn delete_media(media_id: &str) -> Result<ResponseCodeBasedAction, DeleterrError> {
-    let endpoint = format!("api/v1/media/delete/{media_id}");
+    let endpoint = format!("api/v1/media/{media_id}");
     let service_info = build_service_info();
 
     let api_url = create_api_url(&endpoint, &service_info);
