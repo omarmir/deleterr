@@ -2,13 +2,12 @@ import { defineStore } from 'pinia'
 import { reactive, readonly, ref, Ref, watch } from 'vue'
 import {
   APIResponse,
-  DeleteMedia,
   MediaExemption,
-  RadarrDeleteResponse,
   RequestStatus,
   RequestStatusWithRecordInfo,
   SingleMediaExeption,
   TestState,
+  MovieDeletionRequest,
 } from '~/@types/deleterr'
 
 import { useToast } from '~/composables/useToast'
@@ -21,8 +20,8 @@ export const useRequestsStore = defineStore('requests', () => {
   const filteredRequests: Ref<number> = ref(0)
   const error: Ref<any | null> = ref(null)
   const mediaExemptions: Ref<MediaExemption> = ref({})
-  const exemptionsActionState: Ref<{ [key: number]: TestState }> = ref({})
-  const deletionActionState: Ref<{ [key: number]: TestState }> = ref({})
+  // We are going to create a hashmap here with "exemption_<key>" or "deletion_<key>" as the key and the state as value.
+  const actionStates: Ref<{ [key: string]: TestState }> = ref({})
 
   const { publishToast } = useToast()
 
@@ -81,7 +80,10 @@ export const useRequestsStore = defineStore('requests', () => {
     }
 
     const key = mediaExemption[0]
-    exemptionsActionState.value[key] = TestState.loading
+    actionStates.value['exemption_' + key] = TestState.loading
+
+    // Simulate delay
+    // await new Promise((resolve) => setTimeout(resolve, 2000))
 
     try {
       const response = await fetch(mediaExemptionsEndpoint, requestOptions)
@@ -89,13 +91,13 @@ export const useRequestsStore = defineStore('requests', () => {
 
       if (apiResponse.success) {
         mediaExemptions.value[key] = mediaExemption[1]
-        exemptionsActionState.value[key] = TestState.success
+        actionStates.value['exemption_' + key] = TestState.success
         publishToast('Exempted', 'This media item will not be automatically deleted at next scheduled run.', 3, false)
       } else {
-        handleErrorForExemption(key, apiResponse.error_msg)
+        handleErrorForExemption('exemption_' + key, apiResponse.error_msg)
       }
     } catch (err) {
-      handleErrorForExemption(key, (err as any).toString())
+      handleErrorForExemption('exemption_' + key, (err as any).toString())
     }
   }
 
@@ -109,14 +111,17 @@ export const useRequestsStore = defineStore('requests', () => {
     }
 
     const key = mediaExemption[0]
-    exemptionsActionState.value[key] = TestState.loading
+    actionStates.value['exemption_' + key] = TestState.loading
+
+    // Simulate delay
+    // await new Promise((resolve) => setTimeout(resolve, 2000))
 
     try {
       const response = await fetch(mediaExemptionsEndpoint, requestOptions)
       let apiResponse: APIResponse<string> = await response.json()
       if (apiResponse.success) {
         delete mediaExemptions.value[key]
-        exemptionsActionState.value[key] = TestState.success
+        actionStates.value['exemption_' + key] = TestState.success
         publishToast(
           'Exemption removed',
           'This media item will be automatically deleted at the next scheduled run.',
@@ -124,32 +129,31 @@ export const useRequestsStore = defineStore('requests', () => {
           true
         )
       } else {
-        handleErrorForExemption(key, apiResponse.error_msg)
+        handleErrorForExemption('exemption_' + key, apiResponse.error_msg)
       }
     } catch (err) {
-      handleErrorForExemption(key, (err as any).toString())
+      handleErrorForExemption('exemption_' + key, (err as any).toString())
     }
   }
 
-  const deleteMovieFile = async (deletion: DeleteMedia) => {
-    const mediaDeleteEndpoint = `http://localhost:8080/api/v1/json/movie/delete/${deletion[1]}`
+  const deleteMovieFile = async (requestId: number) => {
+    const mediaDeleteEndpoint = `http://localhost:8080/api/v1/json/movie/delete/${requestId}`
     const requestOptions = {
       method: 'DELETE',
       headers: { 'Content-Type': 'application/json' },
     }
 
-    const key = deletion[0]
-    deletionActionState.value[key] = TestState.loading
+    actionStates.value['delete_' + requestId] = TestState.loading
 
     // Simulate delay
-    await new Promise((resolve) => setTimeout(resolve, 2000))
+    // await new Promise((resolve) => setTimeout(resolve, 2000))
 
     try {
       const response = await fetch(mediaDeleteEndpoint, requestOptions)
-      let apiResponse: APIResponse<RadarrDeleteResponse> = await response.json()
-      if (apiResponse.success && apiResponse.data?.isSuccess) {
-        requests.value = requests.value?.filter((req) => req.mediaRequest.id !== deletion[0])
-        deletionActionState.value[key] = TestState.success
+      let apiResponse: APIResponse<MovieDeletionRequest> = await response.json()
+      if (apiResponse.success) {
+        requests.value = requests.value?.filter((req) => req.mediaRequest.id !== requestId)
+        actionStates.value['delete_' + requestId] = TestState.success
         publishToast(
           'Movie deleted',
           'Movie has been deleted! You may need to re-scan on plex for it to vanish',
@@ -157,18 +161,29 @@ export const useRequestsStore = defineStore('requests', () => {
           true
         )
       } else {
-        handleErrorForExemption(key, apiResponse.error_msg ?? apiResponse.data?.status.toString() ?? 'Unknown error')
+        if (apiResponse.data?.radarrResponse) {
+          handleErrorForExemption(
+            'delete_' + requestId,
+            'Deleted file in radarr but was unable to delete in Overseerr! Manually delete it there. Error: ' +
+              apiResponse.error_msg ?? 'Unknown error'
+          )
+        } else {
+          handleErrorForExemption(
+            'delete_' + requestId,
+            apiResponse.error_msg ?? apiResponse.error_msg ?? 'Unknown error'
+          )
+        }
       }
     } catch (err) {
-      handleErrorForExemption(key, (err as any).toString())
+      handleErrorForExemption('delete_' + requestId, (err as any).toString())
     }
   }
 
-  const handleErrorForExemption = (key: number, errorMsg?: string) => {
+  const handleErrorForExemption = (key: string, errorMsg?: string) => {
     publishToast('Exemption removed', 'Error: ' + errorMsg ?? 'Unknown!', 3, true)
-    exemptionsActionState.value[key] = TestState.failure
+    actionStates.value[key] = TestState.failure
     setTimeout(() => {
-      exemptionsActionState.value[key] = TestState.hidden
+      actionStates.value[key] = TestState.hidden
     }, 5000)
   }
 
@@ -205,7 +220,7 @@ export const useRequestsStore = defineStore('requests', () => {
     filteredRequests,
     error,
     mediaExemptions,
-    exemptionsActionState,
+    actionStates,
     // Commands
     search,
     resort,

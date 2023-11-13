@@ -39,8 +39,6 @@ export type MediaExemption = { [key: string]: number }
 
 export type SingleMediaExeption = [requestId: number, tmdbId: number]
 
-export type DeleteMedia = [requestId: number, id: number]
-
 export enum APIStatus {
   Success,
   WrongAPIKey,
@@ -48,9 +46,14 @@ export enum APIStatus {
   NotFound,
 }
 
-export interface RadarrDeleteResponse {
+export interface ResponseCodeBasedAction {
   status: APIStatus
-  isSuccess: boolean
+  success: boolean
+}
+
+export interface MovieDeletionRequest {
+  radarrResponse?: ResponseCodeBasedAction
+  overseerrResponse?: ResponseCodeBasedAction
 }
 
 export interface User {

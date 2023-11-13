@@ -82,13 +82,13 @@
       :exemption-button-state="exemptionButtonState"
       :deletion-button-state="deletionButtonState"
       :external-id="request?.mediaRequest.media.externalServiceId"
-      @delete-media="deleteMedia(request?.mediaRequest.id, request?.mediaRequest.media.externalServiceId)"
+      @delete-media="deleteMedia(request?.mediaRequest.id)"
       @toggle-exempt="toggleExempt(isExempt, request?.mediaRequest.id, request?.mediaRequest.media.tmdbId)" />
   </tr>
 </template>
 <script lang="ts" setup>
 import { PropType } from 'vue'
-import { DeleteMedia, RequestStatus, SingleMediaExeption, TestState } from '~/@types/deleterr.ts'
+import { RequestStatus, SingleMediaExeption, TestState } from '~/@types/deleterr.ts'
 import StatusPill from '~/components/StatusPill.vue'
 import Actions from '~/components/Actions.vue'
 
@@ -102,7 +102,7 @@ defineProps({
 const emit = defineEmits<{
   (e: 'addExemption', exemption: SingleMediaExeption): void
   (e: 'removeExemption', exemption: SingleMediaExeption): void
-  (e: 'deleteMedia', deletion: DeleteMedia): void
+  (e: 'deleteMedia', requestId: number): void
 }>()
 
 const toggleExempt = (isExempt: boolean, requestId?: number, tmdbId?: number) => {
@@ -112,10 +112,9 @@ const toggleExempt = (isExempt: boolean, requestId?: number, tmdbId?: number) =>
   }
 }
 
-const deleteMedia = (requestId?: number, id?: number) => {
-  if (id && requestId) {
-    let deletion: DeleteMedia = [requestId, id]
-    emit('deleteMedia', deletion)
+const deleteMedia = (requestId?: number) => {
+  if (requestId) {
+    emit('deleteMedia', requestId)
   }
 }
 
