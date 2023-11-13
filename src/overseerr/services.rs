@@ -116,26 +116,17 @@ pub async fn delete_media(media_id: &str) -> Result<ResponseCodeBasedAction, Del
         RequestType::Delete,
     )?;
     let request_response = make_api_call(client_req).await?;
-    let resp = match request_response.code {
-        204 => ResponseCodeBasedAction {
-            status: APIStatus::Success,
-            is_success: true,
-        },
-        404 => ResponseCodeBasedAction {
-            status: APIStatus::NotFound,
-            is_success: false,
-        },
-        403 => ResponseCodeBasedAction {
-            status: APIStatus::WrongAPIKey,
-            is_success: false,
-        },
-        _ => ResponseCodeBasedAction {
-            status: APIStatus::Other,
-            is_success: false,
-        },
+    match request_response.code {
+        204 => {
+            return Ok(ResponseCodeBasedAction {
+                status: APIStatus::Success,
+                success: true,
+            })
+        }
+        404 => return Err(DeleterrError::new(APIStatus::NotFound.to_string().as_str())),
+        403 => return Err(DeleterrError::new(APIStatus::WrongKey.to_string().as_str())),
+        _ => return Err(DeleterrError::new(APIStatus::Other.to_string().as_str())),
     };
-
-    Ok(resp)
 }
 
 pub async fn get_overseerr_status(
@@ -167,7 +158,7 @@ pub async fn get_overseerr_status(
                 is_success: true,
             },
             403 => APIServiceStatus {
-                status: APIStatus::WrongAPIKey,
+                status: APIStatus::WrongKey,
                 service: Services::Overseerr,
                 is_success: false,
             },

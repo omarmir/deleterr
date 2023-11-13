@@ -39,24 +39,15 @@ pub async fn delete_movie(radarr_id: &str) -> Result<ResponseCodeBasedAction, De
         RequestType::Delete,
     )?;
     let request_response = make_api_call(client_req).await?;
-    let resp = match request_response.code {
-        200 => ResponseCodeBasedAction {
-            status: APIStatus::Success,
-            is_success: true,
-        },
-        404 => ResponseCodeBasedAction {
-            status: APIStatus::NotFound,
-            is_success: false,
-        },
-        401 => ResponseCodeBasedAction {
-            status: APIStatus::WrongAPIKey,
-            is_success: false,
-        },
-        _ => ResponseCodeBasedAction {
-            status: APIStatus::Other,
-            is_success: false,
-        },
+    match request_response.code {
+        200 => {
+            return Ok(ResponseCodeBasedAction {
+                status: APIStatus::Success,
+                success: true,
+            })
+        }
+        404 => return Err(DeleterrError::new(APIStatus::NotFound.to_string().as_str())),
+        401 => return Err(DeleterrError::new(APIStatus::WrongKey.to_string().as_str())),
+        _ => return Err(DeleterrError::new(APIStatus::Other.to_string().as_str())),
     };
-
-    Ok(resp)
 }

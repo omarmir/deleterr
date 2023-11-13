@@ -53,7 +53,7 @@ pub struct User {
 #[derive(Deserialize, Serialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct Media {
-    id: u32,
+    pub id: Option<usize>,
     pub media_type: MediaType,
     pub tmdb_id: Option<usize>,
     tvdb_id: Option<u32>,

@@ -62,7 +62,7 @@ pub async fn get_tautulli_status() -> Result<APIServiceStatus, DeleterrError> {
         _ => match resp.response.message {
             Some(msg) => match msg.as_str() {
                 "Invalid apikey" => APIServiceStatus {
-                    status: APIStatus::WrongAPIKey,
+                    status: APIStatus::WrongKey,
                     service: Services::Tautulli,
                     is_success: false,
                 },

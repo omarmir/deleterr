@@ -24,7 +24,7 @@ pub enum RequestType {
 #[serde(rename_all = "camelCase")]
 pub struct ResponseCodeBasedAction {
     pub status: APIStatus,
-    pub is_success: bool,
+    pub success: bool,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -96,9 +96,20 @@ pub struct APIServiceStatus {
 #[serde(rename_all = "lowercase")]
 pub enum APIStatus {
     Success,
-    WrongAPIKey,
+    WrongKey,
     Other,
     NotFound,
+}
+
+impl ToString for APIStatus {
+    fn to_string(&self) -> String {
+        match self {
+            APIStatus::Success => "Sucess".to_string(),
+            APIStatus::WrongKey => "Wrong API key provided".to_string(),
+            APIStatus::Other => "Unknown error".to_string(),
+            APIStatus::NotFound => "Record not found!".to_string(),
+        }
+    }
 }
 
 #[derive(Deserialize, Serialize, Debug, Clone)]

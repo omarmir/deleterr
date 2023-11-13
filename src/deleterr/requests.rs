@@ -69,6 +69,17 @@ fn get_cached(app_data: &Data<AppData>) -> Option<RequestStatusWithRecordInfo> {
     resp
 }
 
+pub fn get_cached_record(app_data: &Data<AppData>, request_id: usize) -> Option<RequestStatus> {
+    let record = get_cached(app_data);
+
+    let resp = match record {
+        Some(requests) => requests.requests.get(&request_id).cloned(),
+        None => None,
+    };
+
+    resp
+}
+
 pub async fn get_requests_from_cache_or_update_cache(
     cache: Option<RequestStatusWithRecordInfo>,
     app_data: Data<AppData>,

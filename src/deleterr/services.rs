@@ -1,7 +1,13 @@
-use super::models::{RequestStatus, RequestStatusWithRecordInfo};
-use crate::common::models::DeleterrError;
+#![allow(dead_code)]
+#![allow(unused_variables)]
+use super::models::{AppData, MovieDeletionRequest, RequestStatus, RequestStatusWithRecordInfo};
+use super::requests::get_cached_record;
+use crate::common::models::{APIResponse, DeleterrError};
 use crate::overseerr::models::{MediaRequest, PageInfo};
+use crate::overseerr::services::delete_media;
+use crate::radarr::services::delete_movie;
 use crate::tautulli::models::UserWatchHistory;
+use actix_web::web::Data;
 use std::collections::HashMap;
 
 async fn get_os_requests() -> Result<(Vec<MediaRequest>, PageInfo), DeleterrError> {
@@ -95,4 +101,90 @@ pub async fn match_requests_to_watched(
     };
 
     Ok(request_status_with_record_info)
+}
+
+pub async fn make_requests_to_delete_movie(
+    media_id: usize,
+    radarr_id: usize,
+) -> APIResponse<MovieDeletionRequest> {
+    // Easier to declare and mutate then create new ones each time
+    let mut resp = APIResponse::<MovieDeletionRequest> {
+        success: false,
+        error_msg: None,
+        data: None,
+    };
+
+    let radarr_del = delete_movie(radarr_id.to_string().as_str()).await;
+    match radarr_del {
+        Ok(rd_resp) => {
+            let overseer_del = delete_media(media_id.to_string().as_str()).await;
+            match overseer_del {
+                Ok(os_response) => {
+                    resp.success = true;
+                    resp.data = Some(MovieDeletionRequest {
+                        radarr_response: Some(rd_resp),
+                        overseerr_response: Some(os_response),
+                    })
+                }
+                Err(error) => {
+                    resp.success = false;
+                    resp.data = Some(MovieDeletionRequest {
+                        radarr_response: Some(rd_resp),
+                        overseerr_response: None,
+                    });
+                    resp.error_msg = Some(error.to_string());
+                }
+            }
+        }
+        Err(error) => {
+            resp.success = false;
+            resp.error_msg = Some(error.to_string());
+        }
+    }
+
+    resp
+}
+
+pub async fn delete_movie_from_radarr_overseerr(
+    app_data: &Data<AppData>,
+    request_id: usize,
+) -> APIResponse<MovieDeletionRequest> {
+    // Get the record from the cache
+    let request = get_cached_record(app_data, request_id);
+
+    // Record may not exist so only do this if it exists
+    match request {
+        // If request was found
+        Some(req) => {
+            match (
+                req.media_request.media.id,
+                req.media_request.media.external_service_id,
+            ) {
+                // If both IDs exist then lets proceed with the deletions
+                (Some(media_id), Some(radarr_id)) => {
+                    let resp = make_requests_to_delete_movie(media_id, radarr_id).await;
+                    return resp;
+                }
+                _ => {
+                    return APIResponse::<MovieDeletionRequest> {
+                        success: false,
+                        error_msg: Some(
+                            "Missing either the media id or external service id in Overseer"
+                                .to_string(),
+                        ),
+                        data: None,
+                    };
+                }
+            }
+        }
+        None => {
+            return APIResponse::<MovieDeletionRequest> {
+                success: false,
+                error_msg: Some(
+                    "Missing either the media id or external service id in Overseer".to_string(),
+                ),
+                data: None,
+            };
+        }
+    }
 }

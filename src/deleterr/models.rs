@@ -1,3 +1,4 @@
+use crate::common::models::ResponseCodeBasedAction;
 use crate::overseerr::models::{MediaInfo, MediaRequest};
 use crate::tautulli::models::UserWatchHistory;
 use serde::{Deserialize, Serialize};
@@ -29,6 +30,13 @@ pub struct RequestStatusWithRecordInfoVector {
     pub all_requests: usize,
     pub filtered_requests: usize,
     pub requests: Vec<RequestStatus>,
+}
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct MovieDeletionRequest {
+    pub radarr_response: Option<ResponseCodeBasedAction>,
+    pub overseerr_response: Option<ResponseCodeBasedAction>,
 }
 
 #[derive(Deserialize)]
