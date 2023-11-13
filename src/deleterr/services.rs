@@ -1,5 +1,3 @@
-#![allow(dead_code)]
-#![allow(unused_variables)]
 use super::models::{AppData, MovieDeletionRequest, RequestStatus, RequestStatusWithRecordInfo};
 use super::requests::get_cached_record;
 use crate::common::models::{APIResponse, DeleterrError};

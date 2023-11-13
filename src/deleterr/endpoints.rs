@@ -1,4 +1,5 @@
 use crate::common::models::MediaExemption;
+use crate::common::services::send_response;
 use crate::common::{models::ServiceInfo, models::Services, services::process_request};
 use crate::deleterr::models::QueryParms;
 use crate::deleterr::requests::get_requests_and_update_cache;
@@ -85,8 +86,10 @@ async fn delete_radarr_file(path: web::Path<usize>) -> impl Responder {
 
 #[delete("/api/v1/json/movie/delete/{media_id}")]
 async fn delete_movie_file(app_data: Data<AppData>, path: web::Path<usize>) -> impl Responder {
-    let delete_movie = crate::rd_serv::delete_movie(path.into_inner().to_string().as_str()).await;
-    return process_request(delete_movie);
+    let delete_movie =
+        crate::dr_serv::delete_movie_from_radarr_overseerr(&app_data, path.into_inner()).await;
+    // This is making multiple requests and it can fail at multiple points so we build the response and no longer need to convert (process) it into an api response
+    return send_response(delete_movie);
 }
 
 pub fn config(cfg: &mut web::ServiceConfig) {

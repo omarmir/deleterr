@@ -31,7 +31,8 @@ where
                 data: Some(response_ok),
                 error_msg: None,
             };
-            HttpResponse::Ok().json(api_response)
+            send_response(api_response)
+            //HttpResponse::Ok().json(api_response)
         }
         Err(error) => {
             let err_response: APIResponse<()> = APIResponse {
@@ -39,9 +40,17 @@ where
                 data: None,
                 error_msg: Some(error.to_string()),
             };
-            return HttpResponse::Ok().json(err_response);
+            send_response(err_response)
+            //HttpResponse::Ok().json(err_response)
         }
     };
+}
+
+pub fn send_response<T>(api_response: APIResponse<T>) -> HttpResponse
+where
+    T: serde::Serialize,
+{
+    return HttpResponse::Ok().json(api_response);
 }
 
 pub fn create_api_url(endpoint: &String, service_info: &ServiceInfo) -> String {

@@ -1,7 +1,7 @@
 use actix_cors::Cors;
 use actix_web::{middleware::Logger, web, App, HttpServer};
 use actix_web_lab::web as lab_web;
-use deleterr::{endpoints as dr_serv, models::AppData};
+use deleterr::{endpoints as dr_epts, models::AppData, services as dr_serv};
 use overseerr::services as os_serv;
 use radarr::services as rd_serv;
 use std::sync::RwLock;
@@ -38,7 +38,7 @@ async fn main() -> std::io::Result<()> {
             .wrap(cors)
             .wrap(logger)
             .app_data(app_data.clone())
-            .configure(dr_serv::config)
+            .configure(dr_epts::config)
             .service(
                 lab_web::spa()
                     .index_file("./webapp/dist/index.html")
