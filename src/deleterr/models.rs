@@ -35,8 +35,8 @@ pub struct RequestStatusWithRecordInfoVector {
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct MovieDeletionRequest {
-    pub radarr_response: Option<ResponseCodeBasedAction>,
-    pub overseerr_response: Option<ResponseCodeBasedAction>,
+    pub radarr_response: ResponseCodeBasedAction,
+    pub overseerr_response: ResponseCodeBasedAction,
 }
 
 #[derive(Deserialize)]

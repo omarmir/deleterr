@@ -101,128 +101,39 @@ pub async fn match_requests_to_watched(
     Ok(request_status_with_record_info)
 }
 
-pub async fn make_requests_to_delete_movie(
-    media_id: usize,
-    radarr_id: usize,
-) -> APIResponse<MovieDeletionRequest> {
-    // Easier to declare and mutate then create new ones each time
-    let mut resp = APIResponse::<MovieDeletionRequest> {
-        success: false,
-        error_msg: None,
-        data: None,
-    };
-
-    let radarr_del = delete_movie(radarr_id.to_string().as_str()).await;
-    match radarr_del {
-        Ok(rd_resp) => {
-            let overseer_del = delete_media(media_id.to_string().as_str()).await;
-            match overseer_del {
-                Ok(os_response) => {
-                    resp.success = true;
-                    resp.data = Some(MovieDeletionRequest {
-                        radarr_response: Some(rd_resp),
-                        overseerr_response: Some(os_response),
-                    })
-                }
-                Err(error) => {
-                    resp.success = false;
-                    resp.data = Some(MovieDeletionRequest {
-                        radarr_response: Some(rd_resp),
-                        overseerr_response: None,
-                    });
-                    resp.error_msg = Some(error.to_string());
-                }
-            }
-        }
-        Err(error) => {
-            resp.success = false;
-            resp.error_msg = Some(error.to_string());
-        }
-    }
-
-    resp
-}
-
-pub async fn delete_movie_from_radarr_overseerr_fn(
+pub async fn delete_movie_from_radarr_overseerr(
     app_data: &Data<AppData>,
     request_id: usize,
 ) -> Result<MovieDeletionRequest, DeleterrError> {
     // Get the record from the cache
-    let request = get_cached_record(app_data, request_id)
-        .expect("No request found! You may need to resync the APIs");
+    let request = get_cached_record(app_data, request_id).ok_or(DeleterrError::new(
+        "No request found! You may need to resync the APIs",
+    ))?;
 
-    let media_id = request.media_request.media.id.expect("Missing media Id!");
+    let media_id = request
+        .media_request
+        .media
+        .id
+        .ok_or(DeleterrError::new("Missing media Id!"))?;
+
     let radarr_id = request
         .media_request
         .media
         .external_service_id
-        .expect("Missing external service (radarr) id!");
+        .ok_or(DeleterrError::new("Missing external service (radarr) id!"))?;
 
-    let radarr_del = delete_movie(radarr_id.to_string().as_str())
+    let radarr_response = delete_movie(radarr_id.to_string().as_str())
         .await
-        .expect("Unable to delete media in radarr. Not proceeding to remove in Overseerr.");
+        .map_err(|err| err.add_prefix("Unable to delete from Radarr. Error: "))?;
 
-    let overseer_del = delete_media(media_id.to_string().as_str()).await;
+    let overseerr_response = delete_media(media_id.to_string().as_str())
+        .await
+        .map_err(|err| err.add_prefix("Radarr media deleted but was unable to delete Overseer request. Please delete it manually. Error: "))?;
 
-    match overseer_del {
-        Ok(o_del) => {
-            let request = MovieDeletionRequest {
-                radarr_response: Some(radarr_del),
-                overseerr_response: Some(o_del),
-            };
+    let resp = MovieDeletionRequest {
+        radarr_response,
+        overseerr_response,
+    };
 
-            return Ok(request);
-        }
-        Err(error) => {
-            let error_msg = "Radarr media deleted but was unable to delete Overseer request. Please delete it manually. Error: ";
-            return Err(DeleterrError::new(
-                (error_msg.to_owned() + error.as_str()).as_str(),
-            ));
-        }
-    }
-}
-
-pub async fn delete_movie_from_radarr_overseerr(
-    app_data: &Data<AppData>,
-    request_id: usize,
-) -> APIResponse<MovieDeletionRequest> {
-    // Get the record from the cache
-    let request = get_cached_record(app_data, request_id);
-
-    // Record may not exist so only do this if it exists
-    match request {
-        // If request was found
-        Some(req) => {
-            // IDs may not exist so only do this if they both - they really should all be there
-            match (
-                req.media_request.media.id,
-                req.media_request.media.external_service_id,
-            ) {
-                // If both IDs exist then lets proceed with the deletions
-                (Some(media_id), Some(radarr_id)) => {
-                    let resp = make_requests_to_delete_movie(media_id, radarr_id).await;
-                    return resp;
-                }
-                _ => {
-                    return APIResponse::<MovieDeletionRequest> {
-                        success: false,
-                        error_msg: Some(
-                            "Missing either the media id or external service id in Overseer"
-                                .to_string(),
-                        ),
-                        data: None,
-                    };
-                }
-            }
-        }
-        None => {
-            return APIResponse::<MovieDeletionRequest> {
-                success: false,
-                error_msg: Some(
-                    "Missing either the media id or external service id in Overseer".to_string(),
-                ),
-                data: None,
-            };
-        }
-    }
+    Ok(resp)
 }

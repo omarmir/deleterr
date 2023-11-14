@@ -112,6 +112,17 @@ impl ToString for APIStatus {
     }
 }
 
+impl APIStatus {
+    pub fn as_str(&self) -> &str {
+        match self {
+            APIStatus::Success => "Sucess",
+            APIStatus::WrongKey => "Wrong API key provided",
+            APIStatus::Other => "Unknown error",
+            APIStatus::NotFound => "Record not found!",
+        }
+    }
+}
+
 #[derive(Deserialize, Serialize, Debug, Clone)]
 #[serde(rename_all = "lowercase")]
 pub enum Services {
@@ -165,6 +176,11 @@ impl fmt::Display for DeleterrError {
 impl DeleterrError {
     pub fn as_str(&self) -> &str {
         &self.details.as_str()
+    }
+
+    pub fn add_prefix(mut self, prefix: &str) -> Self {
+        self.details = format!("{}{}", prefix, self.details);
+        self
     }
 }
 

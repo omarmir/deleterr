@@ -123,9 +123,9 @@ pub async fn delete_media(media_id: &str) -> Result<ResponseCodeBasedAction, Del
                 success: true,
             })
         }
-        404 => return Err(DeleterrError::new(APIStatus::NotFound.to_string().as_str())),
-        403 => return Err(DeleterrError::new(APIStatus::WrongKey.to_string().as_str())),
-        _ => return Err(DeleterrError::new(APIStatus::Other.to_string().as_str())),
+        404 => return Err(DeleterrError::new(APIStatus::NotFound.as_str())),
+        403 => return Err(DeleterrError::new(APIStatus::WrongKey.as_str())),
+        _ => return Err(DeleterrError::new(APIStatus::Other.as_str())),
     };
 }
 
