@@ -12,6 +12,13 @@ import {
 
 import { useToast } from '~/composables/useToast'
 
+interface RequestResponse {
+  requests?: RequestStatus[]
+  exemptions?: MediaExemption
+  allRequests?: number
+  filteredRequests?: number
+}
+
 export const useRequestsStore = defineStore('requests', () => {
   const requests: Ref<RequestStatus[] | undefined> = ref([])
   const allRequests: Ref<number> = ref(0)
@@ -35,7 +42,7 @@ export const useRequestsStore = defineStore('requests', () => {
 
   const tableState: Readonly<TableState> = readonly(internalTableState)
 
-  const getRequests = async () => {
+  const makeApiCallForRequests = async (): Promise<RequestResponse | undefined> => {
     try {
       const queryString = Object.entries(tableState)
         .filter(([_key, value]) => value !== undefined) // Filter out properties with undefined values
@@ -57,17 +64,27 @@ export const useRequestsStore = defineStore('requests', () => {
         mediaExemptionsResponse.json() as Promise<APIResponse<MediaExemption>>,
       ])
 
-      requests.value = requestsResult.data?.requests
-      mediaExemptions.value = mediaExemptionsResult.data ?? {}
-      allRequests.value = requestsResult.data?.allRequests ?? 0
-      currentPage.value = (tableState.skip ?? 0) / tableState.take
-      filteredRequests.value = requestsResult.data?.filteredRequests ?? 0
-      pageCount.value = Math.ceil(filteredRequests.value / tableState.take)
-      error.value = null
+      return {
+        requests: requestsResult.data?.requests,
+        exemptions: mediaExemptionsResult.data,
+        allRequests: requestsResult.data?.allRequests,
+        filteredRequests: requestsResult.data?.filteredRequests,
+      }
     } catch (err) {
       console.error(err)
       error.value = err
     }
+  }
+
+  const getRequests = async () => {
+    const resp = await makeApiCallForRequests()
+    requests.value = resp?.requests ?? []
+    mediaExemptions.value = resp?.exemptions ?? {}
+    allRequests.value = resp?.allRequests ?? 0
+    filteredRequests.value = resp?.filteredRequests ?? 0
+    currentPage.value = (tableState.skip ?? 0) / tableState.take
+    pageCount.value = Math.ceil(filteredRequests.value / tableState.take)
+    error.value = null
   }
 
   const addMediaExemption = async (mediaExemption: SingleMediaExeption) => {
@@ -152,27 +169,19 @@ export const useRequestsStore = defineStore('requests', () => {
       const response = await fetch(mediaDeleteEndpoint, requestOptions)
       let apiResponse: APIResponse<MovieDeletionRequest> = await response.json()
       if (apiResponse.success) {
-        requests.value = requests.value?.filter((req) => req.mediaRequest.id !== requestId)
         actionStates.value['delete_' + requestId] = TestState.success
         publishToast(
           'Movie deleted',
           'Movie has been deleted! You may need to re-scan on plex for it to vanish',
-          3,
-          true
+          5,
+          false
         )
+        getRequests()
       } else {
-        if (apiResponse.data?.radarrResponse) {
-          handleErrorForExemption(
-            'delete_' + requestId,
-            'Deleted file in radarr but was unable to delete in Overseerr! Manually delete it there. Error: ' +
-              apiResponse.error_msg ?? 'Unknown error'
-          )
-        } else {
-          handleErrorForExemption(
-            'delete_' + requestId,
-            apiResponse.error_msg ?? apiResponse.error_msg ?? 'Unknown error'
-          )
-        }
+        handleErrorForExemption(
+          'delete_' + requestId,
+          apiResponse.error_msg ?? apiResponse.error_msg ?? 'Unknown error'
+        )
       }
     } catch (err) {
       handleErrorForExemption('delete_' + requestId, (err as any).toString())
