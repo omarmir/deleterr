@@ -1,9 +1,9 @@
 use super::models::{AppData, MovieDeletionRequest, RequestStatus, RequestStatusWithRecordInfo};
 use super::requests::get_cached_record;
-use crate::common::models::{APIResponse, DeleterrError};
+use crate::common::models::DeleterrError;
 use crate::overseerr::models::{MediaRequest, PageInfo};
 use crate::overseerr::services::delete_media;
-use crate::radarr::services::delete_movie;
+use crate::rd_serv::delete_movie;
 use crate::tautulli::models::UserWatchHistory;
 use actix_web::web::Data;
 use std::collections::HashMap;

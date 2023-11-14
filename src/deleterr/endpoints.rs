@@ -1,5 +1,4 @@
 use crate::common::models::MediaExemption;
-use crate::common::services::send_response;
 use crate::common::{models::ServiceInfo, models::Services, services::process_request};
 use crate::deleterr::models::QueryParms;
 use crate::deleterr::requests::get_requests_and_update_cache;
