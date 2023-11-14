@@ -174,10 +174,6 @@ impl fmt::Display for DeleterrError {
 }
 
 impl DeleterrError {
-    pub fn as_str(&self) -> &str {
-        &self.details.as_str()
-    }
-
     pub fn add_prefix(mut self, prefix: &str) -> Self {
         self.details = format!("{}{}", prefix, self.details);
         self
