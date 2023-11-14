@@ -37,6 +37,7 @@ pub struct RequestStatusWithRecordInfoVector {
 pub struct MovieDeletionRequest {
     pub radarr_response: ResponseCodeBasedAction,
     pub overseerr_response: ResponseCodeBasedAction,
+    pub cache_response: ResponseCodeBasedAction,
 }
 
 #[derive(Deserialize)]

@@ -1,5 +1,5 @@
 use super::models::{AppData, MovieDeletionRequest, RequestStatus, RequestStatusWithRecordInfo};
-use super::requests::get_cached_record;
+use super::requests::{delete_cached_record, get_cached_record};
 use crate::common::models::DeleterrError;
 use crate::overseerr::models::{MediaRequest, PageInfo};
 use crate::overseerr::services::delete_media;
@@ -130,9 +130,13 @@ pub async fn delete_movie_from_radarr_overseerr(
         .await
         .map_err(|err| err.add_prefix("Radarr media deleted but was unable to delete Overseer request. Please delete it manually. Error: "))?;
 
+    let cache_response = delete_cached_record(app_data, request_id)
+        .map_err(|err| err.add_prefix("Deleted in both Radarr and Overseer but was unable to remove from Cache. Manually trigger a sync to fix the issue. Error: "))?;
+
     let resp = MovieDeletionRequest {
         radarr_response,
         overseerr_response,
+        cache_response,
     };
 
     Ok(resp)
