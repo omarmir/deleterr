@@ -162,6 +162,12 @@ impl fmt::Display for DeleterrError {
     }
 }
 
+impl DeleterrError {
+    pub fn as_str(&self) -> &str {
+        &self.details.as_str()
+    }
+}
+
 impl Error for DeleterrError {
     fn description(&self) -> &str {
         &self.details
