@@ -64,6 +64,11 @@ export const useRequestsStore = defineStore('requests', () => {
         mediaExemptionsResponse.json() as Promise<APIResponse<MediaExemption>>,
       ])
 
+      if (!requestsResult.success || !mediaExemptionsResult.success) {
+        const errorMsg = [requestsResult.error_msg, mediaExemptionsResult.error_msg].join(' ')
+        publishToast('Unable to load requests', 'Error: ' + errorMsg, 10, true)
+      }
+
       return {
         requests: requestsResult.data?.requests,
         exemptions: mediaExemptionsResult.data,
