@@ -43,53 +43,53 @@ export const useRequestsStore = defineStore('requests', () => {
   const tableState: Readonly<TableState> = readonly(internalTableState)
 
   const makeApiCallForRequests = async (): Promise<RequestResponse | undefined> => {
-    try {
-      const queryString = Object.entries(tableState)
-        .filter(([_key, value]) => value !== undefined) // Filter out properties with undefined values
-        .map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(value)}`)
-        .join('&')
+    const queryString = Object.entries(tableState)
+      .filter(([_key, value]) => value !== undefined) // Filter out properties with undefined values
+      .map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(value)}`)
+      .join('&')
 
-      const urlWithQueryParams = `http://localhost:8080/api/v1/json/requests?${queryString}`
-      const mediaExemptionsEndpoint = 'http://localhost:8080/api/v1/json/request/exemptions/get'
+    const urlWithQueryParams = `http://localhost:8080/api/v1/json/requests?${queryString}`
+    const mediaExemptionsEndpoint = 'http://localhost:8080/api/v1/json/request/exemptions/get'
 
-      // Use Promise.all to run both promises in parallel
-      const [requestsResponse, mediaExemptionsResponse] = await Promise.all([
-        fetch(urlWithQueryParams),
-        fetch(mediaExemptionsEndpoint),
-      ])
+    // Use Promise.all to run both promises in parallel
+    const [requestsResponse, mediaExemptionsResponse] = await Promise.all([
+      fetch(urlWithQueryParams),
+      fetch(mediaExemptionsEndpoint),
+    ])
 
-      // Use Promise.all again to extract JSON from the responses in parallel
-      const [requestsResult, mediaExemptionsResult] = await Promise.all([
-        requestsResponse.json() as Promise<APIResponse<RequestStatusWithRecordInfo>>,
-        mediaExemptionsResponse.json() as Promise<APIResponse<MediaExemption>>,
-      ])
+    // Use Promise.all again to extract JSON from the responses in parallel
+    const [requestsResult, mediaExemptionsResult] = await Promise.all([
+      requestsResponse.json() as Promise<APIResponse<RequestStatusWithRecordInfo>>,
+      mediaExemptionsResponse.json() as Promise<APIResponse<MediaExemption>>,
+    ])
 
-      if (!requestsResult.success || !mediaExemptionsResult.success) {
-        const errorMsg = [requestsResult.error_msg, mediaExemptionsResult.error_msg].join(' ')
-        publishToast('Unable to load requests', 'Error: ' + errorMsg, 10, true)
-      }
+    if (!requestsResult.success || !mediaExemptionsResult.success) {
+      const errorMsg = [requestsResult.error_msg, mediaExemptionsResult.error_msg].join(' ')
+      publishToast('Unable to load requests', 'Error: ' + errorMsg, 10, true)
+    }
 
-      return {
-        requests: requestsResult.data?.requests,
-        exemptions: mediaExemptionsResult.data,
-        allRequests: requestsResult.data?.allRequests,
-        filteredRequests: requestsResult.data?.filteredRequests,
-      }
-    } catch (err) {
-      console.error(err)
-      error.value = err
+    return {
+      requests: requestsResult.data?.requests,
+      exemptions: mediaExemptionsResult.data,
+      allRequests: requestsResult.data?.allRequests,
+      filteredRequests: requestsResult.data?.filteredRequests,
     }
   }
 
   const getRequests = async () => {
-    const resp = await makeApiCallForRequests()
-    requests.value = resp?.requests ?? []
-    mediaExemptions.value = resp?.exemptions ?? {}
-    allRequests.value = resp?.allRequests ?? 0
-    filteredRequests.value = resp?.filteredRequests ?? 0
-    currentPage.value = (tableState.skip ?? 0) / tableState.take
-    pageCount.value = Math.ceil(filteredRequests.value / tableState.take)
-    error.value = null
+    try {
+      const resp = await makeApiCallForRequests()
+      requests.value = resp?.requests ?? []
+      mediaExemptions.value = resp?.exemptions ?? {}
+      allRequests.value = resp?.allRequests ?? 0
+      filteredRequests.value = resp?.filteredRequests ?? 0
+      currentPage.value = (tableState.skip ?? 0) / tableState.take
+      pageCount.value = Math.ceil(filteredRequests.value / tableState.take)
+      error.value = null
+    } catch (err) {
+      error.value = err
+      publishToast('Unable to load requests', 'Is the application server running?', 10, true)
+    }
   }
 
   const addMediaExemption = async (mediaExemption: SingleMediaExeption) => {
