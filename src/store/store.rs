@@ -1,10 +1,20 @@
 use persy::{Config, OpenError, Persy, PersyId, ValueMode, PE};
-use std::path::Path;
+use std::{path::Path, sync::Mutex};
 
 use crate::common::models::DeleterrError;
 
+use super::models::Store;
+
+static PERSY_PATH: Mutex<Store> = 
+    Mutex::new(
+        Store{
+            path: "deleterr.persy",
+        }
+    );
+
 pub fn get_store() -> Result<Persy, PE<OpenError>> {
-    let path = Path::new("deleterr.persy");
+    let path_val = PERSY_PATH.lock().expect("Unable to obtain lock. Likely poisoned.");
+    let path = Path::new(path_val.path);
     let config = Config::new();
 
     Persy::open_or_create_with(path, config, |persy| {
