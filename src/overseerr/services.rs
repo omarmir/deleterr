@@ -8,29 +8,16 @@ use crate::common::{
     },
     services::{create_api_url, get_api_endpoint, make_api_call},
 };
-use dotenv::dotenv;
 
-fn build_service_info() -> ServiceInfo {
-    dotenv().ok();
-    let os_host = std::env::var("OS_HOST").expect("os_host must be set.");
-    let os_api_key = std::env::var("OS_API_KEY").expect("os_api_key must be set.");
-    let os_port = std::env::var("OS_PORT").expect("os_port must be set.");
-    let os_use_ssl = std::env::var("OS_USE_SSL").expect("os_use_ssl must be set.");
+fn build_service_info() -> Result<ServiceInfo, DeleterrError> {
+    let service_info = crate::st_serv::get_service(Services::Overseerr)?;
 
-    let parsed_port = os_port.parse::<String>().ok();
-
-    return ServiceInfo {
-        host: os_host,
-        api_key: os_api_key,
-        port: parsed_port,
-        use_ssl: if os_use_ssl == "true" { true } else { false },
-        service: Services::Overseerr,
-    };
+    service_info.ok_or(DeleterrError::new("Overseerr service not setup."))
 }
 
 pub async fn get_requests() -> Result<OverseerrListResponse<MediaRequest>, DeleterrError> {
     let endpoint = format!("api/v1/request");
-    let service_info = build_service_info();
+    let service_info = build_service_info()?;
 
     let total_count = get_requests_count().await?.available.to_string();
 
@@ -54,7 +41,7 @@ pub async fn get_requests() -> Result<OverseerrListResponse<MediaRequest>, Delet
 
 pub async fn get_requests_count() -> Result<OverseerrRequestsCount, DeleterrError> {
     let endpoint = "api/v1/request/count".to_string();
-    let service_info = build_service_info();
+    let service_info = build_service_info()?;
 
     let api_url = create_api_url(&endpoint, &service_info);
     let query: Vec<(&str, &str)> = Vec::with_capacity(0);
@@ -80,7 +67,7 @@ pub async fn get_media_info(
                 MediaType::TV => format!("api/v1/tv/{id}"),
                 MediaType::Movie => format!("api/v1/movie/{id}"),
             };
-            let service_info = build_service_info();
+            let service_info = build_service_info()?;
 
             let api_url = create_api_url(&endpoint, &service_info);
             let query = vec![];
@@ -104,7 +91,7 @@ pub async fn get_media_info(
 
 pub async fn delete_media(media_id: &str) -> Result<ResponseCodeBasedAction, DeleterrError> {
     let endpoint = format!("api/v1/media/{media_id}");
-    let service_info = build_service_info();
+    let service_info = build_service_info()?;
 
     let api_url = create_api_url(&endpoint, &service_info);
     let query: Vec<(&str, &str)> = Vec::with_capacity(0);

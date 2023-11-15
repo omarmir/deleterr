@@ -15,39 +15,31 @@ async fn get_os_requests() -> Result<(Vec<MediaRequest>, PageInfo), DeleterrErro
     Ok((vec_requests, page_info))
 }
 
-async fn get_tau_history_by_key_user(rating_key: &u64, user_id: &u64) -> Option<UserWatchHistory> {
-    let tt_request = crate::tt_serv::get_item_history(
+async fn get_tau_history_by_key_user(
+    rating_key: &u64,
+    user_id: &u64,
+) -> Result<Option<UserWatchHistory>, DeleterrError> {
+    let tt_match = crate::tt_serv::get_item_history(
         rating_key.to_string().as_str(),
         user_id.to_string().as_str(),
     )
-    .await;
-
-    let tt_match = match tt_request {
-        Ok(request_match) => request_match.response.data.data,
-        Err(err) => {
-            println!(
-                "Unable to get data from tautulli for rating key: {} and user id: {}",
-                rating_key, user_id
-            );
-            println!("Error: {}", err.to_string());
-            return None;
-        }
-    };
+    .await?;
 
     /*
      * We make sure that there is exactly one matched result since
      * we provided both a ratingKey and userId. If there is more than one result
      * then we did something wrong.
      */
-    return match tt_match {
+
+    return match tt_match.response.data.data {
         Some(histories) => {
             if histories.len() == 1 {
-                Some(histories[0].clone())
+                Ok(Some(histories[0].clone()))
             } else {
-                None
+                Ok(None)
             }
         }
-        _ => None,
+        _ => Ok(None),
     };
 }
 
@@ -73,7 +65,7 @@ pub async fn match_requests_to_watched(
         let media_info = crate::overseerr::services::get_media_info(&media_type, &tmdb_id).await?;
         let user_watch_history = match (rating_key, user_id) {
             (Some(rating_key), Some(user_id)) => {
-                get_tau_history_by_key_user(&rating_key, &user_id).await
+                get_tau_history_by_key_user(&rating_key, &user_id).await?
             }
             _ => None,
         };
