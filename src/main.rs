@@ -2,7 +2,7 @@ use actix_cors::Cors;
 use actix_session::config::{BrowserSession, CookieContentSecurity};
 use actix_session::storage::CookieSessionStore;
 use actix_session::SessionMiddleware;
-use actix_web::cookie::{Key, SameSite};
+use actix_web::cookie::Key;
 use actix_web::{middleware::Logger, web, App, HttpServer};
 use actix_web_lab::web as lab_web;
 use deleterr::{endpoints as dr_epts, models::AppData, services as dr_serv};
@@ -14,6 +14,7 @@ use store::exemptions as st_exempt;
 use store::models::PersyManager;
 use store::services as st_serv;
 use tautulli::services as tt_serv;
+mod auth;
 mod common;
 mod deleterr;
 mod overseerr;
@@ -21,13 +22,13 @@ mod radarr;
 mod store;
 mod tautulli;
 
-fn session_middleware() -> SessionMiddleware<CookieSessionStore> {
-    SessionMiddleware::builder(CookieSessionStore::default(), Key::generate())
+fn session_middleware(secret_key: Key) -> SessionMiddleware<CookieSessionStore> {
+    SessionMiddleware::builder(CookieSessionStore::default(), secret_key)
         .cookie_name(String::from("deleterr"))
         .cookie_secure(false) // TODO: Change this for prod
         .session_lifecycle(BrowserSession::default())
-        .cookie_same_site(SameSite::Strict)
-        .cookie_content_security(CookieContentSecurity::Signed)
+        //.cookie_same_site(SameSite::Strict)
+        .cookie_content_security(CookieContentSecurity::Private)
         .cookie_http_only(true)
         .build()
 }
@@ -51,6 +52,8 @@ async fn main() -> std::io::Result<()> {
 
     let data = web::Data::new(app_state);
 
+    let secret_key = Key::generate();
+
     HttpServer::new(move || {
         let app_data = &data;
         let logger = Logger::default();
@@ -59,7 +62,7 @@ async fn main() -> std::io::Result<()> {
         App::new()
             .wrap(cors)
             .wrap(logger)
-            .wrap(session_middleware())
+            .wrap(session_middleware(secret_key.clone()))
             .app_data(app_data.clone())
             .configure(dr_epts::config)
             .service(
