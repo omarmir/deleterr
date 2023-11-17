@@ -1,10 +1,16 @@
-use super::store::{does_record_exist, get_store};
-use crate::common::models::{DeleterrError, ServiceInfo, Services};
+use super::store::does_record_exist;
+use crate::{
+    common::models::{DeleterrError, ServiceInfo, Services},
+    PERSY_MANAGER,
+};
 use persy::PersyId;
 use std::collections::HashMap;
 
 pub fn upsert_service(service_info: ServiceInfo) -> Result<String, DeleterrError> {
-    let persy = get_store()?;
+    let persy = PERSY_MANAGER
+        .persy
+        .lock()
+        .expect("Unable to obtain lock on store. Likely poisoned. Restart app");
     //Start a transaction all the operations in persy are done inside a transaction.
     let persy_id = does_record_exist(&persy, &service_info.service, "services_index")?;
 
@@ -30,7 +36,10 @@ pub fn upsert_service(service_info: ServiceInfo) -> Result<String, DeleterrError
 }
 
 pub fn get_service(service_name: Services) -> Result<Option<ServiceInfo>, DeleterrError> {
-    let persy = get_store()?;
+    let persy = PERSY_MANAGER
+        .persy
+        .lock()
+        .expect("Unable to obtain lock on store. Likely poisoned. Restart app");
 
     let read_id = persy
         .get::<String, PersyId>("services_index", &service_name.to_string())?
@@ -48,7 +57,10 @@ pub fn get_service(service_name: Services) -> Result<Option<ServiceInfo>, Delete
 }
 
 pub fn get_all_services() -> Result<HashMap<String, Option<ServiceInfo>>, DeleterrError> {
-    let persy = get_store()?;
+    let persy = PERSY_MANAGER
+        .persy
+        .lock()
+        .expect("Unable to obtain lock on store. Likely poisoned. Restart app");
     // TODO: once we have the other services this needs to be updated
     let mut all_services: HashMap<String, Option<ServiceInfo>> = HashMap::from([
         (Services::Overseerr.to_string(), None),

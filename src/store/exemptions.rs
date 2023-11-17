@@ -1,14 +1,18 @@
-#![allow(dead_code)]
-#![allow(unused_variables)]
-
-use super::store::{does_record_exist, get_store};
-use crate::common::models::{DeleterrError, MediaExemption};
+use super::store::does_record_exist;
+use crate::{
+    common::models::{DeleterrError, MediaExemption},
+    PERSY_MANAGER,
+};
 use persy::PersyId;
 use std::collections::HashMap;
 
 // TODO: We need to update the cache to reflect the media exemption or we should send the data as seperate and hashmap and the front end can display it as needed
 pub fn upsert_media_exemption(media_exemption: MediaExemption) -> Result<String, DeleterrError> {
-    let persy = get_store()?;
+    let persy = PERSY_MANAGER
+        .persy
+        .lock()
+        .expect("Unable to obtain lock on store. Likely poisoned. Restart app");
+
     let key = media_exemption.request_id.to_string();
     let value = &media_exemption.as_le_bytes();
     let persy_id = does_record_exist(&persy, &key, "media_exemption_index")?;
@@ -34,7 +38,11 @@ pub fn upsert_media_exemption(media_exemption: MediaExemption) -> Result<String,
 }
 
 pub fn get_all_exemptions() -> Result<HashMap<usize, usize>, DeleterrError> {
-    let persy = get_store()?;
+    let persy = PERSY_MANAGER
+        .persy
+        .lock()
+        .expect("Unable to obtain lock on store. Likely poisoned. Restart app");
+
     let mut media_exemptions = HashMap::new();
 
     for (read_id, content) in persy.scan("media_exemptions")? {
@@ -46,7 +54,11 @@ pub fn get_all_exemptions() -> Result<HashMap<usize, usize>, DeleterrError> {
 }
 
 pub fn remove_media_exemption(request_id: usize) -> Result<bool, DeleterrError> {
-    let persy = get_store()?;
+    let persy = PERSY_MANAGER
+        .persy
+        .lock()
+        .expect("Unable to obtain lock on store. Likely poisoned. Restart app");
+
     let key = request_id.to_string();
     let persy_id = does_record_exist(&persy, &key, "media_exemption_index")?;
     let mut tx = persy.begin()?;
