@@ -1,18 +1,19 @@
 use actix_cors::Cors;
-use actix_session::SessionMiddleware;
 use actix_session::config::{BrowserSession, CookieContentSecurity};
 use actix_session::storage::CookieSessionStore;
+use actix_session::SessionMiddleware;
 use actix_web::cookie::{Key, SameSite};
 use actix_web::{middleware::Logger, web, App, HttpServer};
 use actix_web_lab::web as lab_web;
 use deleterr::{endpoints as dr_epts, models::AppData, services as dr_serv};
 use overseerr::services as os_serv;
 use radarr::services as rd_serv;
+use std::sync::OnceLock;
 use std::sync::RwLock;
 use store::exemptions as st_exempt;
+use store::models::PersyManager;
 use store::services as st_serv;
 use tautulli::services as tt_serv;
-
 mod common;
 mod deleterr;
 mod overseerr;
@@ -22,20 +23,26 @@ mod tautulli;
 
 fn session_middleware() -> SessionMiddleware<CookieSessionStore> {
     SessionMiddleware::builder(CookieSessionStore::default(), Key::generate())
-    .cookie_name(String::from("deleterr"))
-    .cookie_secure(false) // TODO: Change this for prod
-    .session_lifecycle(BrowserSession::default())
-    .cookie_same_site(SameSite::Strict)
-    .cookie_content_security(CookieContentSecurity::Signed)
-    .cookie_http_only(true)
-    .build()
+        .cookie_name(String::from("deleterr"))
+        .cookie_secure(false) // TODO: Change this for prod
+        .session_lifecycle(BrowserSession::default())
+        .cookie_same_site(SameSite::Strict)
+        .cookie_content_security(CookieContentSecurity::Signed)
+        .cookie_http_only(true)
+        .build()
 }
+
+static PERSY_MANAGER: OnceLock<PersyManager> = OnceLock::new();
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
     std::env::set_var("RUST_LOG", "debug");
     std::env::set_var("RUST_BACKTRACE", "1");
     env_logger::init();
+
+    PERSY_MANAGER
+        .set(PersyManager::new())
+        .expect("Unable to set store.");
 
     let app_state = AppData {
         last_update: RwLock::new(None),
