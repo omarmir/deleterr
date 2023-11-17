@@ -1,5 +1,21 @@
-use crate::common::models::DeleterrError;
+use std::sync::MutexGuard;
+
+use crate::{common::models::DeleterrError, PERSY_MANAGER};
 use persy::{Persy, PersyId};
+
+pub fn get_persy() -> Result<MutexGuard<'static, Persy>, DeleterrError> {
+    let persy = PERSY_MANAGER
+        .get()
+        .ok_or(DeleterrError::new("Missing media Id!"))?
+        .persy
+        .lock()
+        .map_err(|err| {
+            DeleterrError::new(err.to_string().as_str())
+                .add_prefix("Unable to access cache. Lock is poisoned.")
+        })?;
+
+    Ok(persy)
+}
 
 pub fn does_record_exist<T>(
     persy: &Persy,

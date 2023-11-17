@@ -1,8 +1,19 @@
 use persy::{Config, Persy, PersyId, ValueMode};
-use std::sync::Mutex;
+use std::{fmt, sync::Mutex};
 
 pub struct PersyManager {
     pub persy: Mutex<Persy>,
+}
+
+impl fmt::Debug for PersyManager {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        // Implement your custom formatting logic here
+        write!(
+            f,
+            "PersyManager {{ persy.is_poisoned: {:?} }}",
+            self.persy.is_poisoned()
+        )
+    }
 }
 
 impl PersyManager {
