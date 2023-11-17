@@ -53,7 +53,8 @@ pub async fn match_requests_to_watched(
         HashMap::with_capacity(page_info.results);
 
     // TODO: Change this - maybe do a query first on the count?
-    for i in 0..os_requests.len() {
+    for i in 0..10 {
+        //os_requests.len() {
         let media_request = &os_requests[i];
         let (media_type, tmdb_id, rating_key, user_id) = (
             &media_request.media.media_type,
