@@ -91,7 +91,7 @@ pub fn delete_cached_record(
         .write() // ! This could leave the app timed out waiting for a write lock - I can't think when/why this would happen
         .map_err(|err| {
             DeleterrError::new(err.to_string().as_str())
-                .add_prefix("Unable to access cache. Lock is poisoned.")
+                .add_prefix(" Unable to access cache. Lock is poisoned.")
         })?;
 
     if let Some(del_cache) = update_cache.as_mut() {

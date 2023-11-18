@@ -195,6 +195,7 @@ impl From<AuthError> for DeleterrError {
                 DeleterrError::new("Session store unavailable.")
             }
             AuthErrorType::Unauthorized => DeleterrError::new("Unauthorized. Login first."),
+            AuthErrorType::StorageUnavailable => DeleterrError::new("Storage not available"),
         }
     }
 }

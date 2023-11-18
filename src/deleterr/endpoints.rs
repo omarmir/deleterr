@@ -1,5 +1,5 @@
-use crate::auth::models::CookieModel;
-use crate::auth::services::{current_session, login};
+use crate::auth::models::{CookieModel, User};
+use crate::auth::services::{current_session, login, login_user, upsert_user};
 use crate::common::models::{DeleterrError, MediaExemption};
 use crate::common::{models::ServiceInfo, models::Services, services::process_request};
 use crate::deleterr::models::QueryParms;
@@ -87,16 +87,30 @@ async fn delete_movie_file(app_data: Data<AppData>, path: web::Path<usize>) -> i
     return process_request(delete_movie);
 }
 
-#[post("/api/v1/json/auth/login")]
-async fn set_login(session: Session, model: web::Json<CookieModel>) -> impl Responder {
+// Auth
+#[post("/api/v1/json/auth/validate")]
+async fn set_validate(session: Session, model: web::Json<CookieModel>) -> impl Responder {
     let session_insert =
         login(session, model.message.clone()).map_err(|error| DeleterrError::from(error));
     return process_request(session_insert);
 }
 
+#[post("/api/v1/json/auth/login")]
+async fn set_login(session: Session, web::Json(user): web::Json<User>) -> impl Responder {
+    let is_login_success = login_user(session, user);
+
+    return process_request(is_login_success);
+}
+
 #[get("/api/v1/json/auth/session")]
 async fn get_session(session: Session) -> impl Responder {
     let resp = current_session(session).map_err(|error| DeleterrError::from(error));
+    return process_request(resp);
+}
+
+#[post("/api/v1/json/auth/user/save")]
+async fn save_user(web::Json(user): web::Json<User>) -> impl Responder {
+    let resp = upsert_user(user);
     return process_request(resp);
 }
 
@@ -112,5 +126,6 @@ pub fn config(cfg: &mut web::ServiceConfig) {
         .service(remove_media_exemption)
         .service(delete_movie_file)
         .service(set_login)
-        .service(get_session);
+        .service(get_session)
+        .service(save_user);
 }
