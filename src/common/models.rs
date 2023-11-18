@@ -3,8 +3,6 @@ use serde_aux::prelude::{deserialize_bool_from_anything, deserialize_option_numb
 use std::error::Error;
 use std::fmt;
 
-use crate::auth::models::{AuthError, AuthErrorType};
-
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ServiceInfo {
@@ -185,18 +183,6 @@ impl DeleterrError {
 impl Error for DeleterrError {
     fn description(&self) -> &str {
         &self.details
-    }
-}
-
-impl From<AuthError> for DeleterrError {
-    fn from(err: AuthError) -> Self {
-        match err.error_type {
-            AuthErrorType::SessionStoreUnavailable => {
-                DeleterrError::new("Session store unavailable.")
-            }
-            AuthErrorType::Unauthorized => DeleterrError::new("Unauthorized. Login first."),
-            AuthErrorType::StorageUnavailable => DeleterrError::new("Storage not available"),
-        }
     }
 }
 

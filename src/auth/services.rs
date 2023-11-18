@@ -1,4 +1,4 @@
-use super::models::{AuthError, AuthErrorType, HashedUser};
+use super::models::HashedUser;
 use crate::{
     auth::models::User,
     common::models::DeleterrError,
@@ -8,18 +8,13 @@ use actix_session::Session;
 use bcrypt::{hash, verify};
 use persy::{Persy, PersyId};
 
-pub fn login(session: Session, message: String) -> Result<(), AuthError> {
-    session
-        .insert("message", message.clone())
-        .map_err(|_err| AuthError::new(AuthErrorType::SessionStoreUnavailable))
-}
-
-pub fn current_session(session: Session) -> Result<String, AuthError> {
+pub fn validate_session(session: Session) -> bool {
     let result = session.get::<String>("message");
-
-    result
-        .map_err(|_err| AuthError::new(AuthErrorType::SessionStoreUnavailable))?
-        .ok_or(AuthError::new(AuthErrorType::Unauthorized))
+    let resp = result.expect("Session store not available.");
+    match resp {
+        Some(_) => true,
+        None => false,
+    }
 }
 
 pub fn login_user(session: Session, user: User) -> Result<String, DeleterrError> {
