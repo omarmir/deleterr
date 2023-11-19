@@ -12,7 +12,7 @@ use actix_web::{
     Responder,
 };
 
-#[get("/api/v1/json/requests")]
+#[get("/requests")]
 async fn get_all_requests_json(
     app_data: Data<AppData>,
     info: web::Query<QueryParms>,
@@ -21,13 +21,13 @@ async fn get_all_requests_json(
     return process_request(matched_results);
 }
 
-#[get("/api/v1/json/requests/count")]
+#[get("/requests/count")]
 async fn get_requests_count_json() -> impl Responder {
     let count_response = crate::os_serv::get_requests_count().await;
     return process_request(count_response);
 }
 
-#[post("/api/v1/json/service/status")]
+#[post("/service/status")]
 async fn get_service_status_json(
     web::Json(service_info): web::Json<ServiceInfo>,
 ) -> impl Responder {
@@ -40,7 +40,7 @@ async fn get_service_status_json(
     return process_request(service_status);
 }
 
-#[post("/api/v1/json/service/save")]
+#[post("/service/save")]
 async fn save_service_submit_json(
     web::Json(service_info): web::Json<ServiceInfo>,
 ) -> impl Responder {
@@ -48,25 +48,25 @@ async fn save_service_submit_json(
     return process_request(inserted_result);
 }
 
-#[get("/api/v1/json/service/get")]
+#[get("/service/get")]
 async fn get_all_service_json() -> impl Responder {
     let service_info = crate::st_serv::get_all_services();
     return process_request(service_info);
 }
 
-#[get("/api/v1/json/service/get/{service_name}")]
+#[get("/service/get/{service_name}")]
 async fn get_service_json(path: web::Path<Services>) -> impl Responder {
     let service_info = crate::st_serv::get_service(path.into_inner());
     return process_request(service_info);
 }
 
-#[get("/api/v1/json/request/exemptions/get")]
+#[get("/request/exemptions/get")]
 async fn get_media_exemption() -> impl Responder {
     let media_exemptions = crate::st_exempt::get_all_exemptions();
     return process_request(media_exemptions);
 }
 
-#[post("/api/v1/json/request/exemptions/save")]
+#[post("/request/exemptions/save")]
 async fn save_media_exemption(
     web::Json(media_exemption): web::Json<MediaExemption>,
 ) -> impl Responder {
@@ -74,13 +74,13 @@ async fn save_media_exemption(
     return process_request(exempted_result);
 }
 
-#[post("/api/v1/json/request/exemptions/remove")]
+#[post("/request/exemptions/remove")]
 async fn remove_media_exemption(web::Json(request_id): web::Json<usize>) -> impl Responder {
     let deleted_result = crate::st_exempt::remove_media_exemption(request_id);
     return process_request(deleted_result);
 }
 
-#[delete("/api/v1/json/movie/delete/{media_id}")]
+#[delete("/movie/delete/{media_id}")]
 async fn delete_movie_file(app_data: Data<AppData>, path: web::Path<usize>) -> impl Responder {
     let delete_movie =
         crate::dr_serv::delete_movie_from_radarr_overseerr(&app_data, path.into_inner()).await;
@@ -88,30 +88,33 @@ async fn delete_movie_file(app_data: Data<AppData>, path: web::Path<usize>) -> i
 }
 
 // Auth
-#[post("/api/v1/json/auth/login")]
+#[post("/auth/login")]
 async fn set_login(session: Session, web::Json(user): web::Json<User>) -> impl Responder {
     let is_login_success = login_user(session, user);
 
     return process_request(is_login_success);
 }
 
-#[post("/api/v1/json/auth/user/save")]
+#[post("/auth/user/save")]
 async fn save_user(web::Json(user): web::Json<User>) -> impl Responder {
     let resp = upsert_user(user);
     return process_request(resp);
 }
 
 pub fn config(cfg: &mut web::ServiceConfig) {
-    cfg.service(get_all_requests_json)
-        .service(get_requests_count_json)
-        .service(get_service_status_json)
-        .service(save_service_submit_json)
-        .service(get_service_json)
-        .service(get_all_service_json)
-        .service(get_media_exemption)
-        .service(save_media_exemption)
-        .service(remove_media_exemption)
-        .service(delete_movie_file)
-        .service(set_login)
-        .service(save_user);
+    cfg.service(
+        web::scope("/api/v1/json")
+            .service(get_all_requests_json)
+            .service(get_requests_count_json)
+            .service(get_service_status_json)
+            .service(save_service_submit_json)
+            .service(get_service_json)
+            .service(get_all_service_json)
+            .service(get_media_exemption)
+            .service(save_media_exemption)
+            .service(remove_media_exemption)
+            .service(delete_movie_file)
+            .service(save_user),
+    )
+    .service(set_login);
 }
