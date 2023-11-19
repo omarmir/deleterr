@@ -41,7 +41,7 @@ pub fn verify_user(unhashed_user: User) -> Result<bool, DeleterrError> {
         Some(user) => {
             let matches = verify(unhashed_user.password, user.hash.as_str()).map_err(|e| {
                 DeleterrError::new(e.to_string().as_str())
-                    .add_prefix(" Unable to verify password hash.")
+                    .add_prefix("Unable to verify password hash.")
             })?;
             Ok(matches)
         }
@@ -71,7 +71,7 @@ pub fn get_user_by_username(
 pub fn hash_password(pass: String) -> Result<String, DeleterrError> {
     let hash = hash(pass, 10)
         .map_err(|e| {
-            DeleterrError::new(e.to_string().as_str()).add_prefix(" Unable to hash password.")
+            DeleterrError::new(e.to_string().as_str()).add_prefix("Unable to hash password.")
         })?
         .to_string();
 

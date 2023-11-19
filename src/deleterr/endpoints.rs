@@ -1,16 +1,21 @@
 use crate::auth::models::User;
 use crate::auth::services::{login_user, upsert_user};
-use crate::common::models::MediaExemption;
+use crate::common::models::{DeleterrError, MediaExemption};
 use crate::common::{models::ServiceInfo, models::Services, services::process_request};
 use crate::deleterr::models::QueryParms;
 use crate::deleterr::requests::get_requests_and_update_cache;
 use crate::AppData;
+use actix_cors::Cors;
 use actix_session::Session;
+use actix_web::body::MessageBody;
+use actix_web::dev::{Response, ServiceRequest, ServiceResponse};
 use actix_web::{
     delete, get, post,
     web::{self, Data},
     Responder,
 };
+use actix_web::{FromRequest, HttpResponse};
+use actix_web_lab::middleware::{from_fn, Next};
 
 #[get("/requests")]
 async fn get_all_requests_json(
@@ -101,9 +106,28 @@ async fn save_user(web::Json(user): web::Json<User>) -> impl Responder {
     return process_request(resp);
 }
 
+pub async fn reject_anonymous_users(
+    mut req: ServiceRequest,
+    next: Next<impl MessageBody>,
+) -> Result<ServiceResponse<impl MessageBody>, actix_web::Error> {
+    let session = {
+        let (http_request, payload) = req.parts_mut();
+        Session::from_request(http_request, payload).await
+    }?;
+
+    let session_result = session
+        .get::<String>("message")
+        .expect("Session store not available!");
+    match session_result {
+        Some(_) => next.call(req).await,
+        None => Err(actix_web::error::ErrorUnauthorized("Unauthorized")),
+    }
+}
+
 pub fn config(cfg: &mut web::ServiceConfig) {
     cfg.service(
         web::scope("/api/v1/json")
+            .wrap(from_fn(reject_anonymous_users))
             .service(get_all_requests_json)
             .service(get_requests_count_json)
             .service(get_service_status_json)
