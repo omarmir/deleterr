@@ -1,4 +1,9 @@
+extern crate actix_web;
+use actix_session::Session;
+use actix_web::{dev::Payload, error::ErrorUnauthorized, Error, FromRequest, HttpRequest};
 use serde::{Deserialize, Serialize};
+use std::{future::Future, pin::Pin};
+
 #[derive(Deserialize, Serialize)]
 pub struct CookieModel {
     pub message: String,
@@ -9,6 +14,8 @@ pub struct User {
     pub username: String,
     pub password: String,
 }
+
+pub struct AuthenticatedUser {}
 
 #[derive(Deserialize, Serialize)]
 pub struct HashedUser {
@@ -34,5 +41,25 @@ impl From<Vec<u8>> for HashedUser {
             serde_json::from_str(&json_str).expect("Failed to deserialize from JSON");
 
         user
+    }
+}
+
+impl FromRequest for AuthenticatedUser {
+    type Error = Error;
+    type Future = Pin<Box<dyn Future<Output = Result<AuthenticatedUser, Error>>>>;
+
+    fn from_request(req: &HttpRequest, pl: &mut Payload) -> Self::Future {
+        let fut = Session::from_request(req, pl);
+        Box::pin(async move {
+            let session = fut.await.expect("Unable to get sessions.");
+
+            let session_result = session
+                .get::<String>("message")
+                .expect("Session store not available!");
+            match session_result {
+                Some(_) => return Ok(AuthenticatedUser {}),
+                None => return Err(ErrorUnauthorized("Unauthorized")),
+            };
+        })
     }
 }

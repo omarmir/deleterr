@@ -1,4 +1,4 @@
-use crate::auth::models::User;
+use crate::auth::models::{AuthenticatedUser, User};
 use crate::auth::services::{login_user, upsert_user};
 use crate::common::models::{DeleterrError, MediaExemption};
 use crate::common::{models::ServiceInfo, models::Services, services::process_request};
@@ -66,7 +66,7 @@ async fn get_service_json(path: web::Path<Services>) -> impl Responder {
 }
 
 #[get("/request/exemptions/get")]
-async fn get_media_exemption() -> impl Responder {
+async fn get_media_exemption(_user: AuthenticatedUser) -> impl Responder {
     let media_exemptions = crate::st_exempt::get_all_exemptions();
     return process_request(media_exemptions);
 }
@@ -127,7 +127,6 @@ pub async fn reject_anonymous_users(
 pub fn config(cfg: &mut web::ServiceConfig) {
     cfg.service(
         web::scope("/api/v1/json")
-            .wrap(from_fn(reject_anonymous_users))
             .service(get_all_requests_json)
             .service(get_requests_count_json)
             .service(get_service_status_json)
