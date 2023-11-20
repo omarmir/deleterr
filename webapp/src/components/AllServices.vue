@@ -15,7 +15,7 @@ const services = ref<Record<Services, ServiceInfo> | undefined>(undefined)
 
 const getServices = async () => {
   try {
-    const response = await fetch('http://localhost:8080/api/v1/json/service/get')
+    const response = await fetch('/api/v1/json/service/get', { credentials: 'include' })
     let apiResponse: APIResponse<Record<Services, ServiceInfo>> = await response.json()
     services.value = apiResponse.data
   } catch (error) {

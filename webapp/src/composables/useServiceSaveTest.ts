@@ -11,16 +11,17 @@ export function useServiceSaveTest() {
   const errorMsg = ref('')
 
   const saveTestService = async (serviceInfo: ServiceInfo, operation: ServiceOperations) => {
-    const requestOptions = {
+    const requestOptions: RequestInit = {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(serviceInfo),
+      credentials: 'include'
     }
 
     const apiEndpoint =
       operation === ServiceOperations.Save
-        ? 'http://localhost:8080/api/v1/json/service/save'
-        : 'http://localhost:8080/api/v1/json/service/status'
+        ? '/api/v1/json/service/save'
+        : '/api/v1/json/service/status'
 
     try {
       operationState.value[operation] = TestState.loading

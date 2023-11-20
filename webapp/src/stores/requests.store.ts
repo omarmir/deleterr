@@ -48,8 +48,8 @@ export const useRequestsStore = defineStore('requests', () => {
       .map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(value)}`)
       .join('&')
 
-    const urlWithQueryParams = `http://localhost:8080/api/v1/json/requests?${queryString}`
-    const mediaExemptionsEndpoint = 'http://localhost:8080/api/v1/json/request/exemptions/get'
+    const urlWithQueryParams = `/api/v1/json/requests?${queryString}`
+    const mediaExemptionsEndpoint = '/api/v1/json/request/exemptions/get'
 
     // Use Promise.all to run both promises in parallel
     const [requestsResponse, mediaExemptionsResponse] = await Promise.all([
@@ -97,13 +97,16 @@ export const useRequestsStore = defineStore('requests', () => {
   }
 
   const addMediaExemption = async (mediaExemption: SingleMediaExeption) => {
-    const mediaExemptionsEndpoint = 'http://localhost:8080/api/v1/json/request/exemptions/save'
+    const mediaExemptionsEndpoint = '/api/v1/json/request/exemptions/save'
 
-    const requestOptions = {
+    const requestOptions: RequestInit = {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(mediaExemption),
+      credentials: 'include',
     }
+
+    //{ credentials: 'include', method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(mediaExemption) }
 
     const key = mediaExemption[0]
     actionStates.value['exemption_' + key] = TestState.loading
@@ -128,12 +131,13 @@ export const useRequestsStore = defineStore('requests', () => {
   }
 
   const removeMediaExemption = async (mediaExemption: SingleMediaExeption) => {
-    const mediaExemptionsEndpoint = 'http://localhost:8080/api/v1/json/request/exemptions/remove'
+    const mediaExemptionsEndpoint = '/api/v1/json/request/exemptions/remove'
 
-    const requestOptions = {
+    const requestOptions: RequestInit = {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(mediaExemption[0]),
+      credentials: 'include',
     }
 
     const key = mediaExemption[0]
@@ -163,10 +167,11 @@ export const useRequestsStore = defineStore('requests', () => {
   }
 
   const deleteMovieFile = async (requestId: number) => {
-    const mediaDeleteEndpoint = `http://localhost:8080/api/v1/json/movie/delete/${requestId}`
-    const requestOptions = {
+    const mediaDeleteEndpoint = `/api/v1/json/movie/delete/${requestId}`
+    const requestOptions: RequestInit = {
       method: 'DELETE',
       headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
     }
 
     actionStates.value['delete_' + requestId] = TestState.loading

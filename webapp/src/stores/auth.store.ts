@@ -7,11 +7,12 @@ export const useAuthStore = defineStore('auth', () => {
   const isLoggedIn: Ref<boolean> = ref(false)
 
   async function login(authUser: AuthenticationUser) {
-    const loginEndpoint = `http://localhost:8080/auth/login`
-    const requestOptions = {
+    const loginEndpoint = `/auth/login`
+    const requestOptions: RequestInit = {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(authUser),
+      credentials: 'include',
     }
 
     // Simulate delay
