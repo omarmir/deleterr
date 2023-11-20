@@ -1,6 +1,6 @@
 use crate::auth::models::User;
 use crate::auth::services::{login_user, upsert_user};
-use crate::common::models::{DeleterrError, MediaExemption};
+use crate::common::models::{APIResponse, DeleterrError, MediaExemption};
 use crate::common::{models::ServiceInfo, models::Services, services::process_request};
 use crate::deleterr::models::QueryParms;
 use crate::deleterr::requests::get_requests_and_update_cache;
@@ -14,7 +14,7 @@ use actix_web::{
     web::{self, Data},
     Responder,
 };
-use actix_web::{FromRequest, HttpResponse};
+use actix_web::{http, FromRequest, HttpResponse};
 use actix_web_lab::middleware::{from_fn, Next};
 
 #[get("/requests")]
@@ -108,19 +108,33 @@ async fn save_user(web::Json(user): web::Json<User>) -> impl Responder {
 
 pub async fn reject_anonymous_users(
     mut req: ServiceRequest,
-    next: Next<impl MessageBody>,
+    next: Next<impl MessageBody + 'static>,
 ) -> Result<ServiceResponse<impl MessageBody>, actix_web::Error> {
-    let session = {
-        let (http_request, payload) = req.parts_mut();
-        Session::from_request(http_request, payload).await
-    }?;
+    let (http_request, payload) = req.parts_mut();
+    let session = Session::from_request(http_request, payload).await?;
 
     let session_result = session
         .get::<String>("message")
         .expect("Session store not available!");
+
+    let api_response: APIResponse<()> = APIResponse {
+        success: false,
+        data: None,
+        error_msg: Some(String::from("Unathorized. Log in first.")),
+    };
+
+    let unauthorized_response = HttpResponse::Unauthorized().json(api_response);
+
+    let unauth = Ok(ServiceResponse::new(
+        http_request.clone(),
+        unauthorized_response.map_into_right_body(),
+    ));
     match session_result {
-        Some(_) => next.call(req).await,
-        None => Err(actix_web::error::ErrorUnauthorized("Unauthorized")),
+        Some(_) => next
+            .call(req)
+            .await
+            .map(ServiceResponse::map_into_left_body),
+        None => unauth,
     }
 }
 
