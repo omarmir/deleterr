@@ -1,12 +1,15 @@
 import { defineStore } from 'pinia'
 import { ref, Ref } from 'vue'
 import { APIResponse, AuthenticationUser } from '~/@types/deleterr'
+import { useRouter } from 'vue-router'
 
 export const useAuthStore = defineStore('auth', () => {
-  const username: Ref<string> = ref('')
+  const username: Ref<string | undefined> = ref(undefined)
   const isLoggedIn: Ref<boolean> = ref(false)
+  const originalPath: Ref<string | undefined> = ref(undefined)
+  const router = useRouter()
 
-  async function login(authUser: AuthenticationUser) {
+  const login = async function login(authUser: AuthenticationUser) {
     const loginEndpoint = `/auth/login`
     const requestOptions: RequestInit = {
       method: 'POST',
@@ -22,7 +25,9 @@ export const useAuthStore = defineStore('auth', () => {
       const response = await fetch(loginEndpoint, requestOptions)
       let apiResponse: APIResponse<string> = await response.json()
       if (apiResponse.success) {
-        username.value = apiResponse.data ?? ''
+        [username.value, isLoggedIn.value] = [apiResponse.data ?? '', true]
+        router.push(originalPath.value ?? '/')
+        originalPath.value = undefined
       } else {
         console.log(apiResponse.error_msg)
       }
@@ -31,5 +36,9 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
-  return { isLoggedIn, username, login }
+  async function logout() {
+    [username.value, isLoggedIn.value] = [undefined, false]
+  }
+
+  return { isLoggedIn, username, login, logout, originalPath }
 })

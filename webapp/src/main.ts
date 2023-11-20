@@ -8,6 +8,7 @@ import Login from '~/views/Login.vue'
 import Page from '~/views/Page.vue'
 import { createRouter, createWebHashHistory } from 'vue-router'
 import { createPinia } from 'pinia'
+import { useAuthStore } from '~/stores/auth.store'
 
 const routes = [
   {
@@ -18,13 +19,13 @@ const routes = [
         path: '',
         name: 'Dashboard',
         component: Dashboard,
-        auth: true,
+        meta: { requiresAuth: true },
       },
       {
         path: 'services',
         name: 'Services',
         component: Services,
-        auth: true,
+        meta: { requiresAuth: true },
       },
       {
         path: ':catchAll(.*)',
@@ -43,6 +44,18 @@ const routes = [
 const router = createRouter({
   history: createWebHashHistory(),
   routes,
+})
+
+router.beforeEach((to) => {
+  const store = useAuthStore()
+
+  if (to.meta.requiresAuth && !store.isLoggedIn) {
+    store.originalPath = to.path
+
+    return {
+      name: 'Login',
+    }
+  }
 })
 
 /**
