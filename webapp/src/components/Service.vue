@@ -7,7 +7,7 @@
       </span>
     </h4>
     <div class="flex flex-col space-y-6 rounded-lg bg-white px-4 py-3 shadow-md dark:bg-gray-800">
-      <form class="flex flex-col space-y-3" @submit.prevent="submitForm">
+      <form class="flex flex-col space-y-3" @submit.prevent="saveOrTestService(ServiceOperations.Save)">
         <InputsInput v-model="serviceInfo.host" :required="true" label="Host" placeholder="Host"></InputsInput>
         <p v-for="error in v$.host.$errors" :key="error.$uid" class="text-xs text-red-600">
           {{ error.$message }}
@@ -19,15 +19,19 @@
         </p>
         <InputsCheckbox v-model="serviceInfo.useSsl">Use SSL</InputsCheckbox>
         <div class="flex justify-end space-x-4">
-          <ButtonsStatused :button-state="operationState.test" @click="saveTestService(serviceInfo, ServiceOperations.Test)">Test</ButtonsStatused>
-          <ButtonsStatused :button-state="operationState.save" :is-submit="true" :is-outlined="false">Save</ButtonsStatused>
+          <ButtonsStatused :button-state="serviceStatus?.test" @click="saveOrTestService(ServiceOperations.Test)">
+            Test
+          </ButtonsStatused>
+          <ButtonsStatused :button-state="serviceStatus?.save" :is-submit="true" :is-outlined="false">
+            Save
+          </ButtonsStatused>
         </div>
-        <div class="capitalize-first text-sm text-red-400">
-          <p v-if="operationState.save === TestState.failure">
-            {{ errorMsg }}
+        <div class="text-sm text-red-600 first-letter:uppercase">
+          <p v-if="serviceStatus?.save === TestState.failure">
+            {{ serviceStatus?.errorMsg }}
           </p>
-          <p v-if="operationState.test === TestState.failure">
-            {{ errorMsg }}
+          <p v-if="serviceStatus?.test === TestState.failure">
+            {{ serviceStatus?.errorMsg }}
           </p>
         </div>
       </form>
@@ -37,8 +41,7 @@
 <script lang="ts" setup>
 import { reactive } from 'vue'
 import { PropType } from 'vue'
-import { TestState, ServiceInfo, Services } from '~/@types/deleterr'
-import { useServiceSaveTest } from '~/composables/useServiceSaveTest.ts'
+import { TestState, ServiceInfo, Services, ServiceOperations, ServiceStatus } from '~/@types/deleterr'
 import { InputType } from '~/@types/deleterr.ts'
 import { useVuelidate } from '@vuelidate/core'
 import { required } from '@vuelidate/validators'
@@ -56,9 +59,11 @@ const props = defineProps({
     type: String as PropType<Services>,
     required: true,
   },
+  serviceStatus: {
+    type: Object as PropType<ServiceStatus>,
+    required: true,
+  },
 })
-
-const { saveTestService, operationState, errorMsg, ServiceOperations } = useServiceSaveTest()
 
 const serviceInfo: ServiceInfo = reactive({
   host: props.service?.host ?? '',
@@ -73,18 +78,16 @@ const rules = {
   apiKey: { required },
 }
 
-const submitForm = async () => {
+const emit = defineEmits<{
+  (e: 'save', serviceInfo: ServiceInfo): void
+  (e: 'test', serviceInfo: ServiceInfo): void
+}>()
+
+const saveOrTestService = async (operation: ServiceOperations) => {
   const result = await v$.value.$validate()
 
-  if (result) {
-    saveTestService(serviceInfo, ServiceOperations.Save)
-  }
+  if (result) operation === ServiceOperations.Test ? emit('test', serviceInfo) : emit('save', serviceInfo)
 }
 
 const v$ = useVuelidate(rules, serviceInfo as any)
 </script>
-<style lang="postcss" scoped>
-.capitalize-first::first-letter {
-  text-transform: uppercase;
-}
-</style>

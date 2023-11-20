@@ -110,4 +110,17 @@ export interface ServiceInfo {
   service: Services
 }
 
+export interface ServiceStatus {
+  test: TestState,
+  save: TestState,
+  errorMsg: string
+}
+
+export enum ServiceOperations {
+  Save = 'save',
+  Test = 'test',
+}
+
 export type Services = 'tautulli' | 'overseerr' | 'radarr' | 'sonarr'
+
+export type AllServiceStatus = { [key in Services]: ServiceStatus }
