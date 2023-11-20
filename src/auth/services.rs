@@ -1,21 +1,18 @@
 use super::models::HashedUser;
 use crate::{
     auth::models::User,
-    common::models::DeleterrError,
+    common::models::{APIResponse, DeleterrError},
     store::store::{does_record_exist, get_persy},
 };
 use actix_session::Session;
+use actix_web::{
+    body::MessageBody,
+    dev::{ServiceRequest, ServiceResponse},
+    FromRequest, HttpResponse,
+};
+use actix_web_lab::middleware::Next;
 use bcrypt::{hash, verify};
 use persy::{Persy, PersyId};
-
-pub fn validate_session(session: Session) -> bool {
-    let result = session.get::<String>("message");
-    let resp = result.expect("Session store not available.");
-    match resp {
-        Some(_) => true,
-        None => false,
-    }
-}
 
 pub fn login_user(session: Session, user: User) -> Result<String, DeleterrError> {
     let username = user.username.clone();
@@ -107,6 +104,39 @@ pub fn upsert_user(unhashed_user: User) -> Result<String, DeleterrError> {
             prepared.commit()?;
 
             Ok(new_id.to_string())
+        }
+    }
+}
+
+pub async fn reject_anonymous_users(
+    mut req: ServiceRequest,
+    next: Next<impl MessageBody + 'static>,
+) -> Result<ServiceResponse<impl MessageBody>, actix_web::Error> {
+    let (http_request, payload) = req.parts_mut();
+    let session = Session::from_request(http_request, payload).await?;
+
+    let session_result = session
+        .get::<String>("message")
+        .expect("Session store not available!");
+
+    match session_result {
+        Some(_) => next
+            .call(req)
+            .await
+            .map(ServiceResponse::map_into_left_body),
+        None => {
+            let api_response: APIResponse<()> = APIResponse {
+                success: false,
+                data: None,
+                error_msg: Some(String::from("Unathorized. Log in first.")),
+            };
+
+            let unauthorized_response = HttpResponse::Unauthorized().json(api_response);
+
+            Ok(ServiceResponse::new(
+                http_request.clone(),
+                unauthorized_response.map_into_right_body(),
+            ))
         }
     }
 }

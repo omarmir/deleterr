@@ -1,21 +1,17 @@
 use crate::auth::models::User;
-use crate::auth::services::{login_user, upsert_user};
-use crate::common::models::{APIResponse, DeleterrError, MediaExemption};
+use crate::auth::services::{login_user, reject_anonymous_users, upsert_user};
+use crate::common::models::MediaExemption;
 use crate::common::{models::ServiceInfo, models::Services, services::process_request};
 use crate::deleterr::models::QueryParms;
 use crate::deleterr::requests::get_requests_and_update_cache;
 use crate::AppData;
-use actix_cors::Cors;
 use actix_session::Session;
-use actix_web::body::MessageBody;
-use actix_web::dev::{Response, ServiceRequest, ServiceResponse};
 use actix_web::{
     delete, get, post,
     web::{self, Data},
     Responder,
 };
-use actix_web::{http, FromRequest, HttpResponse};
-use actix_web_lab::middleware::{from_fn, Next};
+use actix_web_lab::middleware::from_fn;
 
 #[get("/requests")]
 async fn get_all_requests_json(
@@ -104,38 +100,6 @@ async fn set_login(session: Session, web::Json(user): web::Json<User>) -> impl R
 async fn save_user(web::Json(user): web::Json<User>) -> impl Responder {
     let resp = upsert_user(user);
     return process_request(resp);
-}
-
-pub async fn reject_anonymous_users(
-    mut req: ServiceRequest,
-    next: Next<impl MessageBody + 'static>,
-) -> Result<ServiceResponse<impl MessageBody>, actix_web::Error> {
-    let (http_request, payload) = req.parts_mut();
-    let session = Session::from_request(http_request, payload).await?;
-
-    let session_result = session
-        .get::<String>("message")
-        .expect("Session store not available!");
-
-    let api_response: APIResponse<()> = APIResponse {
-        success: false,
-        data: None,
-        error_msg: Some(String::from("Unathorized. Log in first.")),
-    };
-
-    let unauthorized_response = HttpResponse::Unauthorized().json(api_response);
-
-    let unauth = Ok(ServiceResponse::new(
-        http_request.clone(),
-        unauthorized_response.map_into_right_body(),
-    ));
-    match session_result {
-        Some(_) => next
-            .call(req)
-            .await
-            .map(ServiceResponse::map_into_left_body),
-        None => unauth,
-    }
 }
 
 pub fn config(cfg: &mut web::ServiceConfig) {
