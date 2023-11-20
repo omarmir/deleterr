@@ -66,6 +66,11 @@ export interface User {
   avatar: string
 }
 
+export interface AuthenticationUser {
+  username: string
+  password: string
+}
+
 export interface UserWatchHistory {
   user: string
   friendlyName: string

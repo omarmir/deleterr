@@ -53,8 +53,12 @@ export const useRequestsStore = defineStore('requests', () => {
 
     // Use Promise.all to run both promises in parallel
     const [requestsResponse, mediaExemptionsResponse] = await Promise.all([
-      fetch(urlWithQueryParams),
-      fetch(mediaExemptionsEndpoint),
+      fetch(urlWithQueryParams, {
+        credentials: 'include',
+      }),
+      fetch(mediaExemptionsEndpoint, {
+        credentials: 'include',
+      }),
     ])
 
     // Use Promise.all again to extract JSON from the responses in parallel

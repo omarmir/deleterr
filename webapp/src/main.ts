@@ -45,6 +45,19 @@ const router = createRouter({
   routes,
 })
 
+/**
+ * router.beforeEach(function (to, from, next) {
+  console.log('beforeEach', to.path + ' - Auth: ' + auth.user.authenticated)
+  if ((to.path !== '/login' && to.path !== 'login') && !auth.user.authenticated) {
+    next({ path: '/login' })
+  } else if ((to.path === '/login' || to.path === 'login') && auth.user.authenticated) {
+    next({ path: '/' })
+  } else {
+    next()
+  }
+})
+ */
+
 const pinia = createPinia()
 
 createApp(App).use(router).use(pinia).mount('#app')
