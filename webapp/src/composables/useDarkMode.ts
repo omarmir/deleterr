@@ -1,7 +1,7 @@
 import { ref } from 'vue'
 import type { Ref } from 'vue'
 
-const lsIsDark: boolean = localStorage.getItem('isDark') === 'true'
+const lsIsDark: boolean = (localStorage.getItem('isDark') ?? true) === true
 const isDark: Ref<boolean> = ref(lsIsDark)
 
 export function useDarkMode() {
