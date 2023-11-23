@@ -11,7 +11,11 @@ deleterr is an application that integrates Radarr, Overseerr, Sonarr, and Tautul
 
 ### Prerequisites
 
-When you build using cargo it may complain about missing some packages. Install them.
+When you build using cargo it may complain about missing some packages. Install them. Likely:
+
+```bash
+sudo apt install libssl-dev
+```
 
 ### Distributon
 
@@ -38,6 +42,7 @@ This is very early so you would be running pre-alpha and incomplete software. Se
    ```
 
 3. Build the frontend
+
    ```bash
    yarn install
    yarn build
