@@ -5,9 +5,34 @@ import { useRouter } from 'vue-router'
 
 export const useAuthStore = defineStore('auth', () => {
   const username: Ref<string | undefined> = ref(undefined)
-  const isLoggedIn: Ref<boolean> = ref(sessionStorage.getItem('loggedUser') ? true : false)
+  const isLoggedIn: Ref<boolean | undefined> = ref(undefined)
   const originalPath: Ref<string | undefined> = ref(undefined)
   const router = useRouter()
+
+  async function validateSession(): Promise<boolean> {
+    if (!sessionStorage.getItem('loggedUser')) return false
+
+    if (isLoggedIn.value) return isLoggedIn.value
+
+    const validateEndpoint = `/api/v1/json/auth/user/validate`
+    const requestOptions: RequestInit = {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(sessionStorage.getItem('loggedUser')),
+      credentials: 'include',
+    }
+
+    try {
+      const response = await fetch(validateEndpoint, requestOptions)
+      let apiResponse: APIResponse<null> = await response.json()
+      isLoggedIn.value = apiResponse.success
+    } catch (err) {
+      console.log((err as any).toString())
+      isLoggedIn.value = false
+    } finally {
+      return isLoggedIn.value ?? false
+    }
+  }
 
   const login = async function login(authUser: AuthenticationUser) {
     const loginEndpoint = `/auth/login`
@@ -44,5 +69,5 @@ export const useAuthStore = defineStore('auth', () => {
     sessionStorage.removeItem('loggedUser')
   }
 
-  return { isLoggedIn, username, login, logout, originalPath }
+  return { validateSession, username, login, logout, originalPath }
 })

@@ -46,10 +46,10 @@ const router = createRouter({
   routes,
 })
 
-router.beforeEach((to) => {
+router.beforeEach(async (to) => {
   const store = useAuthStore()
 
-  if (to.meta.requiresAuth && !store.isLoggedIn) {
+  if (to.meta.requiresAuth && !(await store.validateSession())) {
     store.originalPath = to.path
 
     return {
