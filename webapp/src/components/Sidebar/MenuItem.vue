@@ -1,7 +1,7 @@
 <template>
   <li class="relative px-6 py-3">
     <router-link
-      active-class="current"
+      exact-active-class="current"
       class="inline-flex w-full items-center text-sm font-semibold transition-colors duration-150 hover:text-gray-800 dark:hover:text-gray-200"
       :to="to">
       <span
