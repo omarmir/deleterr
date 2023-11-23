@@ -29,6 +29,27 @@ pub fn login_user(session: Session, user: User) -> Result<String, DeleterrError>
     }
 }
 
+pub fn validate_session(session: Session, username: String) -> Result<String, DeleterrError> {
+    let user_session: Option<String> = session
+        .get("message")
+        .map_err(|err| DeleterrError::new(err.to_string().as_str()))?;
+
+    match user_session {
+        Some(user) => {
+            if user == username {
+                Ok(user)
+            } else {
+                Err(DeleterrError::new(
+                    "Unauthorized. No session matching provided credentials.",
+                ))
+            }
+        }
+        None => Err(DeleterrError::new(
+            "Unauthorized. No session matching provided credentials.",
+        )),
+    }
+}
+
 pub fn verify_user(unhashed_user: User) -> Result<bool, DeleterrError> {
     let persy = get_persy()?;
 

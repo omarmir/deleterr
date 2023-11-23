@@ -1,5 +1,5 @@
 use crate::auth::models::User;
-use crate::auth::services::{login_user, reject_anonymous_users, upsert_user};
+use crate::auth::services::{login_user, reject_anonymous_users, upsert_user, validate_session};
 use crate::common::models::MediaExemption;
 use crate::common::{models::ServiceInfo, models::Services, services::process_request};
 use crate::deleterr::models::QueryParms;
@@ -102,6 +102,16 @@ async fn save_user(web::Json(user): web::Json<User>) -> impl Responder {
     return process_request(resp);
 }
 
+#[post("/auth/user/validate")]
+async fn validate_user_session(
+    session: Session,
+    web::Json(username): web::Json<String>,
+) -> impl Responder {
+    let is_login_success = validate_session(session, username);
+
+    return process_request(is_login_success);
+}
+
 pub fn config(cfg: &mut web::ServiceConfig) {
     cfg.service(
         web::scope("/api/v1/json")
@@ -116,7 +126,8 @@ pub fn config(cfg: &mut web::ServiceConfig) {
             .service(save_media_exemption)
             .service(remove_media_exemption)
             .service(delete_movie_file)
-            .service(save_user),
+            .service(save_user)
+            .service(validate_user_session),
     )
     .service(set_login);
 }
