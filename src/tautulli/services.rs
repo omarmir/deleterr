@@ -30,9 +30,10 @@ pub async fn get_item_history(
     Ok(resp)
 }
 
-pub async fn get_tautulli_status() -> Result<APIServiceStatus, DeleterrError> {
+pub async fn get_tautulli_status(
+    service_info: ServiceInfo,
+) -> Result<APIServiceStatus, DeleterrError> {
     let endpoint = format!("api/v2");
-    let service_info = build_service_info()?;
     let api_url = create_api_url(&endpoint, &service_info);
     let query = vec![("cmd", "status"), ("apikey", service_info.api_key.as_str())];
     let client_req = get_api_endpoint(api_url, query, None, RequestType::Get)?;

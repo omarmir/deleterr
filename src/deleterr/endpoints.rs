@@ -35,7 +35,7 @@ async fn get_service_status_json(
     // TODO: We haven't handled Tautulli with proper info yet, and have not done Sonarr or Radarr yet
     let service_status = match service_info.service {
         Services::Overseerr => crate::os_serv::get_overseerr_status(service_info).await,
-        Services::Tautulli => crate::tt_serv::get_tautulli_status().await,
+        Services::Tautulli => crate::tt_serv::get_tautulli_status(service_info).await,
         _ => crate::os_serv::get_overseerr_status(service_info).await,
     };
     return process_request(service_status);
