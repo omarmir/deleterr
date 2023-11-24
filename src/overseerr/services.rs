@@ -139,11 +139,6 @@ pub async fn get_overseerr_status(
             is_success: true,
         },
         _ => match &request_response.code {
-            200 => APIServiceStatus {
-                status: APIStatus::Success,
-                service: Services::Overseerr,
-                is_success: true,
-            },
             403 => APIServiceStatus {
                 status: APIStatus::WrongKey,
                 service: Services::Overseerr,
