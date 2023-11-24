@@ -129,6 +129,7 @@ pub enum Services {
     Tautulli,
     Overseerr,
     Radarr,
+    Sonarr,
 }
 
 impl ToString for Services {
@@ -137,6 +138,18 @@ impl ToString for Services {
             Services::Tautulli => "tautulli".to_string(),
             Services::Overseerr => "overseerr".to_string(),
             Services::Radarr => "radarr".to_string(),
+            Services::Sonarr => "sonarr".to_string(),
+        }
+    }
+}
+
+impl Services {
+    pub fn to_name(&self) -> String {
+        match self {
+            Services::Tautulli => "Tautulli".to_string(),
+            Services::Overseerr => "Overseerr".to_string(),
+            Services::Radarr => "Radarr".to_string(),
+            Services::Sonarr => "Sonarr".to_string(),
         }
     }
 }

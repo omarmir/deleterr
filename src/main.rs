@@ -8,6 +8,7 @@ use actix_web_lab::web as lab_web;
 use deleterr::{endpoints as dr_epts, models::AppData, services as dr_serv};
 use overseerr::services as os_serv;
 use radarr::services as rd_serv;
+use sonrad::services as sr_serv;
 use std::sync::OnceLock;
 use std::sync::RwLock;
 use store::exemptions as st_exempt;
@@ -19,6 +20,8 @@ mod common;
 mod deleterr;
 mod overseerr;
 mod radarr;
+mod sonarr;
+mod sonrad;
 mod store;
 mod tautulli;
 
