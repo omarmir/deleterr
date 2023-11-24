@@ -58,15 +58,16 @@
         <li class="relative">
           <button
             class="rounded-full align-middle focus:shadow-outline-purple focus:outline-none"
-            aria-label="Account"
+            aria-label="Profile and logout"
             aria-haspopup="true"
             @click="toggleProfileMenu">
             <div>
               <!-- icon here -->
               <div v-if="authStore.isLoggedIn">
                 <div
-                  class="dark: relative h-6 w-6 rounded-full bg-purple-600 align-middle text-white dark:bg-purple-300 dark:text-purple-600">
-                  {{ authStore.username?.charAt(0).toUpperCase() }}
+                  class="dark: relative h-6 w-6 rounded-full bg-purple-600 p-[1px] align-middle text-white dark:bg-purple-300 dark:text-purple-600">
+                  <span v-if="isDarkModeEnabled" v-html="minidenticon(authStore.username ?? '', 20, 20)"></span>
+                  <span v-else v-html="minidenticon(authStore.username ?? '', 20, 100)"></span>
                 </div>
               </div>
             </div>
@@ -116,8 +117,8 @@
               </li>
               <li class="flex">
                 <a
-                  class="inline-flex w-full items-center rounded-md px-2 py-1 text-sm font-semibold transition-colors duration-150 hover:bg-gray-100 hover:text-gray-800 dark:hover:bg-gray-800 dark:hover:text-gray-200"
-                  href="#">
+                  class="inline-flex w-full cursor-pointer items-center rounded-md px-2 py-1 text-sm font-semibold transition-colors duration-150 hover:bg-gray-100 hover:text-gray-800 dark:hover:bg-gray-800 dark:hover:text-gray-200"
+                  @click="authStore.logout">
                   <svg
                     class="mr-3 h-4 w-4"
                     aria-hidden="true"
@@ -148,6 +149,7 @@ import { useDarkMode } from '~/composables/useDarkMode'
 import { useRequestsStore } from '~/stores/requests.store'
 import { useAuthStore } from '~/stores/auth.store'
 import { vOnClickOutside } from '@vueuse/components'
+import { minidenticon } from 'minidenticons'
 
 const requestStore = useRequestsStore()
 const authStore = useAuthStore()
