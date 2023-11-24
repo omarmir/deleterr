@@ -11,6 +11,7 @@ import {
 } from '~/@types/deleterr'
 
 import { useToast } from '~/composables/useToast'
+import { useRouter } from 'vue-router'
 
 interface RequestResponse {
   requests?: RequestStatus[]
@@ -31,6 +32,8 @@ export const useRequestsStore = defineStore('requests', () => {
   const actionStates: Ref<{ [key: string]: TestState }> = ref({})
 
   const { publishToast } = useToast()
+
+  const router = useRouter()
 
   const internalTableState: TableState = reactive({
     sortBy: 'requestedDate',
@@ -217,6 +220,8 @@ export const useRequestsStore = defineStore('requests', () => {
     if (searchStr != internalTableState.search) {
       ;[internalTableState.search, internalTableState.skip] = [searchStr, 0]
       currentPage.value = 0
+      // If searching from another page, take them to the main page to see results
+      if (router.currentRoute.value.path != '/') router.push('/')
     }
   }
 
