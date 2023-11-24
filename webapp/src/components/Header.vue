@@ -202,4 +202,3 @@ const { toggleDarkMode, isDarkModeEnabled } = useDarkMode()
 let isNotificationsMenuOpen: Ref<Boolean> = ref(false)
 let isProfileMenuOpen: Ref<Boolean> = ref(false)
 </script>
-~/stores/requests.store
