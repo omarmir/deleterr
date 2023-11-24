@@ -1,3 +1,4 @@
+<!-- eslint-disable vue/no-v-html -->
 <template>
   <header class="z-10 bg-white py-4 shadow-md dark:bg-gray-800">
     <div class="container mx-auto flex h-full items-center justify-between px-6 text-purple-600 dark:text-purple-300">
@@ -28,7 +29,7 @@
             type="text"
             placeholder="Search for requests"
             aria-label="Search"
-            @input="store.search" />
+            @input="requestStore.search" />
         </div>
       </div>
       <ul class="flex flex-shrink-0 items-center space-x-6">
@@ -39,12 +40,12 @@
             aria-label="Toggle color mode"
             @click="toggleDarkMode">
             <template v-if="!isDarkModeEnabled">
-              <svg class="h-5 w-5" aria-hidden="true" fill="currentColor" viewBox="0 0 20 20">
+              <svg class="h-6 w-6" aria-hidden="true" fill="currentColor" viewBox="0 0 20 20">
                 <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path>
               </svg>
             </template>
             <template v-if="isDarkModeEnabled">
-              <svg class="h-5 w-5" aria-hidden="true" fill="currentColor" viewBox="0 0 20 20">
+              <svg class="h-6 w-6" aria-hidden="true" fill="currentColor" viewBox="0 0 20 20">
                 <path
                   fill-rule="evenodd"
                   d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z"
@@ -53,76 +54,26 @@
             </template>
           </button>
         </li>
-        <!-- Notifications menu -->
-        <li class="relative">
-          <button
-            class="relative rounded-md align-middle focus:shadow-outline-purple focus:outline-none"
-            aria-label="Notifications"
-            aria-haspopup="true">
-            <svg class="h-5 w-5" aria-hidden="true" fill="currentColor" viewBox="0 0 20 20">
-              <path
-                d="M10 2a6 6 0 00-6 6v3.586l-.707.707A1 1 0 004 14h12a1 1 0 00.707-1.707L16 11.586V8a6 6 0 00-6-6zM10 18a3 3 0 01-3-3h6a3 3 0 01-3 3z"></path>
-            </svg>
-            <!-- Notification badge -->
-            <span
-              aria-hidden="true"
-              class="absolute right-0 top-0 inline-block h-3 w-3 -translate-y-1 translate-x-1 transform rounded-full border-2 border-white bg-red-600 dark:border-gray-800"></span>
-          </button>
-          <template v-if="isNotificationsMenuOpen">
-            <ul
-              x-transition:leave="transition ease-in duration-150"
-              x-transition:leave-start="opacity-100"
-              x-transition:leave-end="opacity-0"
-              class="absolute right-0 mt-2 w-56 space-y-2 rounded-md border border-gray-100 bg-white p-2 text-gray-600 shadow-md dark:border-gray-700 dark:bg-gray-700 dark:text-gray-300">
-              <li class="flex">
-                <a
-                  class="inline-flex w-full items-center justify-between rounded-md px-2 py-1 text-sm font-semibold transition-colors duration-150 hover:bg-gray-100 hover:text-gray-800 dark:hover:bg-gray-800 dark:hover:text-gray-200"
-                  href="#">
-                  <span>Messages</span>
-                  <span
-                    class="inline-flex items-center justify-center rounded-full bg-red-100 px-2 py-1 text-xs font-bold leading-none text-red-600 dark:bg-red-600 dark:text-red-100">
-                    13
-                  </span>
-                </a>
-              </li>
-              <li class="flex">
-                <a
-                  class="inline-flex w-full items-center justify-between rounded-md px-2 py-1 text-sm font-semibold transition-colors duration-150 hover:bg-gray-100 hover:text-gray-800 dark:hover:bg-gray-800 dark:hover:text-gray-200"
-                  href="#">
-                  <span>Sales</span>
-                  <span
-                    class="inline-flex items-center justify-center rounded-full bg-red-100 px-2 py-1 text-xs font-bold leading-none text-red-600 dark:bg-red-600 dark:text-red-100">
-                    2
-                  </span>
-                </a>
-              </li>
-              <li class="flex">
-                <a
-                  class="inline-flex w-full items-center justify-between rounded-md px-2 py-1 text-sm font-semibold transition-colors duration-150 hover:bg-gray-100 hover:text-gray-800 dark:hover:bg-gray-800 dark:hover:text-gray-200"
-                  href="#">
-                  <span>Alerts</span>
-                </a>
-              </li>
-            </ul>
-          </template>
-        </li>
         <!-- Profile menu -->
         <li class="relative">
           <button
             class="rounded-full align-middle focus:shadow-outline-purple focus:outline-none"
             aria-label="Account"
-            aria-haspopup="true">
-            <img
-              class="h-8 w-8 rounded-full object-cover"
-              src="https://images.unsplash.com/photo-1502378735452-bc7d86632805?ixlib=rb-0.3.5&q=80&fm=jpg&crop=entropy&cs=tinysrgb&w=200&fit=max&s=aa3a807e1bbdfd4364d1f449eaa96d82"
-              alt=""
-              aria-hidden="true" />
+            aria-haspopup="true"
+            @click="toggleProfileMenu">
+            <div>
+              <!-- icon here -->
+              <div v-if="authStore.isLoggedIn">
+                <div
+                  class="dark: relative h-6 w-6 rounded-full bg-purple-600 align-middle text-white dark:bg-purple-300 dark:text-purple-600">
+                  {{ authStore.username?.charAt(0).toUpperCase() }}
+                </div>
+              </div>
+            </div>
           </button>
           <template v-if="isProfileMenuOpen">
             <ul
-              x-transition:leave="transition ease-in duration-150"
-              x-transition:leave-start="opacity-100"
-              x-transition:leave-end="opacity-0"
+              v-on-click-outside="toggleProfileMenu"
               class="absolute right-0 mt-2 w-56 space-y-2 rounded-md border border-gray-100 bg-white p-2 text-gray-600 shadow-md dark:border-gray-700 dark:bg-gray-700 dark:text-gray-300"
               aria-label="submenu">
               <li class="flex">
@@ -195,10 +146,17 @@ import { ref } from 'vue'
 import type { Ref } from 'vue'
 import { useDarkMode } from '~/composables/useDarkMode'
 import { useRequestsStore } from '~/stores/requests.store'
+import { useAuthStore } from '~/stores/auth.store'
+import { vOnClickOutside } from '@vueuse/components'
 
-const store = useRequestsStore()
+const requestStore = useRequestsStore()
+const authStore = useAuthStore()
+
 const { toggleDarkMode, isDarkModeEnabled } = useDarkMode()
 
-let isNotificationsMenuOpen: Ref<Boolean> = ref(false)
 let isProfileMenuOpen: Ref<Boolean> = ref(false)
+
+const toggleProfileMenu = () => {
+  isProfileMenuOpen.value = !isProfileMenuOpen.value
+}
 </script>

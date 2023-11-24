@@ -26,9 +26,11 @@ export const useAuthStore = defineStore('auth', () => {
       const response = await fetch(validateEndpoint, requestOptions)
       let apiResponse: APIResponse<null> = await response.json()
       isLoggedIn.value = apiResponse.success
+      username.value = sessionStorage.getItem('loggedUser') ?? undefined
     } catch (err) {
       console.log((err as any).toString())
       isLoggedIn.value = false
+      username.value = undefined
     } finally {
       return isLoggedIn.value ?? false
     }
@@ -69,5 +71,5 @@ export const useAuthStore = defineStore('auth', () => {
     sessionStorage.removeItem('loggedUser')
   }
 
-  return { validateSession, username, login, logout, originalPath }
+  return { validateSession, username, login, logout, originalPath, isLoggedIn }
 })

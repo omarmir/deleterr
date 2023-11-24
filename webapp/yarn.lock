@@ -248,6 +248,11 @@
   dependencies:
     undici-types "~5.25.1"
 
+"@types/web-bluetooth@^0.0.20":
+  version "0.0.20"
+  resolved "https://registry.yarnpkg.com/@types/web-bluetooth/-/web-bluetooth-0.0.20.tgz#f066abfcd1cbe66267cdbbf0de010d8a41b41597"
+  integrity sha512-g9gZnnXVq7gM7v3tJCWV/qw7w+KeOlSHAhgF9RytFyifW6AF61hdT2ucrYhPq9hLs5JIryeupHV3qGk95dH9ow==
+
 "@typescript-eslint/parser@latest":
   version "6.12.0"
   resolved "https://registry.npmjs.org/@typescript-eslint/parser/-/parser-6.12.0.tgz"
@@ -454,6 +459,37 @@
   integrity sha512-odTxtUZ2JpwwiQ10t0QWYJkkYrfd0SyFYhdHH44QQ1jDatlZgTh/KRzrWVmn/ib9Gq7H4hFD4e8ahoo5YlUlDw==
   dependencies:
     vue-demi "^0.13.11"
+
+"@vueuse/components@^10.6.1":
+  version "10.6.1"
+  resolved "https://registry.yarnpkg.com/@vueuse/components/-/components-10.6.1.tgz#7f4c5853c4e2e6b7329760b9ef2583e062c8d74d"
+  integrity sha512-Yx7h201xJG3V4+rY1wRAYy8EI9Q1r+gpwCJzgyZ0CWPyDWyZCxPXNjPhBJsXcSzJ1h1ph9tE5cVqEXHtEs6bjg==
+  dependencies:
+    "@vueuse/core" "10.6.1"
+    "@vueuse/shared" "10.6.1"
+    vue-demi ">=0.14.6"
+
+"@vueuse/core@10.6.1", "@vueuse/core@^10.6.1":
+  version "10.6.1"
+  resolved "https://registry.yarnpkg.com/@vueuse/core/-/core-10.6.1.tgz#5b16d8238054c6983b6cb7cd77a78035f098dd89"
+  integrity sha512-Pc26IJbqgC9VG1u6VY/xrXXfxD33hnvxBnKrLlA2LJlyHII+BSrRoTPJgGYq7qZOu61itITFUnm6QbacwZ4H8Q==
+  dependencies:
+    "@types/web-bluetooth" "^0.0.20"
+    "@vueuse/metadata" "10.6.1"
+    "@vueuse/shared" "10.6.1"
+    vue-demi ">=0.14.6"
+
+"@vueuse/metadata@10.6.1":
+  version "10.6.1"
+  resolved "https://registry.yarnpkg.com/@vueuse/metadata/-/metadata-10.6.1.tgz#100faa0ced3c0ab4c014fb8e66e781e85e4eb88d"
+  integrity sha512-qhdwPI65Bgcj23e5lpGfQsxcy0bMjCAsUGoXkJ7DsoeDUdasbZ2DBa4dinFCOER3lF4gwUv+UD2AlA11zdzMFw==
+
+"@vueuse/shared@10.6.1":
+  version "10.6.1"
+  resolved "https://registry.yarnpkg.com/@vueuse/shared/-/shared-10.6.1.tgz#1d9fc1e3f9083e45b59a693fc372bc50ad62a9e4"
+  integrity sha512-TECVDTIedFlL0NUfHWncf3zF9Gc4VfdxfQc8JFwoVZQmxpONhLxFrlm0eHQeidHj4rdTPL3KXJa0TZCk1wnc5Q==
+  dependencies:
+    vue-demi ">=0.14.6"
 
 acorn-jsx@^5.3.2:
   version "5.3.2"
@@ -1705,7 +1741,7 @@ vite@^4.4.5:
   optionalDependencies:
     fsevents "~2.3.2"
 
-vue-demi@>=0.14.5:
+vue-demi@>=0.14.5, vue-demi@>=0.14.6:
   version "0.14.6"
   resolved "https://registry.npmjs.org/vue-demi/-/vue-demi-0.14.6.tgz"
   integrity sha512-8QA7wrYSHKaYgUxDA5ZC24w+eHm3sYCbp0EzcDwKqN3p6HqtTCGR/GVsPyZW92unff4UlcSh++lmqDWN3ZIq4w==
