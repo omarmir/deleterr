@@ -67,8 +67,25 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   async function logout() {
-    ;[username.value, isLoggedIn.value] = [undefined, false]
-    sessionStorage.removeItem('loggedUser')
+    const logoutEndpoint = `/auth/logout`
+    const requestOptions: RequestInit = {
+      method: 'POST',
+      credentials: 'include',
+    }
+
+    try {
+      const response = await fetch(logoutEndpoint, requestOptions)
+      let apiResponse: APIResponse<string> = await response.json()
+      if (apiResponse.success) {
+        ;[username.value, isLoggedIn.value] = [undefined, false]
+        sessionStorage.removeItem('loggedUser')
+        router.push('/login')
+      } else {
+        console.log(apiResponse.error_msg)
+      }
+    } catch (err) {
+      console.log((err as any).toString())
+    }
   }
 
   return { validateSession, username, login, logout, originalPath, isLoggedIn }

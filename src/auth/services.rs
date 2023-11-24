@@ -29,6 +29,12 @@ pub fn login_user(session: Session, user: User) -> Result<String, DeleterrError>
     }
 }
 
+pub fn logout_user(session: Session) -> Result<bool, DeleterrError> {
+    session.purge();
+
+    return Ok(true);
+}
+
 pub fn validate_session(session: Session, username: String) -> Result<String, DeleterrError> {
     let user_session: Option<String> = session
         .get("message")

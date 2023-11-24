@@ -1,5 +1,7 @@
 use crate::auth::models::User;
-use crate::auth::services::{login_user, reject_anonymous_users, upsert_user, validate_session};
+use crate::auth::services::{
+    login_user, logout_user, reject_anonymous_users, upsert_user, validate_session,
+};
 use crate::common::models::MediaExemption;
 use crate::common::{models::ServiceInfo, models::Services, services::process_request};
 use crate::deleterr::models::QueryParms;
@@ -96,6 +98,12 @@ async fn set_login(session: Session, web::Json(user): web::Json<User>) -> impl R
     return process_request(is_login_success);
 }
 
+#[post("/auth/logout")]
+async fn set_logout(session: Session) -> impl Responder {
+    let resp = logout_user(session);
+    return process_request(resp);
+}
+
 #[post("/auth/user/save")]
 async fn save_user(web::Json(user): web::Json<User>) -> impl Responder {
     let resp = upsert_user(user);
@@ -129,5 +137,6 @@ pub fn config(cfg: &mut web::ServiceConfig) {
             .service(save_user)
             .service(validate_user_session),
     )
-    .service(set_login);
+    .service(set_login)
+    .service(set_logout);
 }
