@@ -215,9 +215,11 @@ pub fn sort_requests_vector(
             },
             is_descending,
         ),
+        /**
         SortableProps::Watched => vec.sort_unstable_by(|a, b| {
             compare_user_watch_history(&a.user_watch_history, &b.user_watch_history, is_descending)
         }),
+        */
         SortableProps::RequestedDate => reversible_sort(
             &mut vec,
             |a, b| {

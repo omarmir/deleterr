@@ -12,7 +12,8 @@ use std::time::SystemTime;
 #[serde(rename_all = "camelCase")]
 pub struct RequestStatus {
     pub media_request: MediaRequest,
-    pub user_watch_history: Option<UserWatchHistory>,
+    pub movie_watch_history: Option<UserWatchHistory>,
+    pub episode_watch_history: Option<Vec<UserWatchHistory>>,
     pub media_info: MediaInfo,
 }
 
@@ -57,7 +58,7 @@ pub enum SortableProps {
     Name,
     RequestedDate,
     MediaType,
-    Watched,
+    //Watched,
     User,
 }
 

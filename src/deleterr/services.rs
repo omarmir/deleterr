@@ -1,10 +1,11 @@
 use super::models::{AppData, MovieDeletionRequest, RequestStatus, RequestStatusWithRecordInfo};
 use super::requests::{delete_cached_record, get_cached_record};
 use crate::common::models::DeleterrError;
-use crate::overseerr::models::{MediaRequest, PageInfo};
+use crate::overseerr::models::{MediaInfo, MediaRequest, MediaType, PageInfo};
 use crate::overseerr::services::delete_media;
 use crate::rd_serv::delete_movie;
-use crate::tautulli::models::UserWatchHistory;
+use crate::tautulli::models::{GetAllOrNone, GetFirstOrNone};
+use crate::tautulli::services::get_item_history;
 use actix_web::web::Data;
 use std::collections::HashMap;
 
@@ -15,32 +16,40 @@ async fn get_os_requests() -> Result<(Vec<MediaRequest>, PageInfo), DeleterrErro
     Ok((vec_requests, page_info))
 }
 
-async fn get_tau_history_by_key_user(
-    rating_key: &u64,
-    user_id: &u64,
-) -> Result<Option<UserWatchHistory>, DeleterrError> {
-    let tt_match = crate::tt_serv::get_item_history(
-        rating_key.to_string().as_str(),
-        user_id.to_string().as_str(),
-    )
-    .await?;
-
-    /*
-     * We make sure that there is exactly one matched result since
-     * we provided both a ratingKey and userId. If there is more than one result
-     * then we did something wrong.
-     */
-
-    return match tt_match.response.data.data {
-        Some(histories) => {
-            if histories.len() == 1 {
-                Ok(Some(histories[0].clone()))
-            } else {
-                Ok(None)
-            }
-        }
-        _ => Ok(None),
+pub async fn get_request_status(
+    rating_key: &Option<u64>,
+    user_id: &Option<u64>,
+    media_type: &MediaType,
+    media_info: MediaInfo,
+    media_request: &MediaRequest,
+) -> Result<RequestStatus, DeleterrError> {
+    let tau_history_response = match (rating_key, user_id) {
+        (Some(rk), Some(uid)) => Some(
+            get_item_history(
+                rk.to_string().as_str(),
+                uid.to_string().as_str(),
+                media_type,
+            )
+            .await?
+            .response
+            .data,
+        ),
+        _ => None,
     };
+
+    let (movie_watch_history, episode_watch_history) = match media_type {
+        MediaType::Movie => (tau_history_response.get_first_or_none(), None),
+        MediaType::TV => (None, tau_history_response.get_all_or_none()),
+    };
+
+    let request_status = RequestStatus {
+        media_info,
+        movie_watch_history,
+        episode_watch_history,
+        media_request: media_request.clone(),
+    };
+
+    Ok(request_status)
 }
 
 pub async fn match_requests_to_watched(
@@ -52,9 +61,7 @@ pub async fn match_requests_to_watched(
     let mut matched_requests: HashMap<usize, RequestStatus> =
         HashMap::with_capacity(page_info.results);
 
-    // TODO: Change this - maybe do a query first on the count?
-    for i in 0..9 {
-        //os_requests.len() {
+    for i in 0..os_requests.len() {
         let media_request = &os_requests[i];
         let (media_type, tmdb_id, rating_key, user_id) = (
             &media_request.media.media_type,
@@ -64,18 +71,10 @@ pub async fn match_requests_to_watched(
         );
 
         let media_info = crate::overseerr::services::get_media_info(&media_type, &tmdb_id).await?;
-        let user_watch_history = match (rating_key, user_id) {
-            (Some(rating_key), Some(user_id)) => {
-                get_tau_history_by_key_user(&rating_key, &user_id).await?
-            }
-            _ => None,
-        };
 
-        let request_status = RequestStatus {
-            media_info,
-            user_watch_history,
-            media_request: media_request.clone(),
-        };
+        let request_status =
+            get_request_status(&rating_key, &user_id, media_type, media_info, media_request)
+                .await?;
 
         // Delay
         if i > 0 && (i % chunk_size) == 0 {

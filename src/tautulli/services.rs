@@ -2,6 +2,7 @@ use super::models::TautulliResponse;
 use crate::common::models::{APIServiceStatus, APIStatus, RequestType, Services};
 use crate::common::models::{DeleterrError, ServiceInfo};
 use crate::common::services::{create_api_url, get_api_endpoint, make_api_call};
+use crate::overseerr::models::MediaType;
 
 fn build_service_info() -> Result<ServiceInfo, DeleterrError> {
     let service_info = crate::st_serv::get_service(Services::Tautulli)?;
@@ -12,16 +13,24 @@ fn build_service_info() -> Result<ServiceInfo, DeleterrError> {
 pub async fn get_item_history(
     rating_key: &str,
     user_id: &str,
+    media_type: &MediaType,
 ) -> Result<TautulliResponse, DeleterrError> {
     let endpoint = format!("api/v2");
     let service_info = build_service_info()?;
 
     let api_url = create_api_url(&endpoint, &service_info);
+
+    let rating_key_lvl = match media_type {
+        MediaType::Movie => ("rating_key", rating_key),
+        MediaType::TV => ("grandparent_rating_key", rating_key),
+    };
+
     let query = vec![
         ("cmd", "get_history"),
         ("apikey", service_info.api_key.as_str()),
-        ("rating_key", rating_key),
         ("user_id", user_id),
+        ("length", "99999999999999999"),
+        rating_key_lvl,
     ];
 
     let client_req = get_api_endpoint(api_url, query, None, RequestType::Get)?;
