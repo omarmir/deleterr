@@ -5,16 +5,10 @@ use actix_session::SessionMiddleware;
 use actix_web::cookie::Key;
 use actix_web::{middleware::Logger, web, App, HttpServer};
 use actix_web_lab::web as lab_web;
-use deleterr::{endpoints as dr_epts, models::AppData, services as dr_serv};
-use overseerr::services as os_serv;
-use radarr::services as rd_serv;
-use sonrad::services as sr_serv;
+use deleterr::models::AppData;
 use std::sync::OnceLock;
 use std::sync::RwLock;
-use store::exemptions as st_exempt;
 use store::models::PersyManager;
-use store::services as st_serv;
-use tautulli::services as tt_serv;
 mod auth;
 mod common;
 mod deleterr;
@@ -67,7 +61,7 @@ async fn main() -> std::io::Result<()> {
             .wrap(logger)
             .wrap(session_middleware(secret_key.clone()))
             .app_data(app_data.clone())
-            .configure(dr_epts::config)
+            .configure(crate::deleterr::endpoints::config)
             .service(
                 lab_web::spa()
                     .index_file("./webapp/dist/index.html")

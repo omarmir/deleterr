@@ -26,7 +26,7 @@ async fn get_all_requests_json(
 
 #[get("/requests/count")]
 async fn get_requests_count_json() -> impl Responder {
-    let count_response = crate::os_serv::get_requests_count().await;
+    let count_response = crate::overseerr::services::get_requests_count().await;
     return process_request(count_response);
 }
 
@@ -35,10 +35,10 @@ async fn get_service_status_json(
     web::Json(service_info): web::Json<ServiceInfo>,
 ) -> impl Responder {
     let service_status = match service_info.service {
-        Services::Overseerr => crate::os_serv::get_overseerr_status(service_info).await,
-        Services::Tautulli => crate::tt_serv::get_tautulli_status(service_info).await,
-        Services::Radarr => crate::sr_serv::get_sonrad_status(service_info).await,
-        Services::Sonarr => crate::sr_serv::get_sonrad_status(service_info).await,
+        Services::Overseerr => crate::overseerr::services::get_overseerr_status(service_info).await,
+        Services::Tautulli => crate::tautulli::services::get_tautulli_status(service_info).await,
+        Services::Radarr => crate::sonrad::services::get_sonrad_status(service_info).await,
+        Services::Sonarr => crate::sonrad::services::get_sonrad_status(service_info).await,
     };
     return process_request(service_status);
 }
@@ -47,25 +47,25 @@ async fn get_service_status_json(
 async fn save_service_submit_json(
     web::Json(service_info): web::Json<ServiceInfo>,
 ) -> impl Responder {
-    let inserted_result = crate::st_serv::upsert_service(service_info);
+    let inserted_result = crate::store::services::upsert_service(service_info);
     return process_request(inserted_result);
 }
 
 #[get("/service/get")]
 async fn get_all_service_json() -> impl Responder {
-    let service_info = crate::st_serv::get_all_services();
+    let service_info = crate::store::services::get_all_services();
     return process_request(service_info);
 }
 
 #[get("/service/get/{service_name}")]
 async fn get_service_json(path: web::Path<Services>) -> impl Responder {
-    let service_info = crate::st_serv::get_service(path.into_inner());
+    let service_info = crate::store::services::get_service(path.into_inner());
     return process_request(service_info);
 }
 
 #[get("/request/exemptions/get")]
 async fn get_media_exemption() -> impl Responder {
-    let media_exemptions = crate::st_exempt::get_all_exemptions();
+    let media_exemptions = crate::store::exemptions::get_all_exemptions();
     return process_request(media_exemptions);
 }
 
@@ -73,20 +73,21 @@ async fn get_media_exemption() -> impl Responder {
 async fn save_media_exemption(
     web::Json(media_exemption): web::Json<MediaExemption>,
 ) -> impl Responder {
-    let exempted_result = crate::st_exempt::upsert_media_exemption(media_exemption);
+    let exempted_result = crate::store::exemptions::upsert_media_exemption(media_exemption);
     return process_request(exempted_result);
 }
 
 #[post("/request/exemptions/remove")]
 async fn remove_media_exemption(web::Json(request_id): web::Json<usize>) -> impl Responder {
-    let deleted_result = crate::st_exempt::remove_media_exemption(request_id);
+    let deleted_result = crate::store::exemptions::remove_media_exemption(request_id);
     return process_request(deleted_result);
 }
 
 #[delete("/movie/delete/{media_id}")]
 async fn delete_movie_file(app_data: Data<AppData>, path: web::Path<usize>) -> impl Responder {
     let delete_movie =
-        crate::dr_serv::delete_movie_from_radarr_overseerr(&app_data, path.into_inner()).await;
+        crate::deleterr::services::delete_movie_from_radarr_overseerr(&app_data, path.into_inner())
+            .await;
     return process_request(delete_movie);
 }
 

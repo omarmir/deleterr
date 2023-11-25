@@ -1,20 +1,11 @@
 use super::models::{AppData, MovieDeletionRequest, RequestStatus, RequestStatusWithRecordInfo};
 use super::requests::{delete_cached_record, get_cached_record};
 use crate::common::models::DeleterrError;
-use crate::overseerr::models::{MediaInfo, MediaRequest, MediaType, PageInfo};
-use crate::overseerr::services::delete_media;
-use crate::rd_serv::delete_movie;
+use crate::overseerr::models::{MediaInfo, MediaRequest, MediaType};
+use crate::overseerr::seasons::AllSeasons;
 use crate::tautulli::models::{GetAllOrNone, GetFirstOrNone};
-use crate::tautulli::services::get_item_history;
 use actix_web::web::Data;
 use std::collections::HashMap;
-
-async fn get_os_requests() -> Result<(Vec<MediaRequest>, PageInfo), DeleterrError> {
-    let os_requests = crate::os_serv::get_requests().await?;
-    let vec_requests = os_requests.results;
-    let page_info = os_requests.page_info;
-    Ok((vec_requests, page_info))
-}
 
 pub async fn get_request_status(
     rating_key: &Option<u64>,
@@ -22,10 +13,11 @@ pub async fn get_request_status(
     media_type: &MediaType,
     media_info: MediaInfo,
     media_request: &MediaRequest,
+    all_seasons: Option<AllSeasons>,
 ) -> Result<RequestStatus, DeleterrError> {
     let tau_history_response = match (rating_key, user_id) {
         (Some(rk), Some(uid)) => Some(
-            get_item_history(
+            crate::tautulli::services::get_item_history(
                 rk.to_string().as_str(),
                 uid.to_string().as_str(),
                 media_type,
@@ -47,6 +39,7 @@ pub async fn get_request_status(
         movie_watch_history,
         episode_watch_history,
         media_request: media_request.clone(),
+        all_seasons,
     };
 
     Ok(request_status)
@@ -57,7 +50,7 @@ pub async fn match_requests_to_watched(
 ) -> Result<RequestStatusWithRecordInfo, DeleterrError> {
     let chunk_size = chunk.unwrap_or(10);
     // ! Note that the default take is 10 at overseerr if unspecified!
-    let (os_requests, page_info) = get_os_requests().await?;
+    let (os_requests, page_info) = crate::overseerr::services::get_os_requests().await?;
     let mut matched_requests: HashMap<usize, RequestStatus> =
         HashMap::with_capacity(page_info.results);
 
@@ -72,9 +65,27 @@ pub async fn match_requests_to_watched(
 
         let media_info = crate::overseerr::services::get_media_info(&media_type, &tmdb_id).await?;
 
-        let request_status =
-            get_request_status(&rating_key, &user_id, media_type, media_info, media_request)
-                .await?;
+        /* ! This could result in unnessary multiple API calls
+         * * Here we are pull the tv show info, in theory this could result in excess api calls since a show could have multiple requests
+         * * but this is likley (?) an edge case so the additional overhead of creating and storing a hashmap and looking up there first
+         * * and then falling back to the API seemed excessive. We shall see.
+         */
+        let all_seasons = match (media_type, media_request.media.tmdb_id) {
+            (MediaType::TV, Some(tvid)) => {
+                Some(crate::overseerr::services::get_seasons(tvid).await?)
+            }
+            _ => None,
+        };
+
+        let request_status = get_request_status(
+            &rating_key,
+            &user_id,
+            media_type,
+            media_info,
+            media_request,
+            all_seasons,
+        )
+        .await?;
 
         // Delay
         if i > 0 && (i % chunk_size) == 0 {
@@ -114,11 +125,11 @@ pub async fn delete_movie_from_radarr_overseerr(
         .external_service_id
         .ok_or(DeleterrError::new("Missing external service (radarr) id!"))?;
 
-    let radarr_response = delete_movie(radarr_id.to_string().as_str())
+    let radarr_response = crate::radarr::services::delete_movie(radarr_id.to_string().as_str())
         .await
-        .map_err(|err| err.add_prefix("Unable to delete from Radarr. Error: "))?;
+        .map_err(|err| err.add_prefix("Unause crate::tautulli::services::get_item_history;ble to delete from Radarr. Error: "))?;
 
-    let overseerr_response = delete_media(media_id.to_string().as_str())
+    let overseerr_response = crate::overseerr::services::delete_media(media_id.to_string().as_str())
         .await
         .map_err(|err| err.add_prefix("Radarr media deleted but was unable to delete Overseer request. Please delete it manually. Error: "))?;
 

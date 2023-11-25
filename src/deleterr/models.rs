@@ -1,5 +1,6 @@
 use crate::common::models::ResponseCodeBasedAction;
 use crate::overseerr::models::{MediaInfo, MediaRequest};
+use crate::overseerr::seasons::AllSeasons;
 use crate::tautulli::models::UserWatchHistory;
 use serde::{Deserialize, Serialize};
 
@@ -15,6 +16,7 @@ pub struct RequestStatus {
     pub movie_watch_history: Option<UserWatchHistory>,
     pub episode_watch_history: Option<Vec<UserWatchHistory>>,
     pub media_info: MediaInfo,
+    pub all_seasons: Option<AllSeasons>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]

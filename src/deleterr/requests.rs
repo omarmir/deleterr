@@ -24,7 +24,7 @@ fn compare_media_variants(a: &MediaType, b: &MediaType, is_descending: bool) -> 
     }
 }
 
-fn compare_user_watch_history(
+fn _compare_user_watch_history(
     a: &Option<UserWatchHistory>,
     b: &Option<UserWatchHistory>,
     is_descending: bool,
@@ -215,7 +215,7 @@ pub fn sort_requests_vector(
             },
             is_descending,
         ),
-        /**
+        /*
         SortableProps::Watched => vec.sort_unstable_by(|a, b| {
             compare_user_watch_history(&a.user_watch_history, &b.user_watch_history, is_descending)
         }),

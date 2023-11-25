@@ -1,5 +1,9 @@
-use super::models::{
-    AboutServer, MediaInfo, MediaRequest, MediaType, OverseerrListResponse, OverseerrRequestsCount,
+use super::{
+    models::{
+        AboutServer, MediaInfo, MediaRequest, MediaType, OverseerrListResponse,
+        OverseerrRequestsCount, PageInfo,
+    },
+    seasons::AllSeasons,
 };
 use crate::common::{
     models::{
@@ -10,7 +14,7 @@ use crate::common::{
 };
 
 fn build_service_info() -> Result<ServiceInfo, DeleterrError> {
-    let service_info = crate::st_serv::get_service(Services::Overseerr)?;
+    let service_info = crate::store::services::get_service(Services::Overseerr)?;
 
     service_info.ok_or(DeleterrError::new("Overseerr service not setup."))
 }
@@ -153,4 +157,28 @@ pub async fn get_overseerr_status(
     };
 
     Ok(service_status)
+}
+
+pub async fn get_os_requests() -> Result<(Vec<MediaRequest>, PageInfo), DeleterrError> {
+    let os_requests = get_requests().await?;
+    let vec_requests = os_requests.results;
+    let page_info = os_requests.page_info;
+    Ok((vec_requests, page_info))
+}
+
+pub async fn get_seasons(tmdb_id: usize) -> Result<AllSeasons, DeleterrError> {
+    let endpoint: String = format!("api/v1/tv/{tmdb_id}");
+    let service_info = build_service_info()?;
+
+    let api_url = create_api_url(&endpoint, &service_info);
+    let query: Vec<(&str, &str)> = Vec::with_capacity(0);
+
+    let client_req =
+        get_api_endpoint(api_url, query, Some(service_info.api_key), RequestType::Get)?;
+
+    let request_response = make_api_call(client_req).await?;
+
+    let resp = request_response.response.json::<AllSeasons>().await?;
+
+    Ok(resp)
 }

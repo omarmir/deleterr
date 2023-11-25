@@ -36,6 +36,16 @@ pub struct MediaRequest {
     pub requested_by: User,
     pub media: Media,
     pub created_at: DateTime<Utc>,
+    pub season_count: Option<usize>,
+    pub seasons: Vec<Option<Season>>,
+}
+
+#[derive(Deserialize, Serialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct Season {
+    pub id: usize,
+    pub season_number: usize,
+    pub status: usize, // Status of the request. 1 = PENDING APPROVAL, 2 = APPROVED, 3 = DECLINED
 }
 
 #[derive(Deserialize, Serialize, Debug, Clone)]
@@ -56,11 +66,11 @@ pub struct Media {
     pub id: Option<usize>,
     pub media_type: MediaType,
     pub tmdb_id: Option<usize>,
-    tvdb_id: Option<u32>,
+    tvdb_id: Option<usize>, // Apparently nothing uses this. Even if it says tvid in the API.
     #[serde(deserialize_with = "deserialize_option_number_from_string")]
     pub rating_key: Option<u64>,
     pub external_service_id: Option<usize>,
-    status: u8, // Availability of the media. 1 = UNKNOWN, 2 = PENDING, 3 = PROCESSING, 4 = PARTIALLY_AVAILABLE, 5 = AVAILABLE
+    pub status: u8, // Availability of the media. 1 = UNKNOWN, 2 = PENDING, 3 = PROCESSING, 4 = PARTIALLY_AVAILABLE, 5 = AVAILABLE
 }
 
 #[derive(Deserialize, Serialize, Debug, Clone)]

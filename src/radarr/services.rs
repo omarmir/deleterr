@@ -7,7 +7,7 @@ use crate::{
 };
 
 fn build_service_info() -> Result<ServiceInfo, DeleterrError> {
-    let service_info = crate::st_serv::get_service(Services::Radarr)?;
+    let service_info = crate::store::services::get_service(Services::Radarr)?;
 
     service_info.ok_or(DeleterrError::new("Radarr service not setup."))
 }
