@@ -17,9 +17,9 @@ pub struct UserWatchHistory {
     grandparent_rating_key: Option<u64>,
     user_thumb: Option<String>,
     #[serde(deserialize_with = "deserialize_option_number_from_string")]
-    media_index: Option<usize>,
+    pub media_index: Option<usize>,
     #[serde(deserialize_with = "deserialize_option_number_from_string")]
-    parent_media_index: Option<usize>,
+    pub parent_media_index: Option<usize>,
 }
 
 pub trait GetFirstOrNone {

@@ -1,9 +1,6 @@
-use super::{
-    models::{
-        AboutServer, MediaInfo, MediaRequest, MediaType, OverseerrListResponse,
-        OverseerrRequestsCount, PageInfo,
-    },
-    seasons::AllSeasons,
+use super::models::{
+    AboutServer, AllSeasons, MediaInfo, MediaRequest, MediaType, OverseerrListResponse,
+    OverseerrRequestsCount, PageInfo,
 };
 use crate::common::{
     models::{

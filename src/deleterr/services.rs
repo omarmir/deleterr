@@ -1,9 +1,9 @@
 use super::models::{AppData, MovieDeletionRequest, RequestStatus, RequestStatusWithRecordInfo};
 use super::requests::{delete_cached_record, get_cached_record};
+use super::watched::Watched;
 use crate::common::models::DeleterrError;
-use crate::overseerr::models::{MediaInfo, MediaRequest, MediaType};
-use crate::overseerr::seasons::AllSeasons;
-use crate::tautulli::user_watch_history::{GetAllOrNone, GetFirstOrNone};
+use crate::overseerr::models::{AllSeasons, MediaInfo, MediaRequest, MediaType};
+use crate::tautulli::user_watch_history::{GetAllOrNone, GetFirstOrNone, UserWatchHistory};
 use actix_web::web::Data;
 use std::collections::HashMap;
 
@@ -13,7 +13,7 @@ pub async fn get_request_status(
     media_type: &MediaType,
     media_info: MediaInfo,
     media_request: &MediaRequest,
-    all_seasons: Option<AllSeasons>,
+    all_seasons: AllSeasons,
 ) -> Result<RequestStatus, DeleterrError> {
     let tau_history_response = match (rating_key, user_id) {
         (Some(rk), Some(uid)) => Some(
@@ -29,17 +29,58 @@ pub async fn get_request_status(
         _ => None,
     };
 
-    let (movie_watch_history, episode_watch_history) = match media_type {
-        MediaType::Movie => (tau_history_response.get_first_or_none(), None),
-        MediaType::TV => (None, tau_history_response.get_all_or_none()),
-    };
+    let watched_status = match media_type {
+        MediaType::Movie => {
+            let tau_history = tau_history_response.get_first_or_none();
+            let watched = Watched {
+                req_parent_index_id: media_request.id,
+                parent_media_index: None,
+                req_status: media_request.status,
+                total_items: Some(1),
+                watched: tau_history.is_some(),
+                watch_history: Vec::from([tau_history]),
+            };
+            Vec::from([watched])
+        }
+        MediaType::TV => {
+            let tau_history = tau_history_response.get_all_or_none();
+            let mut watched: Vec<Watched> = vec![];
+            if let Some(history) = tau_history {
+                for season in &media_request.seasons {
+                    let season_watched: Vec<Option<UserWatchHistory>> = history
+                        .clone()
+                        .into_iter()
+                        .filter(|item| item.parent_media_index == Some(season.season_number))
+                        .map(Some)
+                        .collect();
 
+                    let total_items = all_seasons
+                        .seasons
+                        .iter()
+                        .find(|all_seasons_season| {
+                            season.season_number == all_seasons_season.season_number
+                        })
+                        .map(|matching_season| matching_season.episode_count);
+
+                    let season_watched = Watched {
+                        req_parent_index_id: season.id,
+                        parent_media_index: Some(season.season_number),
+                        req_status: season.status,
+                        total_items: total_items,
+                        watched: false,
+                        watch_history: season_watched,
+                    };
+
+                    watched.push(season_watched)
+                }
+            }
+            watched
+        }
+    };
     let request_status = RequestStatus {
         media_info,
-        movie_watch_history,
-        episode_watch_history,
+        watched_status,
         media_request: media_request.clone(),
-        all_seasons,
     };
 
     Ok(request_status)
@@ -65,21 +106,14 @@ pub async fn match_requests_to_watched(
 
         let media_info = crate::overseerr::services::get_media_info(&media_type, &tmdb_id).await?;
 
-        /* ! This could result in unnessary multiple API calls
-         * * Here we are pull the tv show info, in theory this could result in excess api calls since a show could have multiple requests
-         * * but this is likley (?) an edge case so the additional overhead of creating and storing a hashmap and looking up there first
-         * * and then falling back to the API seemed excessive. We shall see.
-         */
         let all_seasons = match (media_type, media_request.media.tmdb_id) {
-            (MediaType::TV, Some(tvid)) => {
-                Some(crate::overseerr::services::get_seasons(tvid).await?)
-            }
-            _ => None,
+            (MediaType::TV, Some(tvid)) => crate::overseerr::services::get_seasons(tvid).await?,
+            _ => AllSeasons::movie_season(),
         };
 
         let request_status = get_request_status(
-            &rating_key,
-            &user_id,
+            rating_key,
+            user_id,
             media_type,
             media_info,
             media_request,

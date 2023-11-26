@@ -1,9 +1,7 @@
+use super::watched::Watched;
 use crate::common::models::ResponseCodeBasedAction;
 use crate::overseerr::models::{MediaInfo, MediaRequest};
-use crate::overseerr::seasons::AllSeasons;
-use crate::tautulli::user_watch_history::UserWatchHistory;
 use serde::{Deserialize, Serialize};
-
 use serde_map_to_array::{DefaultLabels, HashMapToArray};
 use std::collections::HashMap;
 use std::sync::RwLock;
@@ -13,10 +11,8 @@ use std::time::SystemTime;
 #[serde(rename_all = "camelCase")]
 pub struct RequestStatus {
     pub media_request: MediaRequest,
-    pub movie_watch_history: Option<UserWatchHistory>,
-    pub episode_watch_history: Option<Vec<UserWatchHistory>>,
+    pub watched_status: Vec<Watched>,
     pub media_info: MediaInfo,
-    pub all_seasons: Option<AllSeasons>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
