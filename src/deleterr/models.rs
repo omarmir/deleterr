@@ -1,7 +1,7 @@
 use crate::common::models::ResponseCodeBasedAction;
 use crate::overseerr::models::{MediaInfo, MediaRequest};
 use crate::overseerr::seasons::AllSeasons;
-use crate::tautulli::models::UserWatchHistory;
+use crate::tautulli::user_watch_history::UserWatchHistory;
 use serde::{Deserialize, Serialize};
 
 use serde_map_to_array::{DefaultLabels, HashMapToArray};

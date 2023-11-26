@@ -1,7 +1,7 @@
 use crate::{
     common::models::{APIStatus, DeleterrError, ResponseCodeBasedAction},
     overseerr::models::MediaType,
-    tautulli::models::UserWatchHistory,
+    tautulli::user_watch_history::UserWatchHistory,
 };
 use actix_web::web::Data;
 use std::{cmp::Ordering, collections::HashMap};

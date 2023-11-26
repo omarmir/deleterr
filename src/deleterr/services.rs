@@ -3,7 +3,7 @@ use super::requests::{delete_cached_record, get_cached_record};
 use crate::common::models::DeleterrError;
 use crate::overseerr::models::{MediaInfo, MediaRequest, MediaType};
 use crate::overseerr::seasons::AllSeasons;
-use crate::tautulli::models::{GetAllOrNone, GetFirstOrNone};
+use crate::tautulli::user_watch_history::{GetAllOrNone, GetFirstOrNone};
 use actix_web::web::Data;
 use std::collections::HashMap;
 
