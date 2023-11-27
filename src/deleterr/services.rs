@@ -3,7 +3,7 @@ use super::requests::{delete_cached_record, get_cached_record};
 use super::watched::{EpisodeWithStatus, SeasonWithStatus, WatchedChecker};
 use crate::common::models::DeleterrError;
 use crate::deleterr::watched::WatchedStatus;
-use crate::overseerr::models::{ConvertToHashMap, MediaInfo, MediaRequest, MediaType};
+use crate::overseerr::models::{MediaInfo, MediaRequest, MediaType};
 use crate::sonarr::models::{Episode, SonarrShow};
 use crate::tautulli::user_watch_history::{ConvertToHashMapBySeason, GetAllOrNone, GetFirstOrNone};
 use actix_web::web::Data;
@@ -37,31 +37,34 @@ pub async fn get_request_status(
                 .get_all_or_none()
                 .convert_to_hash_map_by_season();
             let show = SonarrShow::from(sonarr_eps);
-            let requested_season_map = media_request.seasons.convert_to_hash_map();
             let mut seasons_with_status = vec![];
-            for season in show.seasons.into_iter() {
+            for season in &media_request.seasons {
                 let mut episodes_with_status: Vec<EpisodeWithStatus> = Vec::new();
-                for episode in season.1.episodes {
+                let season_eps = show.seasons.get(&season.season_number).unwrap();
+                for episode in &season_eps.episodes {
                     let watched_episode = EpisodeWithStatus {
                         external_service_id: episode.1.id,
                         file_id: Some(episode.1.episode_file_id),
                         watched_status: tau_history.as_ref().map_or(0.0, |tau_hash| {
                             tau_hash
-                                .get(&(season.0, episode.0))
+                                .get(&(season.season_number, episode.1.episode_number))
                                 .map_or(0.0, |hist| hist.watched_status)
                         }),
-                        episode_number: Some(episode.0),
-                        season_number: Some(season.0),
+                        episode_number: Some(episode.0.to_owned()),
+                        season_number: Some(season.season_number),
                     };
                     episodes_with_status.push(watched_episode);
                 }
                 let season_with_status = SeasonWithStatus {
-                    season_number: Some(season.1.season_number),
+                    season_number: Some(season.season_number),
                     req_status: media_request.status,
                     watched: episodes_with_status.is_watched(),
                     episodes_with_status: Some(episodes_with_status),
-                    total_items: Some(season.1.episode_count),
-                    requested: requested_season_map.get(&season.1.season_number).is_some(),
+                    total_items: Some(season_eps.episode_count),
+                    last_season_with_files: match show.max_season_with_file {
+                        Some(max_season) => max_season == season.season_number,
+                        None => false, // If there is no max_season then maybe seasons aren't in DB - be safe its not last.
+                    },
                 };
 
                 seasons_with_status.push(season_with_status)
@@ -86,7 +89,7 @@ pub async fn get_request_status(
                     season_number: None,
                 }]),
                 total_items: Some(1),
-                requested: true,
+                last_season_with_files: true,
             };
 
             vec![season_with_status]

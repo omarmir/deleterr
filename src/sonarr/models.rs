@@ -21,14 +21,19 @@ pub struct EpisodeSeason {
 
 pub struct SonarrShow {
     pub seasons: HashMap<usize, EpisodeSeason>,
+    pub max_season_with_file: Option<usize>,
 }
 
 impl From<Option<Vec<Episode>>> for SonarrShow {
     fn from(all_episodes: Option<Vec<Episode>>) -> Self {
         let mut seasons: HashMap<usize, EpisodeSeason> = HashMap::new();
+        let mut max_season_with_file: Option<usize> = None; // there may be no seasons yet, or it might be a movie
 
         if let Some(episodes) = all_episodes {
             for episode in episodes {
+                if episode.season_number > max_season_with_file.unwrap_or(0) && episode.has_file {
+                    max_season_with_file = Some(episode.season_number)
+                }
                 seasons
                     .entry(episode.season_number)
                     .and_modify(|episode_season| {
@@ -45,6 +50,9 @@ impl From<Option<Vec<Episode>>> for SonarrShow {
             }
         }
 
-        SonarrShow { seasons }
+        SonarrShow {
+            seasons,
+            max_season_with_file,
+        }
     }
 }
