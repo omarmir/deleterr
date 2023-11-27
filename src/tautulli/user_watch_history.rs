@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use super::models::ResponseData;
 use serde::{Deserialize, Serialize};
 use serde_aux::prelude::deserialize_option_number_from_string;
@@ -7,19 +9,43 @@ use serde_aux::prelude::deserialize_option_number_from_string;
 pub struct UserWatchHistory {
     user: String,
     friendly_name: String,
-    user_id: u64, // same is plex_id on tautulli
+    user_id: usize, // same is plex_id on tautulli
     full_title: String,
     pub watched_status: f32, //0: Unwatched or less than half, 0.5: watched more than 50%, and 1: Watched
-    rating_key: u64,
+    pub rating_key: usize,
     #[serde(deserialize_with = "deserialize_option_number_from_string")]
-    parent_rating_key: Option<u64>,
+    parent_rating_key: Option<usize>,
     #[serde(deserialize_with = "deserialize_option_number_from_string")]
-    grandparent_rating_key: Option<u64>,
+    grandparent_rating_key: Option<usize>,
     user_thumb: Option<String>,
     #[serde(deserialize_with = "deserialize_option_number_from_string")]
     pub media_index: Option<usize>,
     #[serde(deserialize_with = "deserialize_option_number_from_string")]
     pub parent_media_index: Option<usize>,
+}
+
+pub trait ConvertToHashMapBySeason {
+    fn get_all_or_none(self) -> Option<Vec<UserWatchHistory>>;
+    fn convert_to_hash_map_by_season(self) -> Option<HashMap<(usize, usize), UserWatchHistory>>;
+}
+impl ConvertToHashMapBySeason for Option<Vec<UserWatchHistory>> {
+    fn get_all_or_none(self) -> Option<Vec<UserWatchHistory>> {
+        self
+    }
+    fn convert_to_hash_map_by_season(self) -> Option<HashMap<(usize, usize), UserWatchHistory>> {
+        self.map(|history| {
+            history
+                .into_iter()
+                .filter_map(|item| match (item.parent_media_index, item.media_index) {
+                    (Some(parent_index), Some(item_index)) => {
+                        let key = (parent_index, item_index);
+                        Some((key, item))
+                    }
+                    _ => None,
+                })
+                .collect()
+        })
+    }
 }
 
 pub trait GetFirstOrNone {

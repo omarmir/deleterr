@@ -48,37 +48,6 @@ pub struct RequestSeason {
     pub season_number: usize,
     pub status: u8, // Status of the request. 1 = PENDING APPROVAL, 2 = APPROVED, 3 = DECLINED
 }
-#[derive(Deserialize, Serialize, Debug, Clone)]
-#[serde(rename_all = "camelCase")]
-pub struct AllSeasons {
-    pub number_of_episodes: usize,
-    pub number_of_seasons: usize,
-    pub seasons: Vec<AllSeasonsSeason>,
-}
-
-#[derive(Deserialize, Serialize, Debug, Clone)]
-#[serde(rename_all = "camelCase")]
-pub struct AllSeasonsSeason {
-    pub id: usize,
-    pub season_number: usize,
-    name: Option<String>,
-    pub episode_count: usize,
-}
-
-impl AllSeasons {
-    pub fn movie_season() -> Self {
-        AllSeasons {
-            number_of_episodes: 1,
-            number_of_seasons: 1,
-            seasons: Vec::from([AllSeasonsSeason {
-                id: 0,
-                season_number: 1,
-                episode_count: 1,
-                name: None,
-            }]),
-        }
-    }
-}
 
 #[derive(Deserialize, Serialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]

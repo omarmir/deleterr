@@ -1,6 +1,6 @@
 use super::models::{
-    AboutServer, AllSeasons, MediaInfo, MediaRequest, MediaType, OverseerrListResponse,
-    OverseerrRequestsCount, PageInfo,
+    AboutServer, MediaInfo, MediaRequest, MediaType, OverseerrListResponse, OverseerrRequestsCount,
+    PageInfo,
 };
 use crate::common::{
     models::{
@@ -161,21 +161,4 @@ pub async fn get_os_requests() -> Result<(Vec<MediaRequest>, PageInfo), Deleterr
     let vec_requests = os_requests.results;
     let page_info = os_requests.page_info;
     Ok((vec_requests, page_info))
-}
-
-pub async fn get_seasons(tmdb_id: usize) -> Result<AllSeasons, DeleterrError> {
-    let endpoint: String = format!("api/v1/tv/{tmdb_id}");
-    let service_info = build_service_info()?;
-
-    let api_url = create_api_url(&endpoint, &service_info);
-    let query: Vec<(&str, &str)> = Vec::with_capacity(0);
-
-    let client_req =
-        get_api_endpoint(api_url, query, Some(service_info.api_key), RequestType::Get)?;
-
-    let request_response = make_api_call(client_req).await?;
-
-    let resp = request_response.response.json::<AllSeasons>().await?;
-
-    Ok(resp)
 }

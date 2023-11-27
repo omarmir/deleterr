@@ -1,9 +1,10 @@
 use super::models::{AppData, MovieDeletionRequest, RequestStatus, RequestStatusWithRecordInfo};
 use super::requests::{delete_cached_record, get_cached_record};
-use super::watched::Watched;
+use super::watched::{WatchedEpisode, WatchedSeason};
 use crate::common::models::DeleterrError;
-use crate::overseerr::models::{AllSeasons, MediaInfo, MediaRequest, MediaType};
-use crate::tautulli::user_watch_history::{GetAllOrNone, GetFirstOrNone, UserWatchHistory};
+use crate::overseerr::models::{MediaInfo, MediaRequest, MediaType};
+use crate::sonarr::models::{Episode, SonarrShow};
+use crate::tautulli::user_watch_history::{ConvertToHashMapBySeason, GetAllOrNone, GetFirstOrNone};
 use actix_web::web::Data;
 use std::collections::HashMap;
 
@@ -13,7 +14,7 @@ pub async fn get_request_status(
     media_type: &MediaType,
     media_info: MediaInfo,
     media_request: &MediaRequest,
-    all_seasons: AllSeasons,
+    all_episodes: Option<Vec<Episode>>,
 ) -> Result<RequestStatus, DeleterrError> {
     let tau_history_response = match (rating_key, user_id) {
         (Some(rk), Some(uid)) => Some(
@@ -30,51 +31,59 @@ pub async fn get_request_status(
     };
 
     let watched_status = match media_type {
-        MediaType::Movie => {
-            let tau_history = tau_history_response.get_first_or_none();
-            let watched = Watched {
-                req_parent_index_id: media_request.id,
-                parent_media_index: None,
-                req_status: media_request.status,
-                total_items: Some(1),
-                watched: tau_history.is_some(),
-                watch_history: Vec::from([tau_history]),
-            };
-            Vec::from([watched])
-        }
         MediaType::TV => {
-            let tau_history = tau_history_response.get_all_or_none();
-            let mut watched: Vec<Watched> = vec![];
-            if let Some(history) = tau_history {
-                for season in &media_request.seasons {
-                    let season_watched: Vec<Option<UserWatchHistory>> = history
-                        .clone()
-                        .into_iter()
-                        .filter(|item| item.parent_media_index == Some(season.season_number))
-                        .map(Some)
-                        .collect();
-
-                    let total_items = all_seasons
-                        .seasons
-                        .iter()
-                        .find(|all_seasons_season| {
-                            season.season_number == all_seasons_season.season_number
-                        })
-                        .map(|matching_season| matching_season.episode_count);
-
-                    let season_watched = Watched {
-                        req_parent_index_id: season.id,
-                        parent_media_index: Some(season.season_number),
-                        req_status: season.status,
-                        total_items: total_items,
-                        watched: false,
-                        watch_history: season_watched,
+            let tau_history = tau_history_response
+                .get_all_or_none()
+                .convert_to_hash_map_by_season();
+            let show = SonarrShow::from(all_episodes);
+            let mut watched = vec![];
+            for season in show.seasons.into_iter() {
+                let mut watched_episodes: Vec<WatchedEpisode> = Vec::new();
+                for episode in season.1.episodes {
+                    let watched_episode = WatchedEpisode {
+                        external_service_id: episode.1.id,
+                        file_id: Some(episode.1.episode_file_id),
+                        watched_status: tau_history.as_ref().map_or(0.0, |tau_hash| {
+                            tau_hash
+                                .get(&(season.0, episode.0))
+                                .map_or(0.0, |hist| hist.watched_status)
+                        }),
+                        episode_number: Some(episode.0),
+                        season_number: Some(season.0),
                     };
-
-                    watched.push(season_watched)
+                    watched_episodes.push(watched_episode);
                 }
+                let watched_season = WatchedSeason {
+                    season_number: Some(season.1.season_number),
+                    req_status: media_request.status,
+                    watched_episodes: Some(watched_episodes),
+                    watched: false, // TODO: Change!
+                    total_items: Some(season.1.episode_count),
+                };
+
+                watched.push(watched_season)
             }
             watched
+        }
+        MediaType::Movie => {
+            let tau_history = tau_history_response.get_first_or_none();
+            //let watched = tau_history.map_or(0.0, |hist| hist.watched_status);
+
+            let watched_season = WatchedSeason {
+                season_number: None,
+                req_status: media_request.status,
+                watched_episodes: Some(vec![WatchedEpisode {
+                    external_service_id: media_request.media.external_service_id.unwrap(),
+                    file_id: None,
+                    watched_status: tau_history.map_or(0.0, |hist| hist.watched_status),
+                    episode_number: None,
+                    season_number: None,
+                }]),
+                watched: false, // TODO: Change!
+                total_items: Some(1),
+            };
+
+            vec![watched_season]
         }
     };
     let request_status = RequestStatus {
@@ -106,9 +115,11 @@ pub async fn match_requests_to_watched(
 
         let media_info = crate::overseerr::services::get_media_info(&media_type, &tmdb_id).await?;
 
-        let all_seasons = match (media_type, media_request.media.tmdb_id) {
-            (MediaType::TV, Some(tvid)) => crate::overseerr::services::get_seasons(tvid).await?,
-            _ => AllSeasons::movie_season(),
+        let all_episodes = match (media_type, media_request.media.external_service_id) {
+            (MediaType::TV, Some(sonarr_id)) => {
+                Some(crate::sonarr::services::get_episodes(sonarr_id).await?)
+            }
+            _ => None,
         };
 
         let request_status = get_request_status(
@@ -117,7 +128,7 @@ pub async fn match_requests_to_watched(
             media_type,
             media_info,
             media_request,
-            all_seasons,
+            all_episodes,
         )
         .await?;
 

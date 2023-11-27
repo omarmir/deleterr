@@ -1,4 +1,3 @@
-use super::watched::Watched;
 use crate::common::models::ResponseCodeBasedAction;
 use crate::overseerr::models::{MediaInfo, MediaRequest};
 use serde::{Deserialize, Serialize};
@@ -7,11 +6,13 @@ use std::collections::HashMap;
 use std::sync::RwLock;
 use std::time::SystemTime;
 
+use super::watched::WatchedSeason;
+
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct RequestStatus {
     pub media_request: MediaRequest,
-    pub watched_status: Vec<Watched>,
+    pub watched_status: Vec<WatchedSeason>,
     pub media_info: MediaInfo,
 }
 
