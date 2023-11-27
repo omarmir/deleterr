@@ -6,13 +6,13 @@ use std::collections::HashMap;
 use std::sync::RwLock;
 use std::time::SystemTime;
 
-use super::watched::WatchedSeason;
+use super::watched::SeasonWithStatus;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct RequestStatus {
     pub media_request: MediaRequest,
-    pub watched_status: Vec<WatchedSeason>,
+    pub watched_status: Vec<SeasonWithStatus>,
     pub media_info: MediaInfo,
 }
 

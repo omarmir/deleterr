@@ -1,7 +1,8 @@
 use super::models::{AppData, MovieDeletionRequest, RequestStatus, RequestStatusWithRecordInfo};
 use super::requests::{delete_cached_record, get_cached_record};
-use super::watched::{WatchedEpisode, WatchedSeason};
+use super::watched::{EpisodeWithStatus, SeasonWithStatus, WatchedChecker};
 use crate::common::models::DeleterrError;
+use crate::deleterr::watched::WatchedStatus;
 use crate::overseerr::models::{MediaInfo, MediaRequest, MediaType};
 use crate::sonarr::models::{Episode, SonarrShow};
 use crate::tautulli::user_watch_history::{ConvertToHashMapBySeason, GetAllOrNone, GetFirstOrNone};
@@ -36,11 +37,11 @@ pub async fn get_request_status(
                 .get_all_or_none()
                 .convert_to_hash_map_by_season();
             let show = SonarrShow::from(all_episodes);
-            let mut watched = vec![];
+            let mut seasons_with_status = vec![];
             for season in show.seasons.into_iter() {
-                let mut watched_episodes: Vec<WatchedEpisode> = Vec::new();
+                let mut episodes_with_status: Vec<EpisodeWithStatus> = Vec::new();
                 for episode in season.1.episodes {
-                    let watched_episode = WatchedEpisode {
+                    let watched_episode = EpisodeWithStatus {
                         external_service_id: episode.1.id,
                         file_id: Some(episode.1.episode_file_id),
                         watched_status: tau_history.as_ref().map_or(0.0, |tau_hash| {
@@ -51,39 +52,41 @@ pub async fn get_request_status(
                         episode_number: Some(episode.0),
                         season_number: Some(season.0),
                     };
-                    watched_episodes.push(watched_episode);
+                    episodes_with_status.push(watched_episode);
                 }
-                let watched_season = WatchedSeason {
+                let season_with_status = SeasonWithStatus {
                     season_number: Some(season.1.season_number),
                     req_status: media_request.status,
-                    watched_episodes: Some(watched_episodes),
-                    watched: false, // TODO: Change!
+                    watched: episodes_with_status.is_watched(),
+                    episodes_with_status: Some(episodes_with_status),
                     total_items: Some(season.1.episode_count),
                 };
 
-                watched.push(watched_season)
+                seasons_with_status.push(season_with_status)
             }
-            watched
+            seasons_with_status
         }
         MediaType::Movie => {
             let tau_history = tau_history_response.get_first_or_none();
-            //let watched = tau_history.map_or(0.0, |hist| hist.watched_status);
-
-            let watched_season = WatchedSeason {
+            let (watched_status, watched_status_enum) = tau_history
+                .map_or((0.0, WatchedStatus::Unwatched), |hist| {
+                    (hist.watched_status, hist.is_watched())
+                });
+            let season_with_status = SeasonWithStatus {
                 season_number: None,
                 req_status: media_request.status,
-                watched_episodes: Some(vec![WatchedEpisode {
+                watched: watched_status_enum,
+                episodes_with_status: Some(vec![EpisodeWithStatus {
                     external_service_id: media_request.media.external_service_id.unwrap(),
                     file_id: None,
-                    watched_status: tau_history.map_or(0.0, |hist| hist.watched_status),
+                    watched_status: watched_status,
                     episode_number: None,
                     season_number: None,
                 }]),
-                watched: false, // TODO: Change!
                 total_items: Some(1),
             };
 
-            vec![watched_season]
+            vec![season_with_status]
         }
     };
     let request_status = RequestStatus {
