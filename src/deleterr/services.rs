@@ -15,7 +15,7 @@ pub async fn get_request_status(
     media_type: &MediaType,
     media_info: MediaInfo,
     media_request: &MediaRequest,
-    all_episodes: Option<Vec<Episode>>,
+    sonarr_eps: Option<Vec<Episode>>,
 ) -> Result<RequestStatus, DeleterrError> {
     let tau_history_response = match (rating_key, user_id) {
         (Some(rk), Some(uid)) => Some(
@@ -36,7 +36,7 @@ pub async fn get_request_status(
             let tau_history = tau_history_response
                 .get_all_or_none()
                 .convert_to_hash_map_by_season();
-            let show = SonarrShow::from(all_episodes);
+            let show = SonarrShow::from(sonarr_eps);
             let mut seasons_with_status = vec![];
             for season in show.seasons.into_iter() {
                 let mut episodes_with_status: Vec<EpisodeWithStatus> = Vec::new();
@@ -118,7 +118,7 @@ pub async fn match_requests_to_watched(
 
         let media_info = crate::overseerr::services::get_media_info(&media_type, &tmdb_id).await?;
 
-        let all_episodes = match (media_type, media_request.media.external_service_id) {
+        let sonarr_eps = match (media_type, media_request.media.external_service_id) {
             (MediaType::TV, Some(sonarr_id)) => {
                 Some(crate::sonarr::services::get_episodes(sonarr_id.to_string().as_str()).await?)
             }
@@ -131,7 +131,7 @@ pub async fn match_requests_to_watched(
             media_type,
             media_info,
             media_request,
-            all_episodes,
+            sonarr_eps,
         )
         .await?;
 

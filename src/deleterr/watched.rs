@@ -1,6 +1,5 @@
-use serde::{Deserialize, Serialize};
-
 use crate::tautulli::user_watch_history::UserWatchHistory;
+use serde::{Deserialize, Serialize};
 
 #[derive(Deserialize, Serialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
