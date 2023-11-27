@@ -9,6 +9,7 @@ pub struct SeasonWithStatus {
     pub episodes_with_status: Option<Vec<EpisodeWithStatus>>,
     pub watched: WatchedStatus,
     pub total_items: Option<usize>,
+    pub requested: bool,
 }
 
 #[derive(Deserialize, Serialize, Debug, Clone)]

@@ -3,7 +3,7 @@ use super::requests::{delete_cached_record, get_cached_record};
 use super::watched::{EpisodeWithStatus, SeasonWithStatus, WatchedChecker};
 use crate::common::models::DeleterrError;
 use crate::deleterr::watched::WatchedStatus;
-use crate::overseerr::models::{MediaInfo, MediaRequest, MediaType};
+use crate::overseerr::models::{ConvertToHashMap, MediaInfo, MediaRequest, MediaType};
 use crate::sonarr::models::{Episode, SonarrShow};
 use crate::tautulli::user_watch_history::{ConvertToHashMapBySeason, GetAllOrNone, GetFirstOrNone};
 use actix_web::web::Data;
@@ -37,6 +37,7 @@ pub async fn get_request_status(
                 .get_all_or_none()
                 .convert_to_hash_map_by_season();
             let show = SonarrShow::from(sonarr_eps);
+            let requested_season_map = media_request.seasons.convert_to_hash_map();
             let mut seasons_with_status = vec![];
             for season in show.seasons.into_iter() {
                 let mut episodes_with_status: Vec<EpisodeWithStatus> = Vec::new();
@@ -60,6 +61,7 @@ pub async fn get_request_status(
                     watched: episodes_with_status.is_watched(),
                     episodes_with_status: Some(episodes_with_status),
                     total_items: Some(season.1.episode_count),
+                    requested: requested_season_map.get(&season.1.season_number).is_some(),
                 };
 
                 seasons_with_status.push(season_with_status)
@@ -84,6 +86,7 @@ pub async fn get_request_status(
                     season_number: None,
                 }]),
                 total_items: Some(1),
+                requested: true,
             };
 
             vec![season_with_status]

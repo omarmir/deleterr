@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use serde_aux::prelude::deserialize_option_number_from_string;
@@ -47,6 +49,18 @@ pub struct RequestSeason {
     pub id: usize,
     pub season_number: usize,
     pub status: u8, // Status of the request. 1 = PENDING APPROVAL, 2 = APPROVED, 3 = DECLINED
+}
+
+pub trait ConvertToHashMap<'a> {
+    fn convert_to_hash_map(&'a self) -> HashMap<usize, &'a RequestSeason>;
+}
+
+impl<'a> ConvertToHashMap<'a> for Vec<RequestSeason> {
+    fn convert_to_hash_map(&'a self) -> HashMap<usize, &'a RequestSeason> {
+        self.iter()
+            .map(|season| (season.season_number, season))
+            .collect()
+    }
 }
 
 #[derive(Deserialize, Serialize, Debug, Clone)]
