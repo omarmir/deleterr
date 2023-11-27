@@ -11,22 +11,26 @@ fn build_service_info() -> Result<ServiceInfo, DeleterrError> {
     service_info.ok_or(DeleterrError::new("Sonarr service not setup."))
 }
 
-pub async fn get_episodes(series_id: usize) -> Result<Vec<Episode>, DeleterrError> {
-    let endpoint = format!("api/v3/episode?seriesId={series_id}");
+pub async fn get_episodes(series_id: &str) -> Result<Vec<Episode>, DeleterrError> {
+    let endpoint = "api/v3/episode".to_string();
     let service_info = build_service_info()?;
 
     let api_url = create_api_url(&endpoint, &service_info);
-    let query = vec![("addImportExclusion", "false"), ("deleteFiles", "true")];
+    let query = vec![("seriesId", series_id)];
 
-    let client_req = get_api_endpoint(
-        api_url,
-        query,
-        Some(service_info.api_key),
-        RequestType::Delete,
-    )?;
+    let client_req =
+        get_api_endpoint(api_url, query, Some(service_info.api_key), RequestType::Get)?;
+
     let request_response = make_api_call(client_req).await?;
 
-    let resp = request_response.response.json::<Vec<Episode>>().await?;
+    let resp = request_response.response.json::<Vec<Episode>>().await;
 
-    Ok(resp)
+    match resp {
+        Ok(r) => Ok(r),
+        Err(error) => {
+            Err(DeleterrError::from(error).add_prefix("Unable to process Sonarr response,"))
+        }
+    }
+
+    //Ok(resp)
 }

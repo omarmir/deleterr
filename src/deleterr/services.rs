@@ -117,7 +117,7 @@ pub async fn match_requests_to_watched(
 
         let all_episodes = match (media_type, media_request.media.external_service_id) {
             (MediaType::TV, Some(sonarr_id)) => {
-                Some(crate::sonarr::services::get_episodes(sonarr_id).await?)
+                Some(crate::sonarr::services::get_episodes(sonarr_id.to_string().as_str()).await?)
             }
             _ => None,
         };
