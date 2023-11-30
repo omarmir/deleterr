@@ -9,6 +9,6 @@ services:
       - TZ=Etc/UTC
     volumes:
       - /home/omar/Coding/docker/nginx:/config
-      - /home/omar/Coding/deleterr/docker_dev/default.conf:/config/nginx/site-confs/default.conf
+      - ./default.conf:/config/nginx/site-confs/default.conf
     network_mode: host
     restart: unless-stopped
