@@ -27,6 +27,7 @@ export interface RequestStatus {
   mediaRequest: MediaRequest
   seasonStatus: SeasonStatus[]
   mediaInfo?: MediaInfo
+  watched: WatchedStatus
 }
 
 export interface RequestStatusWithRecordInfo {
@@ -45,9 +46,9 @@ export interface SeasonStatus {
 }
 
 export enum WatchedStatus {
-  Unwatched,
-  InProgress,
-  Watched,
+  Unwatched = 'Unwatched',
+  InProgress = 'In Progress',
+  Watched = 'Watched',
 }
 
 export interface EpisodeWithStatus {

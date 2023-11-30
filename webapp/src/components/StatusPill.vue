@@ -1,37 +1,22 @@
 <template>
   <div>
-    <span :data-status="status" class="rounded-full px-2 py-1 font-semibold capitalize leading-tight">
-      {{ status }}
+    <span
+      :data-status="watchedStatus.toLowerCase()"
+      class="rounded-full px-2 py-1 font-semibold capitalize leading-tight">
+      {{
+        //@ts-ignore - enums in TS are weird
+        WatchedStatus[watchedStatus]
+      }}
     </span>
   </div>
 </template>
 <script lang="ts" setup>
-const props = defineProps({
-  watchedStatus: { required: false, type: Number },
+import { PropType } from 'vue'
+import { WatchedStatus } from '~/@types/deleterr'
+
+defineProps({
+  watchedStatus: { type: String as PropType<WatchedStatus>, required: false, default: WatchedStatus.Unwatched },
 })
-
-enum Status {
-  watched = 'watched',
-  inprogress = 'inprogress',
-  unwatched = 'unwatched',
-}
-
-const getWatchedStatus = (watchedStatus: number | undefined): Status => {
-  if (watchedStatus) {
-    switch (watchedStatus) {
-      case 0.5:
-        return Status.inprogress
-      case 1:
-        return Status.watched
-      default:
-        return Status.unwatched
-    }
-  } else {
-    return Status.unwatched
-  }
-}
-
-const status: Status = getWatchedStatus(props.watchedStatus)
 </script>
 <style lang="postcss" scoped>
 [data-status='watched'] {
