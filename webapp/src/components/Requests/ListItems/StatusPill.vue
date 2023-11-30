@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="px-4 py-3 text-xs">
     <span
       :data-status="watchedStatus.toLowerCase()"
       class="rounded-full px-2 py-1 font-semibold capitalize leading-tight">
