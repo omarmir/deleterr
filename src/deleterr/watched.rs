@@ -35,11 +35,11 @@ impl WatchedChecker for Vec<EpisodeWithStatus> {
 
         if watched_progress == 0.0 {
             return WatchedStatus::Unwatched;
-        } else if watched_progress < eps_len as f32 {
-            return WatchedStatus::InProgress;
+        } else if watched_progress == eps_len as f32 {
+            return WatchedStatus::Watched;
         } else {
             // In theory watched_progress could exceed the eps_len but that would be weird.
-            return WatchedStatus::Watched;
+            return WatchedStatus::InProgress;
         }
     }
 }
@@ -62,7 +62,7 @@ impl WatchedChecker for usize {
         if watched == 0 {
             WatchedStatus::Unwatched
         } else if watched == eps_len {
-            WatchedStatus::InProgress
+            WatchedStatus::Watched
         } else {
             WatchedStatus::InProgress
         }
@@ -75,7 +75,7 @@ impl WatchedChecker for f32 {
         if watched == 0.0 {
             WatchedStatus::Unwatched
         } else if watched == eps_len as f32 {
-            WatchedStatus::InProgress
+            WatchedStatus::Watched
         } else {
             WatchedStatus::InProgress
         }
