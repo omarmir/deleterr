@@ -70,23 +70,6 @@ pub async fn get_request_status(
                 seasons_with_status.push(season_with_status)
             }
 
-            if media_request.id == 71 {
-                println!("little demon!");
-                let watched = seasons_with_status
-                    .clone()
-                    .into_iter()
-                    .map(|season| {
-                        dbg!(&season.watched);
-                        season.watched
-                    })
-                    .fold(0.0, |acc, val| {
-                        let new_val = f32::from(val);
-                        acc + new_val
-                    });
-                println!("{}", watched);
-                println!("{}", *&media_request.seasons.len());
-            }
-
             let watched = seasons_with_status
                 .clone()
                 .into_iter()
