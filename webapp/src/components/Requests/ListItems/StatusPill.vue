@@ -1,8 +1,8 @@
 <template>
-  <div class="px-4 py-3 text-xs">
+  <div class="grow-o flex">
     <span
       :data-status="watchedStatus.toLowerCase()"
-      class="rounded-full px-2 py-1 font-semibold capitalize leading-tight">
+      class="overflow-clip rounded-full px-2 py-1 text-xs font-semibold capitalize leading-tight">
       {{
         //@ts-ignore - enums in TS are weird
         WatchedStatus[watchedStatus]
