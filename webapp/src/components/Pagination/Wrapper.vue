@@ -1,6 +1,6 @@
 <template>
   <div
-    class="grid border-t bg-gray-50 px-4 py-3 text-xs font-semibold uppercase tracking-wide text-gray-500 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 sm:grid-cols-9">
+    class="grid border-t px-4 py-3 text-xs font-semibold uppercase tracking-wide text-gray-500 dark:border-gray-700 dark:text-gray-400 sm:grid-cols-9">
     <PaginationPageCount :take="take" :selected-page="selectedPage" :filtered-requests="filteredRequests" />
     <span class="col-span-2"></span>
     <!-- Pagination -->
