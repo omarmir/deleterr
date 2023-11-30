@@ -104,10 +104,8 @@ pub async fn get_request_status(
     Ok(request_status)
 }
 
-pub async fn match_requests_to_watched(
-    chunk: Option<usize>,
-) -> Result<RequestStatusWithRecordInfo, DeleterrError> {
-    let chunk_size = chunk.unwrap_or(10);
+pub async fn match_requests_to_watched() -> Result<RequestStatusWithRecordInfo, DeleterrError> {
+    let chunk_size = 10;
     // ! Note that the default take is 10 at overseerr if unspecified!
     let (os_requests, page_info) = crate::overseerr::services::get_os_requests().await?;
     let mut matched_requests: HashMap<usize, RequestStatus> =

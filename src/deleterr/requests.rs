@@ -42,14 +42,13 @@ fn _compare_user_watch_history(
 }
 async fn get_data_update_cache(
     app_data: &Data<AppData>,
-    take: Option<usize>,
 ) -> Result<RequestStatusWithRecordInfo, DeleterrError> {
     let mut update_cache = app_data
         .request_cache
         .write() // ! This could leave the app timed out waiting for a write lock - I can't think when/why this would happen
         .expect("Unable to access cache");
 
-    let request_status_with_record_info = match_requests_to_watched(take).await?;
+    let request_status_with_record_info = match_requests_to_watched().await?;
 
     *update_cache = Some(request_status_with_record_info.clone());
     Ok(request_status_with_record_info)
@@ -110,12 +109,11 @@ pub fn delete_cached_record(
 pub async fn get_requests_from_cache_or_update_cache(
     cache: Option<RequestStatusWithRecordInfo>,
     app_data: Data<AppData>,
-    take: Option<usize>,
 ) -> Result<RequestStatusWithRecordInfo, DeleterrError> {
     let req = match cache {
         Some(cached) => cached,
         // Moved the data retrieval into the RWLock so that it cannot be obtained mutiple times at the same time
-        None => get_data_update_cache(&app_data, take).await?,
+        None => get_data_update_cache(&app_data).await?,
     };
 
     Ok(req)
@@ -261,7 +259,7 @@ pub async fn get_requests_and_update_cache(
     params: QueryParms,
 ) -> Result<RequestStatusWithRecordInfoVector, DeleterrError> {
     let cache = get_cached(&app_data);
-    let requests = get_requests_from_cache_or_update_cache(cache, app_data, params.take).await?;
+    let requests = get_requests_from_cache_or_update_cache(cache, app_data).await?;
 
     // Get the vector from the hashmap after being filtered
     let mut vec = get_filtered_vec(requests.requests, params.search);
