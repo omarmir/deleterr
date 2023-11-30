@@ -31,7 +31,7 @@ pub async fn get_request_status(
         _ => None,
     };
 
-    let season_status = match media_type {
+    let (season_status, watched) = match media_type {
         MediaType::TV => {
             let tau_history = tau_history_response
                 .get_all_or_none()
@@ -69,7 +69,15 @@ pub async fn get_request_status(
 
                 seasons_with_status.push(season_with_status)
             }
-            seasons_with_status
+
+            let watched = seasons_with_status
+                .clone()
+                .into_iter()
+                .map(|season| season.watched)
+                .fold(0.0, |acc, val| acc + f32::from(val))
+                .is_watched(*&media_request.seasons.len());
+
+            (seasons_with_status, watched)
         }
         MediaType::Movie => {
             let tau_history = tau_history_response.get_first_or_none();
@@ -92,16 +100,11 @@ pub async fn get_request_status(
                 last_season_with_files: true,
             };
 
-            vec![season_with_status]
+            let watched = season_with_status.watched.clone();
+
+            (vec![season_with_status], watched)
         }
     };
-
-    let watched = season_status
-        .clone()
-        .into_iter()
-        .map(|season| season.watched)
-        .fold(0.0, |acc, val| acc + f32::from(val))
-        .is_watched(*&media_request.seasons.len());
 
     let request_status = RequestStatus {
         media_info,
