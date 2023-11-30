@@ -31,7 +31,7 @@ pub async fn get_request_status(
         _ => None,
     };
 
-    let watched_status = match media_type {
+    let season_status = match media_type {
         MediaType::TV => {
             let tau_history = tau_history_response
                 .get_all_or_none()
@@ -58,7 +58,7 @@ pub async fn get_request_status(
                 let season_with_status = SeasonWithStatus {
                     season_number: Some(season.season_number),
                     req_status: media_request.status,
-                    watched: episodes_with_status.is_watched(),
+                    watched: episodes_with_status.is_watched(*&media_request.seasons.len()),
                     episodes_with_status: Some(episodes_with_status),
                     total_items: Some(season_eps.episode_count),
                     last_season_with_files: match show.max_season_with_file {
@@ -75,7 +75,7 @@ pub async fn get_request_status(
             let tau_history = tau_history_response.get_first_or_none();
             let (watched_status, watched_status_enum) = tau_history
                 .map_or((0.0, WatchedStatus::Unwatched), |hist| {
-                    (hist.watched_status, hist.is_watched())
+                    (hist.watched_status, hist.is_watched(1))
                 });
             let season_with_status = SeasonWithStatus {
                 season_number: None,
@@ -95,10 +95,19 @@ pub async fn get_request_status(
             vec![season_with_status]
         }
     };
+
+    let watched = season_status
+        .clone()
+        .into_iter()
+        .map(|season| season.watched)
+        .fold(0.0, |acc, val| acc + f32::from(val))
+        .is_watched(*&media_request.seasons.len());
+
     let request_status = RequestStatus {
         media_info,
-        watched_status,
+        season_status,
         media_request: media_request.clone(),
+        watched,
     };
 
     Ok(request_status)
@@ -142,7 +151,7 @@ pub async fn match_requests_to_watched() -> Result<RequestStatusWithRecordInfo, 
         // Delay
         if i > 0 && (i % chunk_size) == 0 {
             println!("Sleeping for a sec");
-            tokio::time::sleep(std::time::Duration::from_secs(2)).await;
+            //tokio::time::sleep(std::time::Duration::from_secs(2)).await;
         }
 
         matched_requests.insert(request_status.media_request.id, request_status);

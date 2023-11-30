@@ -25,7 +25,7 @@ export type MediaType = 'movie' | 'tv'
 
 export interface RequestStatus {
   mediaRequest: MediaRequest
-  userWatchHistory?: UserWatchHistory
+  seasonStatus: SeasonStatus[]
   mediaInfo?: MediaInfo
 }
 
@@ -33,6 +33,29 @@ export interface RequestStatusWithRecordInfo {
   allRequests: number
   filteredRequests: number
   requests: RequestStatus[]
+}
+
+export interface SeasonStatus {
+  seasonNumber?: number
+  reqStatus: number
+  watched: WatchedStatus
+  totalItems: number
+  lastSeasonWithFiles: boolean
+  episodesWithStatus: EpisodeWithStatus
+}
+
+export enum WatchedStatus {
+  Unwatched,
+  InProgress,
+  Watched,
+}
+
+export interface EpisodeWithStatus {
+  externalServiceId: number
+  fileId?: number
+  watchedStatus: number //0: Unwatched or less than half, 0.5: watched more than 50%, and 1: Watched
+  episodeNumber: number
+  seasonNumber: number
 }
 
 export type MediaExemption = { [key: string]: number }
@@ -111,8 +134,8 @@ export interface ServiceInfo {
 }
 
 export interface ServiceStatus {
-  test: TestState,
-  save: TestState,
+  test: TestState
+  save: TestState
   errorMsg: string
 }
 

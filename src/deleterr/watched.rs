@@ -23,12 +23,11 @@ pub struct EpisodeWithStatus {
 }
 
 pub trait WatchedChecker {
-    fn is_watched(&self) -> WatchedStatus;
+    fn is_watched(&self, eps_len: usize) -> WatchedStatus;
 }
 
 impl WatchedChecker for Vec<EpisodeWithStatus> {
-    fn is_watched(&self) -> WatchedStatus {
-        let eps_len = self.len() as f32;
+    fn is_watched(&self, eps_len: usize) -> WatchedStatus {
         let watched_progress = self
             .iter()
             .map(|ep| ep.watched_status)
@@ -36,7 +35,7 @@ impl WatchedChecker for Vec<EpisodeWithStatus> {
 
         if watched_progress == 0.0 {
             return WatchedStatus::Unwatched;
-        } else if watched_progress < eps_len {
+        } else if watched_progress < eps_len as f32 {
             return WatchedStatus::InProgress;
         } else {
             // In theory watched_progress could exceed the eps_len but that would be weird.
@@ -45,22 +44,57 @@ impl WatchedChecker for Vec<EpisodeWithStatus> {
     }
 }
 
-#[derive(Deserialize, Serialize, Debug, Clone)]
-#[serde(rename_all = "camelCase")]
-pub enum WatchedStatus {
-    Unwatched,
-    InProgress,
-    Watched,
-}
-
 impl WatchedChecker for UserWatchHistory {
-    fn is_watched(&self) -> WatchedStatus {
+    fn is_watched(&self, _eps_len: usize) -> WatchedStatus {
         if self.watched_status == 0.0 {
             return WatchedStatus::Unwatched;
         } else if self.watched_status == 1.0 {
             return WatchedStatus::Watched;
         } else {
             return WatchedStatus::InProgress;
+        }
+    }
+}
+
+impl WatchedChecker for usize {
+    fn is_watched(&self, eps_len: usize) -> WatchedStatus {
+        let watched = *self;
+        if watched == 0 {
+            WatchedStatus::Unwatched
+        } else if watched == eps_len {
+            WatchedStatus::InProgress
+        } else {
+            WatchedStatus::InProgress
+        }
+    }
+}
+
+impl WatchedChecker for f32 {
+    fn is_watched(&self, eps_len: usize) -> WatchedStatus {
+        let watched = *self;
+        if watched == 0.0 {
+            WatchedStatus::Unwatched
+        } else if watched == eps_len as f32 {
+            WatchedStatus::InProgress
+        } else {
+            WatchedStatus::InProgress
+        }
+    }
+}
+
+#[derive(Deserialize, Serialize, Debug, Clone, PartialEq)]
+pub enum WatchedStatus {
+    Unwatched,
+    InProgress,
+    Watched,
+}
+
+impl From<WatchedStatus> for f32 {
+    fn from(status: WatchedStatus) -> Self {
+        match status {
+            WatchedStatus::InProgress => 0.5,
+            WatchedStatus::Unwatched => 0.0,
+            WatchedStatus::Watched => 1.0,
         }
     }
 }
