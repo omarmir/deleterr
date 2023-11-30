@@ -1,7 +1,6 @@
 use crate::{
     common::models::{APIStatus, DeleterrError, ResponseCodeBasedAction},
     overseerr::models::MediaType,
-    tautulli::user_watch_history::UserWatchHistory,
 };
 use actix_web::web::Data;
 use std::{cmp::Ordering, collections::HashMap};
@@ -12,6 +11,7 @@ use super::{
         RequestStatusWithRecordInfoVector, SortableProps,
     },
     services::match_requests_to_watched,
+    watched::WatchedStatus,
 };
 
 fn compare_media_variants(a: &MediaType, b: &MediaType, is_descending: bool) -> Ordering {
@@ -24,20 +24,22 @@ fn compare_media_variants(a: &MediaType, b: &MediaType, is_descending: bool) -> 
     }
 }
 
-fn _compare_user_watch_history(
-    a: &Option<UserWatchHistory>,
-    b: &Option<UserWatchHistory>,
+fn compare_user_watch_history(
+    a: &WatchedStatus,
+    b: &WatchedStatus,
     is_descending: bool,
 ) -> Ordering {
     let media_variants = if is_descending { (a, b) } else { (b, a) };
     match media_variants {
-        (Some(a), Some(b)) => a
-            .watched_status
-            .partial_cmp(&b.watched_status)
-            .unwrap_or(Ordering::Equal),
-        (None, Some(_)) => Ordering::Less,    // None < Some
-        (Some(_), None) => Ordering::Greater, // Some < None
-        _ => Ordering::Equal,                 // Both None
+        (WatchedStatus::Watched, WatchedStatus::Watched) => Ordering::Equal,
+        (WatchedStatus::Watched, _) => Ordering::Greater,
+
+        (WatchedStatus::InProgress, WatchedStatus::Unwatched) => Ordering::Greater,
+        (WatchedStatus::InProgress, WatchedStatus::InProgress) => Ordering::Equal,
+        (WatchedStatus::InProgress, WatchedStatus::Watched) => Ordering::Less,
+
+        (WatchedStatus::Unwatched, WatchedStatus::Unwatched) => Ordering::Equal,
+        (WatchedStatus::Unwatched, _) => Ordering::Less,
     }
 }
 async fn get_data_update_cache(
@@ -213,11 +215,9 @@ pub fn sort_requests_vector(
             },
             is_descending,
         ),
-        /*
         SortableProps::Watched => vec.sort_unstable_by(|a, b| {
-            compare_user_watch_history(&a.user_watch_history, &b.user_watch_history, is_descending)
+            compare_user_watch_history(&a.watched, &b.watched, is_descending)
         }),
-        */
         SortableProps::RequestedDate => reversible_sort(
             &mut vec,
             |a, b| {

@@ -58,7 +58,7 @@ pub enum SortableProps {
     Name,
     RequestedDate,
     MediaType,
-    //Watched,
+    Watched,
     User,
 }
 
