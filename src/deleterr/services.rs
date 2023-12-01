@@ -5,32 +5,19 @@ use crate::common::models::DeleterrError;
 use crate::deleterr::watched::WatchedStatus;
 use crate::overseerr::models::{MediaInfo, MediaRequest, MediaType};
 use crate::sonarr::models::{Episode, SonarrShow};
-use crate::tautulli::user_watch_history::{ConvertToHashMapBySeason, GetAllOrNone, GetFirstOrNone};
+use crate::tautulli::user_watch_history::{
+    ConvertToHashMapBySeason, GetFirstOrNone, UserWatchHistory,
+};
 use actix_web::web::Data;
 use std::collections::HashMap;
 
 pub async fn get_request_status(
-    rating_key: &Option<u64>,
-    user_id: &Option<u64>,
     media_type: &MediaType,
     media_info: MediaInfo,
     media_request: &MediaRequest,
     sonarr_eps: Option<Vec<Episode>>,
+    tau_history_response: Option<Vec<UserWatchHistory>>,
 ) -> Result<RequestStatus, DeleterrError> {
-    let tau_history_response = match (rating_key, user_id) {
-        (Some(rk), Some(uid)) => Some(
-            crate::tautulli::services::get_item_history(
-                rk.to_string().as_str(),
-                uid.to_string().as_str(),
-                media_type,
-            )
-            .await?
-            .response
-            .data,
-        ),
-        _ => None,
-    };
-
     let (season_status, watched) = match media_type {
         MediaType::TV => {
             let tau_history = tau_history_response
@@ -58,7 +45,7 @@ pub async fn get_request_status(
                 let season_with_status = SeasonWithStatus {
                     season_number: Some(season.season_number),
                     req_status: media_request.status,
-                    watched: episodes_with_status.is_watched(*&media_request.seasons.len()),
+                    watched: episodes_with_status.is_watched(season_eps.episode_count),
                     episodes_with_status: Some(episodes_with_status),
                     total_items: Some(season_eps.episode_count),
                     last_season_with_files: match show.max_season_with_file {
@@ -70,12 +57,7 @@ pub async fn get_request_status(
                 seasons_with_status.push(season_with_status)
             }
 
-            let watched = seasons_with_status
-                .clone()
-                .into_iter()
-                .map(|season| season.watched)
-                .fold(0.0, |acc, val| acc + f32::from(val))
-                .is_watched(*&media_request.seasons.len());
+            let watched = seasons_with_status.is_watched(*&media_request.seasons.len());
 
             (seasons_with_status, watched)
         }
@@ -118,7 +100,6 @@ pub async fn get_request_status(
 
 pub async fn match_requests_to_watched() -> Result<RequestStatusWithRecordInfo, DeleterrError> {
     let chunk_size = 10;
-    // ! Note that the default take is 10 at overseerr if unspecified!
     let (os_requests, page_info) = crate::overseerr::services::get_os_requests().await?;
     let mut matched_requests: HashMap<usize, RequestStatus> =
         HashMap::with_capacity(page_info.results);
@@ -141,13 +122,27 @@ pub async fn match_requests_to_watched() -> Result<RequestStatusWithRecordInfo, 
             _ => None,
         };
 
+        let tau_history_response = match (rating_key, user_id) {
+            (Some(rk), Some(uid)) => {
+                crate::tautulli::services::get_item_history(
+                    rk.to_string().as_str(),
+                    uid.to_string().as_str(),
+                    media_type,
+                )
+                .await?
+                .response
+                .data
+                .data
+            }
+            _ => None,
+        };
+
         let request_status = get_request_status(
-            rating_key,
-            user_id,
             media_type,
             media_info,
             media_request,
             sonarr_eps,
+            tau_history_response,
         )
         .await?;
 

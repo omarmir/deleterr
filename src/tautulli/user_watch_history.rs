@@ -56,28 +56,23 @@ pub trait GetAllOrNone {
     fn get_all_or_none(self) -> Option<Vec<UserWatchHistory>>;
 }
 
-impl GetFirstOrNone for Option<ResponseData> {
+impl GetFirstOrNone for Option<Vec<UserWatchHistory>> {
     fn get_first_or_none(self) -> Option<UserWatchHistory> {
         match self {
             None => return None,
             Some(resp_data) => {
-                return match resp_data.data {
-                    Some(histories) => {
-                        if histories.len() == 1 {
-                            Some(histories[0].clone())
-                        } else {
-                            /* ! We return nothing if there is more than one result
-                             * We make sure that there is exactly one matched result since
-                             * we provided both a ratingKey and userId. If there is more than one result
-                             * then we did something wrong.
-                             */
-                            None
-                        }
-                    }
-                    _ => None,
-                };
+                if resp_data.len() == 1 {
+                    Some(resp_data[0].clone())
+                } else {
+                    /* ! We return nothing if there is more than one result
+                     * We make sure that there is exactly one matched result since
+                     * we provided both a ratingKey and userId. If there is more than one result
+                     * then we did something wrong.
+                     */
+                    None
+                }
             }
-        };
+        }
     }
 }
 

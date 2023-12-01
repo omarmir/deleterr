@@ -26,6 +26,24 @@ pub trait WatchedChecker {
     fn is_watched(&self, eps_len: usize) -> WatchedStatus;
 }
 
+impl WatchedChecker for Vec<SeasonWithStatus> {
+    fn is_watched(&self, eps_len: usize) -> WatchedStatus {
+        let watched_progress = self
+            .iter()
+            .map(|season| season.watched.clone())
+            .fold(0.0, |acc, val| {
+                println!("{}", acc);
+                println!("{:?}", val);
+                let conv_value = f32::from(val);
+                println!("{}", conv_value);
+                acc + conv_value
+            })
+            .is_watched(eps_len);
+
+        watched_progress
+    }
+}
+
 impl WatchedChecker for Vec<EpisodeWithStatus> {
     fn is_watched(&self, eps_len: usize) -> WatchedStatus {
         let watched_progress = self
