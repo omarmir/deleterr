@@ -70,12 +70,13 @@ pub async fn match_requests_to_watched() -> Result<RequestStatusWithRecordInfo, 
             &media_request.requested_by.plex_id,
         );
 
+        //TODO: Do each chunk in a thread?
         let media_info = overseerr::services::get_media_info(media_type, tmdb_id).await?;
 
         let sonarr_eps = match media_type {
             MediaType::TV => sonarr::services::get_episodes(extern_id).await?,
             MediaType::Movie => None,
-        };
+        }; //TODO: Maybe use episodefile ep instead?
 
         let tau_hist =
             tautulli::services::get_item_history(rating_key, user_id, media_type).await?;
