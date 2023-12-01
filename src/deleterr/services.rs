@@ -2,7 +2,6 @@ use super::models::{AppData, MovieDeletionRequest, RequestStatus, RequestStatusW
 use super::requests::{delete_cached_record, get_cached_record};
 use super::watched::{EpisodesWithStatus, SeasonWithStatus, WatchedChecker};
 use crate::common::models::DeleterrError;
-use crate::deleterr::watched::WatchedStatus;
 use crate::overseerr;
 use crate::overseerr::models::{MediaInfo, MediaRequest, MediaType};
 use crate::radarr;
@@ -28,39 +27,22 @@ pub async fn get_request_status(
             let show = SonarrShow::from(sonarr_eps);
             let mut seasons_with_status = vec![];
             for season in &media_request.seasons {
-                let status = media_request.status;
-                let episodes = show.seasons.get(&season.season_number).unwrap();
-                let season_eps = EpisodesWithStatus::from(episodes, &tau_history);
-                let season_with_status = SeasonWithStatus::from(season_eps, &show, status);
-
-                seasons_with_status.push(season_with_status)
+                if let Some(episodes) = show.seasons.get(&season.season_number) {
+                    let status = media_request.status;
+                    let season_eps = EpisodesWithStatus::from(episodes, &tau_history);
+                    let season_with_status = SeasonWithStatus::from_show(season_eps, &show, status);
+                    seasons_with_status.push(season_with_status)
+                }
             }
-
             let watched = seasons_with_status.is_watched(*&media_request.seasons.len());
 
             (seasons_with_status, watched)
         }
         MediaType::Movie => {
-            let tau_history = tau_hist.get_first_or_none();
-            let (watched_status, watched_status_enum) = tau_history
-                .map_or((0.0, WatchedStatus::Unwatched), |hist| {
-                    (hist.watched_status, hist.is_watched(1))
-                });
-            let season_with_status = SeasonWithStatus {
-                season_number: None,
-                req_status: media_request.status,
-                watched: watched_status_enum,
-                episodes_with_status: Some(EpisodesWithStatus::get_eps_for_movie(
-                    media_request.media.external_service_id,
-                    watched_status,
-                )),
-                total_items: Some(1),
-                last_season_with_files: true,
-            };
+            let watched = tau_hist.get_first_or_none().is_watched(1);
+            let season_with_status = vec![SeasonWithStatus::from_movie(&watched, media_request)];
 
-            let watched = season_with_status.watched.clone();
-
-            (vec![season_with_status], watched)
+            (season_with_status, watched)
         }
     };
 

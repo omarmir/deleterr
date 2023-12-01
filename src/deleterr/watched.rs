@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 
 use crate::{
+    overseerr::models::MediaRequest,
     sonarr::models::{EpisodeSeason, SonarrShow},
     tautulli::user_watch_history::UserWatchHistory,
 };
@@ -18,7 +19,7 @@ pub struct SeasonWithStatus {
 }
 
 impl SeasonWithStatus {
-    pub fn from(season_eps: EpisodesWithStatus, show: &SonarrShow, status: u8) -> Self {
+    pub fn from_show(season_eps: EpisodesWithStatus, show: &SonarrShow, status: u8) -> Self {
         SeasonWithStatus {
             season_number: Some(season_eps.season_number),
             req_status: status,
@@ -29,6 +30,20 @@ impl SeasonWithStatus {
                 Some(max_season) => max_season == season_eps.season_number,
                 None => false, // If there is no max_season then maybe seasons aren't in DB - be safe its not last.
             },
+        }
+    }
+
+    pub fn from_movie(watched: &WatchedStatus, media_request: &MediaRequest) -> Self {
+        SeasonWithStatus {
+            season_number: None,
+            req_status: media_request.status,
+            episodes_with_status: Some(EpisodesWithStatus::get_eps_for_movie(
+                media_request.media.external_service_id,
+                watched,
+            )),
+            watched: watched.clone(),
+            total_items: Some(1),
+            last_season_with_files: true,
         }
     }
 }
@@ -52,12 +67,12 @@ pub struct EpisodesWithStatus {
 impl EpisodesWithStatus {
     pub fn get_eps_for_movie(
         external_service_id: Option<usize>,
-        watched_status: f32,
+        watched: &WatchedStatus,
     ) -> Vec<EpisodeWithStatus> {
         vec![EpisodeWithStatus {
             external_service_id: external_service_id,
             file_id: None,
-            watched_status: watched_status,
+            watched_status: f32::from(watched.clone()),
             episode_number: None,
             season_number: None,
         }]
@@ -137,14 +152,19 @@ impl WatchedChecker for Vec<EpisodeWithStatus> {
     }
 }
 
-impl WatchedChecker for UserWatchHistory {
+impl WatchedChecker for Option<UserWatchHistory> {
     fn is_watched(&self, _eps_len: usize) -> WatchedStatus {
-        if self.watched_status == 0.0 {
-            return WatchedStatus::Unwatched;
-        } else if self.watched_status == 1.0 {
-            return WatchedStatus::Watched;
-        } else {
-            return WatchedStatus::InProgress;
+        match self {
+            Some(user_watch_history) => {
+                if user_watch_history.watched_status == 0.0 {
+                    WatchedStatus::Unwatched
+                } else if user_watch_history.watched_status == 1.0 {
+                    WatchedStatus::Watched
+                } else {
+                    WatchedStatus::InProgress
+                }
+            }
+            None => WatchedStatus::Unwatched,
         }
     }
 }
