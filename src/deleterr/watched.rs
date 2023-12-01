@@ -22,6 +22,13 @@ pub struct EpisodeWithStatus {
     pub season_number: Option<usize>,
 }
 
+#[derive(Deserialize, Serialize, Debug, Clone, PartialEq)]
+pub enum WatchedStatus {
+    Unwatched,
+    InProgress,
+    Watched,
+}
+
 pub trait WatchedChecker {
     fn is_watched(&self, eps_len: usize) -> WatchedStatus;
 }
@@ -98,13 +105,6 @@ impl WatchedChecker for f32 {
             WatchedStatus::InProgress
         }
     }
-}
-
-#[derive(Deserialize, Serialize, Debug, Clone, PartialEq)]
-pub enum WatchedStatus {
-    Unwatched,
-    InProgress,
-    Watched,
 }
 
 impl From<WatchedStatus> for f32 {
