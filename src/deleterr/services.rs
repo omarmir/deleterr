@@ -186,7 +186,7 @@ pub async fn delete_movie_from_radarr_overseerr(
 
     let radarr_response = crate::radarr::services::delete_movie(radarr_id.to_string().as_str())
         .await
-        .map_err(|err| err.add_prefix("Unause crate::tautulli::services::get_item_history;ble to delete from Radarr. Error: "))?;
+        .map_err(|err| err.add_prefix("Unble to delete from Radarr. Error: "))?;
 
     let overseerr_response = crate::overseerr::services::delete_media(media_id.to_string().as_str())
         .await
