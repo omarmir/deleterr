@@ -26,25 +26,26 @@ pub struct UserWatchHistory {
 
 pub trait ConvertToHashMapBySeason {
     fn get_all_or_none(self) -> Option<Vec<UserWatchHistory>>;
-    fn convert_to_hash_map_by_season(self) -> Option<HashMap<(usize, usize), UserWatchHistory>>;
+    fn to_season_hashmap(self) -> HashMap<(usize, usize), UserWatchHistory>;
 }
 impl ConvertToHashMapBySeason for Option<Vec<UserWatchHistory>> {
     fn get_all_or_none(self) -> Option<Vec<UserWatchHistory>> {
         self
     }
-    fn convert_to_hash_map_by_season(self) -> Option<HashMap<(usize, usize), UserWatchHistory>> {
-        self.map(|history| {
-            history
-                .into_iter()
-                .filter_map(|item| match (item.parent_media_index, item.media_index) {
-                    (Some(parent_index), Some(item_index)) => {
-                        let key = (parent_index, item_index);
-                        Some((key, item))
+    fn to_season_hashmap(self) -> HashMap<(usize, usize), UserWatchHistory> {
+        self.into_iter()
+            .flat_map(|history| {
+                history.into_iter().filter_map(|item| {
+                    if let (Some(season_number), Some(episode_number)) =
+                        (item.parent_media_index, item.media_index)
+                    {
+                        Some(((season_number, episode_number), item))
+                    } else {
+                        None
                     }
-                    _ => None,
                 })
-                .collect()
-        })
+            })
+            .collect()
     }
 }
 

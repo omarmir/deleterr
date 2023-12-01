@@ -1,6 +1,6 @@
 use super::models::{AppData, MovieDeletionRequest, RequestStatus, RequestStatusWithRecordInfo};
 use super::requests::{delete_cached_record, get_cached_record};
-use super::watched::{EpisodeWithStatus, SeasonWithStatus, WatchedChecker};
+use super::watched::{EpisodesWithStatus, SeasonWithStatus, WatchedChecker};
 use crate::common::models::DeleterrError;
 use crate::deleterr::watched::WatchedStatus;
 use crate::overseerr;
@@ -24,37 +24,14 @@ pub async fn get_request_status(
 ) -> Result<RequestStatus, DeleterrError> {
     let (season_status, watched) = match media_type {
         MediaType::TV => {
-            let tau_history = tau_hist.get_all_or_none().convert_to_hash_map_by_season();
+            let tau_history = tau_hist.get_all_or_none().to_season_hashmap();
             let show = SonarrShow::from(sonarr_eps);
             let mut seasons_with_status = vec![];
             for season in &media_request.seasons {
-                let mut episodes_with_status: Vec<EpisodeWithStatus> = Vec::new();
-                let season_eps = show.seasons.get(&season.season_number).unwrap();
-                for episode in &season_eps.episodes {
-                    let watched_episode = EpisodeWithStatus {
-                        external_service_id: episode.1.id,
-                        file_id: Some(episode.1.episode_file_id),
-                        watched_status: tau_history.as_ref().map_or(0.0, |tau_hash| {
-                            tau_hash
-                                .get(&(season.season_number, episode.1.episode_number))
-                                .map_or(0.0, |hist| hist.watched_status)
-                        }),
-                        episode_number: Some(episode.0.to_owned()),
-                        season_number: Some(season.season_number),
-                    };
-                    episodes_with_status.push(watched_episode);
-                }
-                let season_with_status = SeasonWithStatus {
-                    season_number: Some(season.season_number),
-                    req_status: media_request.status,
-                    watched: episodes_with_status.is_watched(season_eps.episode_count),
-                    episodes_with_status: Some(episodes_with_status),
-                    total_items: Some(season_eps.episode_count),
-                    last_season_with_files: match show.max_season_with_file {
-                        Some(max_season) => max_season == season.season_number,
-                        None => false, // If there is no max_season then maybe seasons aren't in DB - be safe its not last.
-                    },
-                };
+                let status = media_request.status;
+                let episodes = show.seasons.get(&season.season_number).unwrap();
+                let season_eps = EpisodesWithStatus::from(episodes, &tau_history);
+                let season_with_status = SeasonWithStatus::from(season_eps, &show, status);
 
                 seasons_with_status.push(season_with_status)
             }
@@ -73,13 +50,10 @@ pub async fn get_request_status(
                 season_number: None,
                 req_status: media_request.status,
                 watched: watched_status_enum,
-                episodes_with_status: Some(vec![EpisodeWithStatus {
-                    external_service_id: media_request.media.external_service_id.unwrap(),
-                    file_id: None,
-                    watched_status: watched_status,
-                    episode_number: None,
-                    season_number: None,
-                }]),
+                episodes_with_status: Some(EpisodesWithStatus::get_eps_for_movie(
+                    media_request.media.external_service_id,
+                    watched_status,
+                )),
                 total_items: Some(1),
                 last_season_with_files: true,
             };

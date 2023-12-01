@@ -1,4 +1,9 @@
-use crate::tautulli::user_watch_history::UserWatchHistory;
+use std::collections::HashMap;
+
+use crate::{
+    sonarr::models::{EpisodeSeason, SonarrShow},
+    tautulli::user_watch_history::UserWatchHistory,
+};
 use serde::{Deserialize, Serialize};
 
 #[derive(Deserialize, Serialize, Debug, Clone)]
@@ -12,14 +17,77 @@ pub struct SeasonWithStatus {
     pub last_season_with_files: bool,
 }
 
+impl SeasonWithStatus {
+    pub fn from(season_eps: EpisodesWithStatus, show: &SonarrShow, status: u8) -> Self {
+        SeasonWithStatus {
+            season_number: Some(season_eps.season_number),
+            req_status: status,
+            watched: season_eps.eps.is_watched(season_eps.episode_count),
+            episodes_with_status: Some(season_eps.eps),
+            total_items: Some(season_eps.episode_count),
+            last_season_with_files: match show.max_season_with_file {
+                Some(max_season) => max_season == season_eps.season_number,
+                None => false, // If there is no max_season then maybe seasons aren't in DB - be safe its not last.
+            },
+        }
+    }
+}
+
 #[derive(Deserialize, Serialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct EpisodeWithStatus {
-    pub external_service_id: usize,
-    pub file_id: Option<usize>,
-    pub watched_status: f32, //0: Unwatched or less than half, 0.5: watched more than 50%, and 1: Watched
-    pub episode_number: Option<usize>,
-    pub season_number: Option<usize>,
+    external_service_id: Option<usize>,
+    file_id: Option<usize>,
+    watched_status: f32, //0: Unwatched or less than half, 0.5: watched more than 50%, and 1: Watched
+    episode_number: Option<usize>,
+    season_number: Option<usize>,
+}
+
+pub struct EpisodesWithStatus {
+    pub eps: Vec<EpisodeWithStatus>,
+    pub season_number: usize,
+    pub episode_count: usize,
+}
+
+impl EpisodesWithStatus {
+    pub fn get_eps_for_movie(
+        external_service_id: Option<usize>,
+        watched_status: f32,
+    ) -> Vec<EpisodeWithStatus> {
+        vec![EpisodeWithStatus {
+            external_service_id: external_service_id,
+            file_id: None,
+            watched_status: watched_status,
+            episode_number: None,
+            season_number: None,
+        }]
+    }
+
+    pub fn from(
+        episodes: &EpisodeSeason,
+        tau_hist: &HashMap<(usize, usize), UserWatchHistory>,
+    ) -> Self {
+        let mut episodes_with_status: Vec<EpisodeWithStatus> =
+            Vec::with_capacity(episodes.episode_count);
+        for episode in &episodes.episodes {
+            let watched_status = tau_hist
+                .get(&(episode.1.season_number, episode.1.episode_number))
+                .map_or(0.0, |hist| hist.watched_status);
+            let watched_episode = EpisodeWithStatus {
+                external_service_id: Some(episode.1.id),
+                file_id: Some(episode.1.episode_file_id),
+                watched_status,
+                episode_number: Some(episode.0.to_owned()),
+                season_number: Some(episode.1.season_number),
+            };
+            episodes_with_status.push(watched_episode);
+        }
+        EpisodesWithStatus {
+            eps: episodes_with_status,
+            season_number: episodes.season_number,
+            episode_count: episodes.episode_count,
+        }
+    }
 }
 
 #[derive(Deserialize, Serialize, Debug, Clone, PartialEq)]
