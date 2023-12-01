@@ -121,13 +121,7 @@ impl WatchedChecker for Vec<SeasonWithStatus> {
         let watched_progress = self
             .iter()
             .map(|season| season.watched.clone())
-            .fold(0.0, |acc, val| {
-                println!("{}", acc);
-                println!("{:?}", val);
-                let conv_value = f32::from(val);
-                println!("{}", conv_value);
-                acc + conv_value
-            })
+            .fold(0.0, |acc, val| acc + f32::from(val))
             .is_watched(eps_len);
 
         watched_progress
