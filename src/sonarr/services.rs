@@ -11,25 +11,33 @@ fn build_service_info() -> Result<ServiceInfo, DeleterrError> {
     service_info.ok_or(DeleterrError::new("Sonarr service not setup."))
 }
 
-pub async fn get_episodes(series_id: &str) -> Result<Vec<Episode>, DeleterrError> {
-    let endpoint = "api/v3/episode".to_string();
-    let service_info = build_service_info()?;
+pub async fn get_episodes(
+    series_id: &Option<usize>,
+) -> Result<Option<Vec<Episode>>, DeleterrError> {
+    match series_id {
+        Some(series_id) => {
+            let endpoint = "api/v3/episode".to_string();
+            let service_info = build_service_info()?;
+            let id = series_id.to_string();
 
-    let api_url = create_api_url(&endpoint, &service_info);
-    let query = vec![("seriesId", series_id)];
+            let api_url = create_api_url(&endpoint, &service_info);
+            let query = vec![("seriesId", id.as_str())];
 
-    let client_req =
-        get_api_endpoint(api_url, query, Some(service_info.api_key), RequestType::Get)?;
+            let client_req =
+                get_api_endpoint(api_url, query, Some(service_info.api_key), RequestType::Get)?;
 
-    let request_response = make_api_call(client_req).await?;
+            let request_response = make_api_call(client_req).await?;
 
-    let resp = request_response.response.json::<Vec<Episode>>().await;
+            let resp = request_response.response.json::<Vec<Episode>>().await;
 
-    match resp {
-        Ok(r) => Ok(r),
-        Err(error) => {
-            Err(DeleterrError::from(error).add_prefix("Unable to process Sonarr response,"))
+            match resp {
+                Ok(episodes) => Ok(Some(episodes)),
+                Err(error) => {
+                    Err(DeleterrError::from(error).add_prefix("Unable to process Sonarr response,"))
+                }
+            }
         }
+        None => Ok(None),
     }
 
     //Ok(resp)

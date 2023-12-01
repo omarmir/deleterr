@@ -1,5 +1,5 @@
-use crate::common::models::ResponseCodeBasedAction;
-use crate::overseerr::models::{MediaInfo, MediaRequest};
+use crate::overseerr::models::MediaInfo;
+use crate::{common::models::ResponseCodeBasedAction, overseerr::models::MediaRequest};
 use serde::{Deserialize, Serialize};
 use serde_map_to_array::{DefaultLabels, HashMapToArray};
 use std::collections::HashMap;

@@ -1,8 +1,7 @@
-use std::collections::HashMap;
-
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use serde_aux::prelude::deserialize_option_number_from_string;
+use std::collections::HashMap;
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct OverseerrRequestsCount {
@@ -28,19 +27,6 @@ pub struct PageInfo {
     pub page: u32,
     pub pages: usize,
     pub results: usize,
-}
-
-#[derive(Deserialize, Serialize, Debug, Clone)]
-#[serde(rename_all = "camelCase")]
-pub struct MediaRequest {
-    pub id: usize,
-    pub status: u8, // Status of the request. 1 = PENDING APPROVAL, 2 = APPROVED, 3 = DECLINED
-    pub requested_by: User,
-    pub media: Media,
-    pub created_at: DateTime<Utc>,
-    pub season_count: Option<usize>,
-    #[serde(skip_serializing)]
-    pub seasons: Vec<RequestSeason>,
 }
 
 #[derive(Deserialize, Serialize, Debug, Clone)]
@@ -71,7 +57,7 @@ pub struct User {
     user_type: u32,
     email: Option<String>,
     plex_username: Option<String>,
-    pub plex_id: Option<u64>, // Don't know if its 32 bit or 64 - same as tautulli user
+    pub plex_id: Option<usize>, // Don't know if its 32 bit or 64 - same as tautulli user
     avatar: Option<String>,
 }
 
@@ -83,9 +69,21 @@ pub struct Media {
     pub tmdb_id: Option<usize>,
     tvdb_id: Option<usize>, // Apparently nothing uses this. Even if it says tvid in the API.
     #[serde(deserialize_with = "deserialize_option_number_from_string")]
-    pub rating_key: Option<u64>,
+    pub rating_key: Option<usize>,
     pub external_service_id: Option<usize>,
     pub status: u8, // Availability of the media. 1 = UNKNOWN, 2 = PENDING, 3 = PROCESSING, 4 = PARTIALLY_AVAILABLE, 5 = AVAILABLE
+}
+#[derive(Deserialize, Serialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct MediaRequest {
+    pub id: usize,
+    pub status: u8, // Status of the request. 1 = PENDING APPROVAL, 2 = APPROVED, 3 = DECLINED
+    pub requested_by: User,
+    pub media: Media,
+    pub created_at: DateTime<Utc>,
+    pub season_count: Option<usize>,
+    #[serde(skip_serializing)]
+    pub seasons: Vec<RequestSeason>,
 }
 
 #[derive(Deserialize, Serialize, Debug, Clone)]

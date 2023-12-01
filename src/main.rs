@@ -9,6 +9,7 @@ use deleterr::models::AppData;
 use std::sync::OnceLock;
 use std::sync::RwLock;
 use store::models::PersyManager;
+
 mod auth;
 mod common;
 mod deleterr;

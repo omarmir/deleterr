@@ -5,7 +5,6 @@ use serde::{Deserialize, Serialize};
 pub struct TautulliResponse {
     pub response: ResponseContent,
 }
-
 #[derive(Serialize, Deserialize, Debug)]
 pub struct ResponseContent {
     pub result: Result,

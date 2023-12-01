@@ -3,8 +3,12 @@ use super::requests::{delete_cached_record, get_cached_record};
 use super::watched::{EpisodeWithStatus, SeasonWithStatus, WatchedChecker};
 use crate::common::models::DeleterrError;
 use crate::deleterr::watched::WatchedStatus;
+use crate::overseerr;
 use crate::overseerr::models::{MediaInfo, MediaRequest, MediaType};
+use crate::radarr;
+use crate::sonarr;
 use crate::sonarr::models::{Episode, SonarrShow};
+use crate::tautulli;
 use crate::tautulli::user_watch_history::{
     ConvertToHashMapBySeason, GetFirstOrNone, UserWatchHistory,
 };
@@ -16,13 +20,11 @@ pub async fn get_request_status(
     media_info: MediaInfo,
     media_request: &MediaRequest,
     sonarr_eps: Option<Vec<Episode>>,
-    tau_history_response: Option<Vec<UserWatchHistory>>,
+    tau_hist: Option<Vec<UserWatchHistory>>,
 ) -> Result<RequestStatus, DeleterrError> {
     let (season_status, watched) = match media_type {
         MediaType::TV => {
-            let tau_history = tau_history_response
-                .get_all_or_none()
-                .convert_to_hash_map_by_season();
+            let tau_history = tau_hist.get_all_or_none().convert_to_hash_map_by_season();
             let show = SonarrShow::from(sonarr_eps);
             let mut seasons_with_status = vec![];
             for season in &media_request.seasons {
@@ -62,7 +64,7 @@ pub async fn get_request_status(
             (seasons_with_status, watched)
         }
         MediaType::Movie => {
-            let tau_history = tau_history_response.get_first_or_none();
+            let tau_history = tau_hist.get_first_or_none();
             let (watched_status, watched_status_enum) = tau_history
                 .map_or((0.0, WatchedStatus::Unwatched), |hist| {
                     (hist.watched_status, hist.is_watched(1))
@@ -99,51 +101,32 @@ pub async fn get_request_status(
 }
 
 pub async fn match_requests_to_watched() -> Result<RequestStatusWithRecordInfo, DeleterrError> {
-    let (os_requests, page_info) = crate::overseerr::services::get_os_requests().await?;
-    let mut matched_requests: HashMap<usize, RequestStatus> =
-        HashMap::with_capacity(page_info.results);
+    let (os_requests, page_info) = overseerr::services::get_os_requests().await?;
+    let mut matched_requests = HashMap::with_capacity(page_info.results);
 
     for i in 0..os_requests.len() {
         let media_request = &os_requests[i];
-        let (media_type, tmdb_id, rating_key, user_id) = (
+        let (media_type, tmdb_id, extern_id, rating_key, user_id) = (
             &media_request.media.media_type,
             &media_request.media.tmdb_id,
+            &media_request.media.external_service_id,
             &media_request.media.rating_key,
             &media_request.requested_by.plex_id,
         );
 
-        let media_info = crate::overseerr::services::get_media_info(&media_type, &tmdb_id).await?;
+        let media_info = overseerr::services::get_media_info(media_type, tmdb_id).await?;
 
-        let sonarr_eps = match (media_type, media_request.media.external_service_id) {
-            (MediaType::TV, Some(sonarr_id)) => {
-                Some(crate::sonarr::services::get_episodes(sonarr_id.to_string().as_str()).await?)
-            }
-            _ => None,
+        let sonarr_eps = match media_type {
+            MediaType::TV => sonarr::services::get_episodes(extern_id).await?,
+            MediaType::Movie => None,
         };
 
-        let tau_history_response = match (rating_key, user_id) {
-            (Some(rk), Some(uid)) => {
-                crate::tautulli::services::get_item_history(
-                    rk.to_string().as_str(),
-                    uid.to_string().as_str(),
-                    media_type,
-                )
-                .await?
-                .response
-                .data
-                .data
-            }
-            _ => None,
-        };
+        let tau_hist =
+            tautulli::services::get_item_history(rating_key, user_id, media_type).await?;
 
-        let request_status = get_request_status(
-            media_type,
-            media_info,
-            media_request,
-            sonarr_eps,
-            tau_history_response,
-        )
-        .await?;
+        let request_status =
+            get_request_status(&media_type, media_info, media_request, sonarr_eps, tau_hist)
+                .await?;
 
         matched_requests.insert(request_status.media_request.id, request_status);
     }
@@ -177,11 +160,11 @@ pub async fn delete_movie_from_radarr_overseerr(
         .external_service_id
         .ok_or(DeleterrError::new("Missing external service (radarr) id!"))?;
 
-    let radarr_response = crate::radarr::services::delete_movie(radarr_id.to_string().as_str())
+    let radarr_response = radarr::services::delete_movie(radarr_id.to_string().as_str())
         .await
         .map_err(|err| err.add_prefix("Unble to delete from Radarr. Error: "))?;
 
-    let overseerr_response = crate::overseerr::services::delete_media(media_id.to_string().as_str())
+    let overseerr_response = overseerr::services::delete_media(media_id.to_string().as_str())
         .await
         .map_err(|err| err.add_prefix("Radarr media deleted but was unable to delete Overseer request. Please delete it manually. Error: "))?;
 
