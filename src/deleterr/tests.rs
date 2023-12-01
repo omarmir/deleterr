@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+#![allow(unused_variables)]
 #[cfg(test)]
 #[tokio::test]
 async fn all_episodes_watched() {
