@@ -99,7 +99,6 @@ pub async fn get_request_status(
 }
 
 pub async fn match_requests_to_watched() -> Result<RequestStatusWithRecordInfo, DeleterrError> {
-    let chunk_size = 10;
     let (os_requests, page_info) = crate::overseerr::services::get_os_requests().await?;
     let mut matched_requests: HashMap<usize, RequestStatus> =
         HashMap::with_capacity(page_info.results);
@@ -145,12 +144,6 @@ pub async fn match_requests_to_watched() -> Result<RequestStatusWithRecordInfo, 
             tau_history_response,
         )
         .await?;
-
-        // Delay
-        if i > 0 && (i % chunk_size) == 0 {
-            println!("Sleeping for a sec");
-            //tokio::time::sleep(std::time::Duration::from_secs(2)).await;
-        }
 
         matched_requests.insert(request_status.media_request.id, request_status);
     }
