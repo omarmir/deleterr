@@ -22,6 +22,7 @@ pub struct UserWatchHistory {
     pub media_index: Option<usize>,
     #[serde(deserialize_with = "deserialize_option_number_from_string")]
     pub parent_media_index: Option<usize>,
+    pub originally_available_at: Option<String>,
 }
 
 pub trait ConvertToHashMapBySeason {
