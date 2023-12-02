@@ -1,4 +1,8 @@
-use crate::{overseerr::models::MediaRequest, tautulli::user_watch_history::UserWatchHistory};
+use crate::{
+    overseerr::models::{MediaRequest, RequestSeason},
+    sonarr::series::Season,
+    tautulli::user_watch_history::UserWatchHistory,
+};
 use serde::{Deserialize, Serialize};
 
 #[derive(Deserialize, Serialize, Debug, Clone)]
@@ -12,6 +16,23 @@ pub struct SeasonWithStatus {
 }
 
 impl SeasonWithStatus {
+    pub fn from_series(
+        season: &RequestSeason,
+        watched_statuses: Option<&Vec<UserWatchHistory>>,
+        series_season: Option<&Season>,
+    ) -> Self {
+        let watched = watched_statuses.is_watched(series_season.unwrap().statistics.episode_count);
+
+        SeasonWithStatus {
+            season_number: Some(season.season_number),
+            req_status: season.status,
+            watched: watched,
+            episode_count: series_season.map_or(0, |season| season.statistics.episode_count),
+            episode_file_count: series_season
+                .map_or(0, |season| season.statistics.episode_file_count),
+        }
+    }
+
     pub fn from_movie(watched: &WatchedStatus, media_request: &MediaRequest) -> Self {
         SeasonWithStatus {
             season_number: None,

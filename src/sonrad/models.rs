@@ -5,3 +5,11 @@ use serde::{Deserialize, Serialize};
 pub struct SonRadStatus {
     pub app_name: String,
 }
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct Image {
+    pub cover_type: String,
+    pub url: String,
+    pub remote_url: String,
+}

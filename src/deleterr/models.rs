@@ -1,8 +1,11 @@
 use super::watched::{SeasonWithStatus, WatchedStatus};
-use crate::sonarr::series::{Image, Series};
+use crate::radarr::models::Movie;
+use crate::sonarr::series::Series;
+use crate::sonrad::models::Image;
 use crate::{common::models::ResponseCodeBasedAction, overseerr::models::MediaRequest};
 use serde::{Deserialize, Serialize};
 use serde_map_to_array::{DefaultLabels, HashMapToArray};
+use std::cmp;
 use std::collections::HashMap;
 use std::sync::RwLock;
 use std::time::SystemTime;
@@ -24,20 +27,46 @@ pub struct MediaInfo {
     pub title: String,
 }
 
-impl From<Option<Series>> for MediaInfo {
-    fn from(series: Option<Series>) -> Self {
-        let (release_date, title, images) = match series {
-            Some(series) => (Some(series.first_aired), series.title, Some(series.images)),
-            None => (None, "N/A".to_string(), None),
-        };
+impl MediaInfo {
+    pub fn default() -> Self {
+        MediaInfo {
+            images: None,
+            release_date: None,
+            title: "N/A".to_string(),
+        }
+    }
 
-        let media_info = MediaInfo {
+    pub fn new(release_date: Option<String>, title: String, images: Option<Vec<Image>>) -> Self {
+        MediaInfo {
             images,
             release_date,
             title,
-        };
+        }
+    }
 
-        media_info
+    pub fn from_sonarr(series: Option<Series>) -> Self {
+        match series {
+            Some(series) => MediaInfo::new(series.first_aired, series.title, series.images),
+            None => MediaInfo::default(),
+        }
+    }
+
+    pub fn from_radarr(movie: Option<Movie>) -> Self {
+        match movie {
+            Some(movie) => {
+                let release_date = match (movie.digital_release, movie.physical_release) {
+                    (Some(digital_release), Some(physical_release)) => {
+                        Some(cmp::min(digital_release, physical_release))
+                    }
+                    (None, Some(physical_release)) => Some(physical_release),
+                    (Some(digital_release), None) => Some(digital_release),
+                    (None, None) => None,
+                };
+
+                MediaInfo::new(release_date, movie.title, movie.images)
+            }
+            None => MediaInfo::default(),
+        }
     }
 }
 

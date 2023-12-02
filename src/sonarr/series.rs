@@ -1,19 +1,20 @@
-use std::collections::HashMap;
-
+use crate::sonrad::models::Image;
 use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Series {
     pub title: String,
     pub status: String,
+    pub sort_title: String,
     pub ended: bool,
     pub tvdb_id: usize,
     pub id: usize,
     pub seasons: Vec<Season>,
     pub statistics: SeriesStatistics,
-    pub images: Vec<Image>,
-    pub first_aired: String,
+    pub images: Option<Vec<Image>>,
+    pub first_aired: Option<String>,
 }
 
 impl Series {
@@ -68,12 +69,4 @@ pub struct SeriesStatistics {
     pub size_on_disk: usize,
     pub release_groups: Vec<String>,
     pub percent_of_episodes: f64,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct Image {
-    pub cover_type: String,
-    pub url: String,
-    pub remote_url: String,
 }

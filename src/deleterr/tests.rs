@@ -1,10 +1,12 @@
 #![allow(dead_code)]
 #![allow(unused_variables)]
+
+use crate::radarr::models::Movie;
 #[cfg(test)]
 #[tokio::test]
-async fn all_episodes_watched() {
+async fn show_with_status() {
     use crate::{
-        deleterr::services::get_request_status,
+        deleterr::services::get_request_status_for_series,
         overseerr::models::{MediaRequest, OverseerrListResponse},
         sonarr::series::Series,
         tautulli::models::TautulliResponse,
@@ -23,15 +25,21 @@ async fn all_episodes_watched() {
     let media_request = &ovr_resp.results[0];
     let media_type = &media_request.media.media_type;
 
-    let req_status = get_request_status(media_request, sonarr_resp.get(0).cloned(), tau_resp)
-        .await
-        .unwrap();
+    let req_status =
+        get_request_status_for_series(media_request, sonarr_resp.get(0).cloned(), tau_resp)
+            .await
+            .unwrap();
 
     println!("{:?}", req_status.watched);
     assert!(matches!(
         req_status.watched,
         crate::deleterr::watched::WatchedStatus::Watched
     ));
+}
+
+#[tokio::test]
+async fn movie_with_status() {
+    let sonarr_resp = serde_json::from_str::<Vec<Movie>>(RADARR_RESP).unwrap();
 }
 
 const MEDIA_INFO: &str = r#"{
@@ -570,6 +578,280 @@ const MEDIA_INFO: &str = r#"{
       }
   ]
 }"#;
+
+const RADARR_RESP: &str = r#"[
+    {
+      "title": "The Age of Adaline",
+      "originalTitle": "The Age of Adaline",
+      "originalLanguage": {
+        "id": 1,
+        "name": "English"
+      },
+      "alternateTitles": [
+        {
+          "sourceType": "tmdb",
+          "movieMetadataId": 571,
+          "title": "El secreto de Adaline",
+          "sourceId": 0,
+          "votes": 0,
+          "voteCount": 0,
+          "language": {
+            "id": 3,
+            "name": "Spanish"
+          },
+          "id": 6573
+        },
+        {
+          "sourceType": "tmdb",
+          "movieMetadataId": 571,
+          "title": "Adelainos amžius",
+          "sourceId": 0,
+          "votes": 0,
+          "voteCount": 0,
+          "language": {
+            "id": 24,
+            "name": "Lithuanian"
+          },
+          "id": 6574
+        },
+        {
+          "sourceType": "tmdb",
+          "movieMetadataId": 571,
+          "title": "Το Μυστικό Της Ανταλάιν",
+          "sourceId": 0,
+          "votes": 0,
+          "voteCount": 0,
+          "language": {
+            "id": 1,
+            "name": "English"
+          },
+          "id": 6575
+        },
+        {
+          "sourceType": "tmdb",
+          "movieMetadataId": 571,
+          "title": "Éternelle Adaline",
+          "sourceId": 0,
+          "votes": 0,
+          "voteCount": 0,
+          "language": {
+            "id": 1,
+            "name": "English"
+          },
+          "id": 6576
+        },
+        {
+          "sourceType": "tmdb",
+          "movieMetadataId": 571,
+          "title": "Věčně mladá",
+          "sourceId": 0,
+          "votes": 0,
+          "voteCount": 0,
+          "language": {
+            "id": 1,
+            "name": "English"
+          },
+          "id": 6577
+        },
+        {
+          "sourceType": "tmdb",
+          "movieMetadataId": 571,
+          "title": "A Idade de Adaline",
+          "sourceId": 0,
+          "votes": 0,
+          "voteCount": 0,
+          "language": {
+            "id": 18,
+            "name": "Portuguese"
+          },
+          "id": 6578
+        },
+        {
+          "sourceType": "tmdb",
+          "movieMetadataId": 571,
+          "title": "Век Адалин",
+          "sourceId": 0,
+          "votes": 0,
+          "voteCount": 0,
+          "language": {
+            "id": 11,
+            "name": "Russian"
+          },
+          "id": 6579
+        },
+        {
+          "sourceType": "tmdb",
+          "movieMetadataId": 571,
+          "title": "아델라인: 멈춰진 시간",
+          "sourceId": 0,
+          "votes": 0,
+          "voteCount": 0,
+          "language": {
+            "id": 1,
+            "name": "English"
+          },
+          "id": 6580
+        },
+        {
+          "sourceType": "tmdb",
+          "movieMetadataId": 571,
+          "title": "อดาไลน์ หยุดเวลา รอปาฏิหาริย์รัก",
+          "sourceId": 0,
+          "votes": 0,
+          "voteCount": 0,
+          "language": {
+            "id": 28,
+            "name": "Thai"
+          },
+          "id": 6581
+        },
+        {
+          "sourceType": "tmdb",
+          "movieMetadataId": 571,
+          "title": "Fuer immer Adaline",
+          "sourceId": 0,
+          "votes": 0,
+          "voteCount": 0,
+          "language": {
+            "id": 4,
+            "name": "German"
+          },
+          "id": 6582
+        },
+        {
+          "sourceType": "tmdb",
+          "movieMetadataId": 571,
+          "title": "Вік Адалін",
+          "sourceId": 0,
+          "votes": 0,
+          "voteCount": 0,
+          "language": {
+            "id": 32,
+            "name": "Ukrainian"
+          },
+          "id": 8129
+        }
+      ],
+      "secondaryYearSourceId": 0,
+      "sortTitle": "age adaline",
+      "sizeOnDisk": 9386949924,
+      "status": "released",
+      "overview": "After 29-year-old Adaline recovers from a nearly lethal accident, she inexplicably stops growing older. As the years stretch on and on, Adaline keeps her secret to herself  until she meets a man who changes her life.",
+      "inCinemas": "2015-04-16T00:00:00Z",
+      "physicalRelease": "2015-09-08T00:00:00Z",
+      "digitalRelease": "2019-08-04T00:00:00Z",
+      "images": [
+        {
+          "coverType": "poster",
+          "url": "/MediaCover/670/poster.jpg?lastWrite=638359881587835230",
+          "remoteUrl": "https://image.tmdb.org/t/p/original/MbILysGhjAbnZi1Okae9wYqLMx.jpg"
+        },
+        {
+          "coverType": "fanart",
+          "url": "/MediaCover/670/fanart.jpg?lastWrite=638359881589515202",
+          "remoteUrl": "https://image.tmdb.org/t/p/original/w89trVfLmEdBxv7rxWKy5HyckXR.jpg"
+        }
+      ],
+      "website": "http://theageofadalinemovie.com",
+      "year": 2015,
+      "hasFile": true,
+      "youTubeTrailerId": "7UzSekc0LoQ",
+      "studio": "Lakeshore Entertainment",
+      "path": "/movies/The Age of Adaline (2015)",
+      "qualityProfileId": 4,
+      "monitored": true,
+      "minimumAvailability": "announced",
+      "isAvailable": true,
+      "folderName": "/movies/The Age of Adaline (2015)",
+      "runtime": 112,
+      "cleanTitle": "theageadaline",
+      "imdbId": "tt1655441",
+      "tmdbId": 293863,
+      "titleSlug": "293863",
+      "certification": "PG-13",
+      "genres": [
+        "Romance",
+        "Fantasy",
+        "Drama"
+      ],
+      "tags": [],
+      "added": "2023-01-26T08:14:44Z",
+      "ratings": {
+        "imdb": {
+          "votes": 196372,
+          "value": 7.2,
+          "type": "user"
+        },
+        "tmdb": {
+          "votes": 6149,
+          "value": 7.5,
+          "type": "user"
+        },
+        "metacritic": {
+          "votes": 0,
+          "value": 51,
+          "type": "user"
+        },
+        "rottenTomatoes": {
+          "votes": 0,
+          "value": 55,
+          "type": "user"
+        }
+      },
+      "movieFile": {
+        "movieId": 670,
+        "relativePath": "The Age of Adaline 2015.mkv",
+        "path": "/movies/The Age of Adaline (2015)/The Age of Adaline 2015.mkv",
+        "size": 9386949924,
+        "dateAdded": "2023-01-26T08:16:16Z",
+        "sceneName": "x",
+        "indexerFlags": 0,
+        "quality": {
+          "quality": {
+            "id": 7,
+            "name": "Bluray-1080p",
+            "source": "bluray",
+            "resolution": 1080,
+            "modifier": "none"
+          },
+          "revision": {
+            "version": 1,
+            "real": 0,
+            "isRepack": false
+          }
+        },
+        "mediaInfo": {
+          "audioBitrate": 1536000,
+          "audioChannels": 5.1,
+          "audioCodec": "DTS",
+          "audioLanguages": "eng",
+          "audioStreamCount": 1,
+          "videoBitDepth": 8,
+          "videoBitrate": 0,
+          "videoCodec": "x264",
+          "videoDynamicRangeType": "",
+          "videoFps": 23.976,
+          "resolution": "1920x800",
+          "runTime": "1:52:42",
+          "scanType": "Progressive",
+          "subtitles": ""
+        },
+        "originalFilePath": "x",
+        "qualityCutoffNotMet": false,
+        "languages": [
+          {
+            "id": 1,
+            "name": "English"
+          }
+        ],
+        "releaseGroup": "x",
+        "edition": "",
+        "id": 1
+      },
+      "popularity": 74.716,
+      "id": 670
+    }
+  ]"#;
 
 const SONARR_RESP: &str = r#"[
     {
