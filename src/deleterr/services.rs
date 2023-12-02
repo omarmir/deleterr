@@ -1,12 +1,14 @@
-use super::models::{AppData, MovieDeletionRequest, RequestStatus, RequestStatusWithRecordInfo};
+use super::models::{
+    AppData, MediaInfo, MovieDeletionRequest, RequestStatus, RequestStatusWithRecordInfo,
+};
 use super::requests::{delete_cached_record, get_cached_record};
-use super::watched::{EpisodesWithStatus, SeasonWithStatus, WatchedChecker};
+use super::watched::{SeasonWithStatus, WatchedChecker};
 use crate::common::models::DeleterrError;
 use crate::overseerr;
-use crate::overseerr::models::{MediaInfo, MediaRequest, MediaType};
+use crate::overseerr::models::{MediaRequest, MediaType};
 use crate::radarr;
 use crate::sonarr;
-use crate::sonarr::models::{Episode, SonarrShow};
+use crate::sonarr::series::Series;
 use crate::tautulli;
 use crate::tautulli::user_watch_history::{
     ConvertToHashMapBySeason, GetFirstOrNone, UserWatchHistory,
@@ -15,24 +17,32 @@ use actix_web::web::Data;
 use std::collections::HashMap;
 
 pub async fn get_request_status(
-    media_type: &MediaType,
-    media_info: MediaInfo,
     media_request: &MediaRequest,
-    sonarr_eps: Option<Vec<Episode>>,
+    sonarr_series: Option<Series>,
     tau_hist: Option<Vec<UserWatchHistory>>,
 ) -> Result<RequestStatus, DeleterrError> {
-    let (season_status, watched) = match media_type {
+    let (season_status, watched) = match media_request.media.media_type {
         MediaType::TV => {
-            let tau_history = tau_hist.get_all_or_none().to_season_hashmap();
-            let show = SonarrShow::from(sonarr_eps);
+            let tau_history = tau_hist.get_all_or_none().hashmap_seasons();
             let mut seasons_with_status = vec![];
+            let series_map = Series::hashmap_seasons(&sonarr_series);
+
             for season in &media_request.seasons {
-                if let Some(episodes) = show.seasons.get(&season.season_number) {
-                    let status = media_request.status;
-                    let season_eps = EpisodesWithStatus::from(episodes, &tau_history);
-                    let season_with_status = SeasonWithStatus::from_show(season_eps, &show, status);
-                    seasons_with_status.push(season_with_status)
-                }
+                let series_season = series_map.get(&season.season_number);
+                let watched_statuses = tau_history.get(&season.season_number);
+                let watched =
+                    watched_statuses.is_watched(series_season.unwrap().statistics.episode_count);
+
+                let season_with_status = SeasonWithStatus {
+                    season_number: Some(season.season_number),
+                    req_status: season.status,
+                    watched: watched,
+                    episode_count: series_season
+                        .map_or(0, |season| season.statistics.episode_count),
+                    episode_file_count: series_season
+                        .map_or(0, |season| season.statistics.episode_file_count),
+                };
+                seasons_with_status.push(season_with_status)
             }
             let watched = seasons_with_status.is_watched(*&media_request.seasons.len());
 
@@ -45,6 +55,8 @@ pub async fn get_request_status(
             (season_with_status, watched)
         }
     };
+
+    let media_info = MediaInfo::from(sonarr_series);
 
     let request_status = RequestStatus {
         media_info,
@@ -62,28 +74,23 @@ pub async fn match_requests_to_watched() -> Result<RequestStatusWithRecordInfo, 
 
     for i in 0..os_requests.len() {
         let media_request = &os_requests[i];
-        let (media_type, tmdb_id, extern_id, rating_key, user_id) = (
+        let (media_type, _tmdb_id, rating_key, user_id, tvdb_id) = (
             &media_request.media.media_type,
             &media_request.media.tmdb_id,
-            &media_request.media.external_service_id,
             &media_request.media.rating_key,
             &media_request.requested_by.plex_id,
+            &media_request.media.tvdb_id,
         );
 
-        //TODO: Do each chunk in a thread?
-        let media_info = overseerr::services::get_media_info(media_type, tmdb_id).await?;
-
-        let sonarr_eps = match media_type {
-            MediaType::TV => sonarr::services::get_episodes(extern_id).await?,
+        let sonarr_series = match media_type {
+            MediaType::TV => sonarr::services::get_series(tvdb_id).await?,
             MediaType::Movie => None,
-        }; //TODO: Maybe use episodefile ep instead?
+        };
 
         let tau_hist =
             tautulli::services::get_item_history(rating_key, user_id, media_type).await?;
 
-        let request_status =
-            get_request_status(&media_type, media_info, media_request, sonarr_eps, tau_hist)
-                .await?;
+        let request_status = get_request_status(media_request, sonarr_series, tau_hist).await?;
 
         matched_requests.insert(request_status.media_request.id, request_status);
     }

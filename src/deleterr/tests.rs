@@ -5,8 +5,8 @@
 async fn all_episodes_watched() {
     use crate::{
         deleterr::services::get_request_status,
-        overseerr::models::{MediaInfo, MediaRequest, OverseerrListResponse},
-        sonarr::models::Episode,
+        overseerr::models::{MediaRequest, OverseerrListResponse},
+        sonarr::series::Series,
         tautulli::models::TautulliResponse,
     };
 
@@ -15,24 +15,19 @@ async fn all_episodes_watched() {
         .response
         .data
         .data;
+
     let ovr_resp =
         serde_json::from_str::<OverseerrListResponse<MediaRequest>>(OVERSEERR_REQ).unwrap();
-    let media_info = serde_json::from_str::<MediaInfo>(MEDIA_INFO).unwrap();
-    let sonarr_resp = serde_json::from_str::<Vec<Episode>>(SONARR_RESP).unwrap();
+    let sonarr_resp = serde_json::from_str::<Vec<Series>>(SONARR_RESP).unwrap();
 
     let media_request = &ovr_resp.results[0];
     let media_type = &media_request.media.media_type;
 
-    let req_status = get_request_status(
-        media_type,
-        media_info,
-        media_request,
-        Some(sonarr_resp),
-        tau_resp,
-    )
-    .await
-    .unwrap();
+    let req_status = get_request_status(media_request, sonarr_resp.get(0).cloned(), tau_resp)
+        .await
+        .unwrap();
 
+    println!("{:?}", req_status.watched);
     assert!(matches!(
         req_status.watched,
         crate::deleterr::watched::WatchedStatus::Watched
@@ -577,157 +572,92 @@ const MEDIA_INFO: &str = r#"{
 }"#;
 
 const SONARR_RESP: &str = r#"[
-  {
-    "seriesId": 464,
-    "tvdbId": 9163446,
-    "episodeFileId": 38695,
-    "seasonNumber": 1,
-    "episodeNumber": 1,
-    "title": "First Blood",
-    "airDate": "2022-08-25",
-    "airDateUtc": "2022-08-26T02:00:00Z",
-    "overview": "Chrissy Feinberg’s first day of seventh grade goes south when she discovers she’s the Antichrist.",
-    "hasFile": true,
-    "monitored": true,
-    "unverifiedSceneNumbering": false,
-    "id": 49906
-  },
-  {
-    "seriesId": 464,
-    "tvdbId": 9280563,
-    "episodeFileId": 38697,
-    "seasonNumber": 1,
-    "episodeNumber": 2,
-    "title": "Possession Obsession",
-    "airDate": "2022-08-25",
-    "airDateUtc": "2022-08-26T02:24:00Z",
-    "overview": "Chrissy gets carried away with possessing people and an old associate seeks revenge on Satan.",
-    "hasFile": true,
-    "monitored": true,
-    "unverifiedSceneNumbering": false,
-    "id": 49907
-  },
-  {
-    "seriesId": 464,
-    "tvdbId": 9283735,
-    "episodeFileId": 38704,
-    "seasonNumber": 1,
-    "episodeNumber": 3,
-    "title": "Everybody's Dying for the Weekend",
-    "airDate": "2022-09-01",
-    "airDateUtc": "2022-09-02T02:00:00Z",
-    "overview": "Satan and Chrissy enter an otherworldly game show. Laura and Darlene’s girl’s night gets cray cray.",
-    "hasFile": true,
-    "monitored": true,
-    "unverifiedSceneNumbering": false,
-    "id": 49908
-  },
-  {
-    "seriesId": 464,
-    "tvdbId": 9283736,
-    "episodeFileId": 38699,
-    "seasonNumber": 1,
-    "episodeNumber": 4,
-    "title": "Popularity: Origin of Evil",
-    "airDate": "2022-09-08",
-    "airDateUtc": "2022-09-09T02:00:00Z",
-    "overview": "Chrissy cooks up some creepypasta with the cool girls. Laura regresses to save her.",
-    "hasFile": true,
-    "monitored": true,
-    "unverifiedSceneNumbering": false,
-    "id": 49909
-  },
-  {
-    "seriesId": 464,
-    "tvdbId": 9283737,
-    "episodeFileId": 38700,
-    "seasonNumber": 1,
-    "episodeNumber": 5,
-    "title": "Night of the Leeches",
-    "airDate": "2022-09-15",
-    "airDateUtc": "2022-09-16T02:00:00Z",
-    "overview": "Laura uses magic to pretend she’s a normal mom. Satan bros out at a monstrous bachelor party.",
-    "hasFile": true,
-    "monitored": true,
-    "unverifiedSceneNumbering": false,
-    "id": 49910
-  },
-  {
-    "seriesId": 464,
-    "tvdbId": 9283738,
-    "episodeFileId": 38702,
-    "seasonNumber": 1,
-    "episodeNumber": 6,
-    "title": "The Antichrist's Monster",
-    "airDate": "2022-09-22",
-    "airDateUtc": "2022-09-23T02:00:00Z",
-    "overview": "Chrissy learns her best friend has a secret. Laura and Satan unite for the sake of their old dog.",
-    "hasFile": true,
-    "monitored": true,
-    "unverifiedSceneNumbering": false,
-    "id": 49911
-  },
-  {
-    "seriesId": 464,
-    "tvdbId": 9283739,
-    "episodeFileId": 38703,
-    "seasonNumber": 1,
-    "episodeNumber": 7,
-    "title": "Satan's Lot",
-    "airDate": "2022-09-29",
-    "airDateUtc": "2022-09-30T02:00:00Z",
-    "overview": "Chrissy gets an afterlife lesson from Satan. Laura helps Darlene with a dead ex-husband problem.",
-    "hasFile": true,
-    "monitored": true,
-    "unverifiedSceneNumbering": false,
-    "id": 49912
-  },
-  {
-    "seriesId": 464,
-    "tvdbId": 9314845,
-    "episodeFileId": 38698,
-    "seasonNumber": 1,
-    "episodeNumber": 8,
-    "title": "Domestic Disturbance VIII",
-    "airDate": "2022-10-06",
-    "airDateUtc": "2022-10-07T02:00:00Z",
-    "overview": "Laura and Chrissy’s disagreement over a dirty dish spirals into all out mother-daughter war.",
-    "hasFile": true,
-    "monitored": true,
-    "unverifiedSceneNumbering": false,
-    "id": 49913
-  },
-  {
-    "seriesId": 464,
-    "tvdbId": 9314846,
-    "episodeFileId": 38696,
-    "seasonNumber": 1,
-    "episodeNumber": 9,
-    "title": "Wet Bodies",
-    "airDate": "2022-10-13",
-    "airDateUtc": "2022-10-14T02:00:00Z",
-    "overview": "Laura rediscovers herself at Darlene’s beach house while Chrissy goes on a metaphysical Rumspringa.",
-    "hasFile": true,
-    "monitored": true,
-    "unverifiedSceneNumbering": false,
-    "id": 49914
-  },
-  {
-    "seriesId": 464,
-    "tvdbId": 9314847,
-    "episodeFileId": 38701,
-    "seasonNumber": 1,
-    "episodeNumber": 10,
-    "title": "Village of the Found",
-    "airDate": "2022-10-20",
-    "airDateUtc": "2022-10-21T02:00:00Z",
-    "overview": "Chrissy meets some family. Laura and Satan traverse a deadly maze. Bennigan gets a proposition.",
-    "hasFile": true,
-    "monitored": true,
-    "unverifiedSceneNumbering": false,
-    "id": 49915
-  }
-]"#;
+    {
+      "title": "Little Demon",
+      "alternateTitles": [],
+      "sortTitle": "little demon",
+      "status": "ended",
+      "ended": true,
+      "overview": "13 years after being impregnated by the Devil, a reluctant mother and her Antichrist daughter attempt to live an ordinary life in Delaware, but are constantly thwarted by monstrous forces, including Satan, who yearns for custody of his daughter's soul.",
+      "previousAiring": "2022-10-21T02:00:00Z",
+      "network": "FXX",
+      "airTime": "22:00",
+      "images": [
+        {
+          "coverType": "banner",
+          "url": "/MediaCover/464/banner.jpg?lastWrite=638191521963058815",
+          "remoteUrl": "https://artworks.thetvdb.com/banners/v4/series/381028/banners/6309fd456971e.jpg"
+        },
+        {
+          "coverType": "poster",
+          "url": "/MediaCover/464/poster.jpg?lastWrite=638191521963578807",
+          "remoteUrl": "https://artworks.thetvdb.com/banners/v4/series/381028/posters/62fc16e55dab5.jpg"
+        },
+        {
+          "coverType": "fanart",
+          "url": "/MediaCover/464/fanart.jpg?lastWrite=638191521966178765",
+          "remoteUrl": "https://artworks.thetvdb.com/banners/v4/series/381028/backgrounds/62fc17af19aa9.jpg"
+        }
+      ],
+      "seasons": [
+        {
+          "seasonNumber": 1,
+          "monitored": true,
+          "statistics": {
+            "previousAiring": "2022-10-21T02:00:00Z",
+            "episodeFileCount": 10,
+            "episodeCount": 10,
+            "totalEpisodeCount": 10,
+            "sizeOnDisk": 10316859742,
+            "releaseGroups": [
+              "NTb"
+            ],
+            "percentOfEpisodes": 100.0
+          }
+        }
+      ],
+      "year": 2022,
+      "path": "/tv/Little Demon",
+      "qualityProfileId": 7,
+      "languageProfileId": 1,
+      "seasonFolder": false,
+      "monitored": true,
+      "useSceneNumbering": false,
+      "runtime": 24,
+      "tvdbId": 381028,
+      "tvRageId": 0,
+      "tvMazeId": 47475,
+      "firstAired": "2022-08-25T00:00:00Z",
+      "seriesType": "standard",
+      "cleanTitle": "littledemon",
+      "imdbId": "tt12198014",
+      "titleSlug": "little-demon",
+      "rootFolderPath": "/tv/",
+      "certification": "TV-MA",
+      "genres": [
+        "Animation",
+        "Comedy"
+      ],
+      "tags": [],
+      "added": "2023-05-08T14:16:35.730257Z",
+      "ratings": {
+        "votes": 0,
+        "value": 0.0
+      },
+      "statistics": {
+        "seasonCount": 1,
+        "episodeFileCount": 10,
+        "episodeCount": 10,
+        "totalEpisodeCount": 10,
+        "sizeOnDisk": 10316859742,
+        "releaseGroups": [
+          "NTb"
+        ],
+        "percentOfEpisodes": 100.0
+      },
+      "id": 464
+    }
+  ]"#;
 
 const OVERSEERR_REQ: &str = r#"{
   "pageInfo": {

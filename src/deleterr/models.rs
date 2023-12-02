@@ -1,4 +1,5 @@
-use crate::overseerr::models::MediaInfo;
+use super::watched::{SeasonWithStatus, WatchedStatus};
+use crate::sonarr::series::{Image, Series};
 use crate::{common::models::ResponseCodeBasedAction, overseerr::models::MediaRequest};
 use serde::{Deserialize, Serialize};
 use serde_map_to_array::{DefaultLabels, HashMapToArray};
@@ -6,15 +7,38 @@ use std::collections::HashMap;
 use std::sync::RwLock;
 use std::time::SystemTime;
 
-use super::watched::{SeasonWithStatus, WatchedStatus};
-
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct RequestStatus {
     pub media_request: MediaRequest,
     pub season_status: Vec<SeasonWithStatus>,
-    pub media_info: MediaInfo,
     pub watched: WatchedStatus,
+    pub media_info: MediaInfo,
+}
+
+#[derive(Deserialize, Serialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct MediaInfo {
+    pub images: Option<Vec<Image>>,
+    pub release_date: Option<String>,
+    pub title: String,
+}
+
+impl From<Option<Series>> for MediaInfo {
+    fn from(series: Option<Series>) -> Self {
+        let (release_date, title, images) = match series {
+            Some(series) => (Some(series.first_aired), series.title, Some(series.images)),
+            None => (None, "N/A".to_string(), None),
+        };
+
+        let media_info = MediaInfo {
+            images,
+            release_date,
+            title,
+        };
+
+        media_info
+    }
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]

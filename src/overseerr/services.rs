@@ -1,6 +1,5 @@
 use super::models::{
-    AboutServer, MediaInfo, MediaRequest, MediaType, OverseerrListResponse, OverseerrRequestsCount,
-    PageInfo,
+    AboutServer, MediaRequest, OverseerrListResponse, OverseerrRequestsCount, PageInfo,
 };
 use crate::common::{
     models::{
@@ -56,38 +55,6 @@ pub async fn get_requests_count() -> Result<OverseerrRequestsCount, DeleterrErro
         .await?;
 
     Ok(resp)
-}
-
-pub async fn get_media_info(
-    media_type: &MediaType,
-    tmdb_id: &Option<usize>,
-) -> Result<MediaInfo, DeleterrError> {
-    match tmdb_id {
-        Some(id) => {
-            let endpoint: String = match media_type {
-                MediaType::TV => format!("api/v1/tv/{id}"),
-                MediaType::Movie => format!("api/v1/movie/{id}"),
-            };
-            let service_info = build_service_info()?;
-
-            let api_url = create_api_url(&endpoint, &service_info);
-            let query = vec![];
-
-            let client_req =
-                get_api_endpoint(api_url, query, Some(service_info.api_key), RequestType::Get)?;
-            let request_response = make_api_call(client_req).await?;
-            let resp = request_response.response.json::<MediaInfo>().await?;
-
-            Ok(resp)
-        }
-        None => Ok({
-            MediaInfo {
-                title: "Unknown".to_string(),
-                poster_path: None,
-                release_date: None,
-            }
-        }),
-    }
 }
 
 pub async fn delete_media(media_id: &str) -> Result<ResponseCodeBasedAction, DeleterrError> {

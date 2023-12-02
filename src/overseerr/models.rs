@@ -67,7 +67,7 @@ pub struct Media {
     pub id: Option<usize>,
     pub media_type: MediaType,
     pub tmdb_id: Option<usize>,
-    tvdb_id: Option<usize>, // Apparently nothing uses this. Even if it says tvid in the API.
+    pub tvdb_id: Option<usize>, // Apparently nothing uses this. Even if it says tvid in the API.
     #[serde(deserialize_with = "deserialize_option_number_from_string")]
     pub rating_key: Option<usize>,
     pub external_service_id: Option<usize>,
@@ -91,16 +91,6 @@ pub struct MediaRequest {
 pub enum MediaType {
     Movie,
     TV,
-}
-
-#[derive(Deserialize, Serialize, Debug, Clone)]
-#[serde(rename_all = "camelCase")]
-pub struct MediaInfo {
-    pub poster_path: Option<String>,
-    #[serde(alias = "firstAirDate")]
-    pub release_date: Option<String>, //firstAirDate
-    #[serde(alias = "name")]
-    pub title: String, //name
 }
 
 #[derive(Deserialize, Serialize, Debug, Clone)]
