@@ -1,8 +1,10 @@
 <template>
-  <img class="h-16 w-11" :src="'https://image.tmdb.org/t/p/w600_and_h900_bestv2' + posterPath" alt="" loading="lazy" />
+  <img class="h-16 w-11" src="#" />
 </template>
 <script setup lang="ts">
+import { Image } from '~/@types/deleterr'
+
 defineProps({
-  posterPath: { type: String, required: false },
+  images: { type: Array<Image>, required: false },
 })
 </script>

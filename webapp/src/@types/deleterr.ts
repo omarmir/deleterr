@@ -108,9 +108,15 @@ export interface UserWatchHistory {
 }
 
 export interface MediaInfo {
-  posterPath?: string
+  images?: Image[]
   releaseDate?: string
   title: string
+}
+
+export interface Image {
+  coverType?: String
+  url?: String
+  remoteUrl?: String
 }
 
 export enum InputType {
