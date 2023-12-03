@@ -16,18 +16,15 @@ fn build_service_info() -> Result<ServiceInfo, DeleterrError> {
 pub async fn get_movie(tmdb_id: &Option<usize>) -> Result<Option<Movie>, DeleterrError> {
     match tmdb_id {
         Some(tmdb_id) => {
-            let endpoint = format!("api/v3/movie/{tmdb_id}");
+            let id = tmdb_id.to_string();
+            let endpoint = format!("api/v3/movie");
             let service_info = build_service_info()?;
 
             let api_url = create_api_url(&endpoint, &service_info);
-            let query = vec![("addImportExclusion", "false"), ("deleteFiles", "true")];
+            let query = vec![("tmdbId", id.as_str())];
 
-            let client_req = get_api_endpoint(
-                api_url,
-                query,
-                Some(service_info.api_key),
-                RequestType::Delete,
-            )?;
+            let client_req =
+                get_api_endpoint(api_url, query, Some(service_info.api_key), RequestType::Get)?;
             let request_response = make_api_call(client_req).await?;
 
             let resp = request_response.response.json::<Vec<Movie>>().await;

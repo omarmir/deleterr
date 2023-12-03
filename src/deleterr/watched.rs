@@ -65,10 +65,7 @@ impl WatchedChecker for Option<&Vec<UserWatchHistory>> {
                     .fold(0.0, |acc, val| acc + val);
                 watch_total.is_watched(eps_len)
             }
-            None => {
-                println!("Nothing detected");
-                WatchedStatus::Unwatched
-            }
+            None => WatchedStatus::Unwatched,
         }
     }
 }
