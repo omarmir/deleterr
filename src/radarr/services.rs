@@ -72,3 +72,24 @@ pub async fn delete_movie(radarr_id: &str) -> Result<ResponseCodeBasedAction, De
         _ => return Err(DeleterrError::new(APIStatus::Other.to_string().as_str())),
     };
 }
+
+pub async fn get_cover(movie_id: usize) -> Result<Vec<u8>, DeleterrError> {
+    let endpoint = format!("api/v3/mediacover/{movie_id}/poster.jpg");
+    let service_info = build_service_info()?;
+
+    let api_url = create_api_url(&endpoint, &service_info);
+    let query = Vec::with_capacity(0);
+
+    let client_req =
+        get_api_endpoint(api_url, query, Some(service_info.api_key), RequestType::Get)?;
+
+    let request_response = make_api_call(client_req).await?;
+
+    let resp = request_response.response.bytes().await;
+
+    match resp {
+        Ok(img) => Ok(img.to_vec()),
+        Err(error) => Err(DeleterrError::new(error.to_string().as_str())
+            .add_prefix("Unable to get radarr image,")),
+    }
+}
