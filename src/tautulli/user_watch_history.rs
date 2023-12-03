@@ -1,8 +1,7 @@
-use std::collections::HashMap;
-
 use super::models::ResponseData;
 use serde::{Deserialize, Serialize};
 use serde_aux::prelude::deserialize_option_number_from_string;
+use std::{cmp::Ordering, collections::HashMap};
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(rename_all(serialize = "camelCase"))]
@@ -34,17 +33,32 @@ impl ConvertToHashMapBySeason for Option<Vec<UserWatchHistory>> {
         self
     }
     fn hashmap_seasons(self) -> HashMap<usize, Vec<UserWatchHistory>> {
-        let mut map: HashMap<usize, Vec<UserWatchHistory>> = HashMap::new();
+        let mut episode_map: HashMap<(usize, usize), UserWatchHistory> = HashMap::new();
+        let mut season_map: HashMap<usize, Vec<UserWatchHistory>> = HashMap::new();
 
         if let Some(histories) = self {
             for item in histories {
-                if let Some(season_number) = item.parent_media_index {
-                    map.entry(season_number).or_insert_with(Vec::new).push(item);
+                if let (Some(season_number), Some(episode_number)) =
+                    (item.parent_media_index, item.media_index)
+                {
+                    // One episode can have more than one watch history - I dont know why but I've seen it.
+                    episode_map
+                        .entry((season_number, episode_number))
+                        .and_modify(|existing_value| {
+                            if existing_value.watched_status < item.watched_status {
+                                *existing_value = item.clone();
+                            }
+                        })
+                        .or_insert(item);
                 }
             }
         }
 
-        map
+        for ((key1, _key2), value) in episode_map {
+            season_map.entry(key1).or_insert_with(Vec::new).push(value);
+        }
+
+        season_map
     }
 }
 
@@ -61,16 +75,14 @@ impl GetFirstOrNone for Option<Vec<UserWatchHistory>> {
         match self {
             None => return None,
             Some(resp_data) => {
-                if resp_data.len() == 1 {
-                    Some(resp_data[0].clone())
-                } else {
-                    /* ! We return nothing if there is more than one result
-                     * We make sure that there is exactly one matched result since
-                     * we provided both a ratingKey and userId. If there is more than one result
-                     * then we did something wrong.
-                     */
-                    None
-                }
+                // So apparently you can have more than one watch result per user for the same file. Pick the most watched session.
+                let max_watched = resp_data.iter().max_by(|a, b| {
+                    a.watched_status
+                        .partial_cmp(&b.watched_status)
+                        .unwrap_or(Ordering::Equal)
+                });
+
+                max_watched.cloned()
             }
         }
     }
