@@ -91,7 +91,8 @@ async fn delete_movie_file(app_data: Data<AppData>, path: web::Path<usize>) -> i
     return process_request(delete_movie);
 }
 
-// TODO: check out actix_proxy: https://docs.rs/actix-proxy/latest/actix_proxy/
+// Check out actix_proxy: https://docs.rs/actix-proxy/latest/actix_proxy/
+// Tested - no difference in response times.
 #[get("/series/poster/{series_id}/poster.jpg")]
 async fn get_series_poster(path: web::Path<usize>) -> actix_web::HttpResponse {
     let img = sonarr::services::get_cover(path.into_inner())
