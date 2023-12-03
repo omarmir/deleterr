@@ -114,9 +114,9 @@ export interface MediaInfo {
 }
 
 export interface Image {
-  coverType?: String
-  url?: String
-  remoteUrl?: String
+  coverType?: string
+  url?: string
+  remoteUrl?: string
 }
 
 export enum InputType {

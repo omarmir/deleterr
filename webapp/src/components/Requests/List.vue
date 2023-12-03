@@ -11,7 +11,10 @@
           class="rounded-lg bg-gray-100 dark:bg-gray-800">
           <div class="flex w-full flex-row p-3">
             <div class="flex h-16 basis-4/12 space-x-4" :data-id="request.mediaRequest.id">
-              <RequestsListItemsThumb :images="request?.mediaInfo?.images"></RequestsListItemsThumb>
+              <RequestsListItemsThumb
+                :images="request?.mediaInfo?.images"
+                :title="request?.mediaInfo?.title"
+                :media-type="request?.mediaRequest.media.mediaType"></RequestsListItemsThumb>
               <RequestsListItemsNameRelease
                 :title="request?.mediaInfo?.title"
                 :release-date="request?.mediaInfo?.releaseDate"></RequestsListItemsNameRelease>
