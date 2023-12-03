@@ -35,6 +35,6 @@
 import { PropType } from 'vue'
 import { MediaType } from '~/@types/deleterr.ts'
 defineProps({
-  mediaType: { type: Object as PropType<MediaType>, required: false },
+  mediaType: { type: String as PropType<MediaType>, required: false },
 })
 </script>
