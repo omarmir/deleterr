@@ -6,7 +6,7 @@ use crate::common::models::MediaExemption;
 use crate::common::{models::ServiceInfo, models::Services, services::process_request};
 use crate::deleterr::models::QueryParms;
 use crate::deleterr::requests::get_requests_and_update_cache;
-use crate::AppData;
+use crate::{sonarr, AppData};
 use actix_session::Session;
 use actix_web::{
     delete, get, post,
@@ -91,6 +91,19 @@ async fn delete_movie_file(app_data: Data<AppData>, path: web::Path<usize>) -> i
     return process_request(delete_movie);
 }
 
+// TODO: check out actix_proxy: https://docs.rs/actix-proxy/latest/actix_proxy/
+#[get("/series/poster/{series_id}/poster.jpg")]
+async fn get_series_poster(path: web::Path<usize>) -> actix_web::HttpResponse {
+    let img = sonarr::services::get_cover(path.into_inner())
+        .await
+        .unwrap();
+
+    // Set the Content-Type header to image/png (adjust if your image format is different)
+    actix_web::HttpResponse::Ok()
+        .content_type("image/png")
+        .body(img)
+}
+
 // Auth
 #[post("/auth/login")]
 async fn set_login(session: Session, web::Json(user): web::Json<User>) -> impl Responder {
@@ -136,7 +149,8 @@ pub fn config(cfg: &mut web::ServiceConfig) {
             .service(remove_media_exemption)
             .service(delete_movie_file)
             .service(save_user)
-            .service(validate_user_session),
+            .service(validate_user_session)
+            .service(get_series_poster),
     )
     .service(set_login)
     .service(set_logout);

@@ -44,3 +44,24 @@ pub async fn get_series(tvdb_id: &Option<usize>) -> Result<Option<Series>, Delet
         None => Ok(None),
     }
 }
+
+pub async fn get_cover(series_id: usize) -> Result<Vec<u8>, DeleterrError> {
+    let endpoint = format!("api/v3/mediacover/{series_id}/poster.jpg");
+    let service_info = build_service_info()?;
+
+    let api_url = create_api_url(&endpoint, &service_info);
+    let query = Vec::with_capacity(0);
+
+    let client_req =
+        get_api_endpoint(api_url, query, Some(service_info.api_key), RequestType::Get)?;
+
+    let request_response = make_api_call(client_req).await?;
+
+    let resp = request_response.response.bytes().await;
+
+    match resp {
+        Ok(img) => Ok(img.to_vec()),
+        Err(error) => Err(DeleterrError::new(error.to_string().as_str())
+            .add_prefix("Unable to get sonarr image,")),
+    }
+}

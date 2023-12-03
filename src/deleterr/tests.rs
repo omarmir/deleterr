@@ -1,7 +1,5 @@
 #![allow(dead_code)]
 #![allow(unused_variables)]
-
-use crate::radarr::models::Movie;
 #[cfg(test)]
 #[tokio::test]
 async fn show_with_status() {
@@ -39,7 +37,8 @@ async fn show_with_status() {
 
 #[tokio::test]
 async fn movie_with_status() {
-    let sonarr_resp = serde_json::from_str::<Vec<Movie>>(RADARR_RESP).unwrap();
+    let sonarr_resp =
+        serde_json::from_str::<Vec<crate::radarr::models::Movie>>(RADARR_RESP).unwrap();
 }
 
 const MEDIA_INFO: &str = r#"{
