@@ -268,3 +268,15 @@ impl From<persy::PE<persy::DeleteError>> for DeleterrError {
         DeleterrError::new(err.to_string().as_str())
     }
 }
+
+impl From<r2d2::Error> for DeleterrError {
+    fn from(err: r2d2::Error) -> Self {
+        DeleterrError::new(err.to_string().as_str())
+    }
+}
+
+impl From<rusqlite::Error> for DeleterrError {
+    fn from(err: rusqlite::Error) -> Self {
+        DeleterrError::new(err.to_string().as_str())
+    }
+}

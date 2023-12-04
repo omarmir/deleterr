@@ -12,6 +12,7 @@ use store::models::PersyManager;
 
 mod auth;
 mod common;
+mod db;
 mod deleterr;
 mod overseerr;
 mod radarr;
@@ -47,6 +48,8 @@ async fn main() -> std::io::Result<()> {
         last_update: RwLock::new(None),
         request_cache: RwLock::new(None),
     };
+
+    let _pool = db::services::init_pool();
 
     let data = web::Data::new(app_state);
 
