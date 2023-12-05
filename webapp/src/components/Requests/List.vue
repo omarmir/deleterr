@@ -9,8 +9,8 @@
           v-for="request in store.requests"
           :key="request.mediaRequest.id"
           class="rounded-lg bg-gray-100 dark:bg-gray-800">
-          <div class="flex w-full flex-row p-3">
-            <div class="flex h-16 basis-4/12 space-x-4" :data-id="request.mediaRequest.id">
+          <div class="flex w-full flex-col space-y-2 p-3 lg:flex-row">
+            <div class="flex h-16 basis-full space-x-4 lg:basis-4/12" :data-id="request.mediaRequest.id">
               <RequestsListItemsThumb
                 :images="request?.mediaInfo?.images"
                 :title="request?.mediaInfo?.title"
@@ -20,24 +20,25 @@
                 :ended="request?.mediaInfo?.ended"
                 :release-date="request?.mediaInfo?.releaseDate"></RequestsListItemsNameRelease>
             </div>
-            <div class="flex basis-3/12 overflow-hidden">
+            <div class="flex basis-full overflow-hidden lg:basis-3/12">
               <RequestsListItemsSeasons
                 :media-type="request?.mediaRequest.media.mediaType"
                 :season-status="request?.seasonStatus"></RequestsListItemsSeasons>
             </div>
-            <div class="flex basis-1/12 flex-col">
-              <div class="flex flex-col space-y-2">
+            <div class="flex basis-4/12 flex-row space-x-2">
+              <div class="flex basis-2/5 flex-col space-y-4 lg:basis-1/4">
                 <RequestsListItemsTypeIcon
                   :media-type="request?.mediaRequest.media.mediaType"></RequestsListItemsTypeIcon>
                 <StatusPill :watched-status="request.watched" />
               </div>
-            </div>
-            <div class="flex basis-3/12 flex-col space-y-1">
-              <p class="text-sm font-bold text-gray-700 dark:text-gray-400">Requested:</p>
-              <div class="flex flex-row space-x-2">
-                <RequestsListItemsRequested :created-at="request?.mediaRequest.createdAt"></RequestsListItemsRequested>
-                <p class="text-sm text-gray-700 dark:text-gray-400">by</p>
-                <RequestsListItemsUser :media-request="request?.mediaRequest"></RequestsListItemsUser>
+              <div class="flex basis-3/5 flex-row space-y-1 lg:basis-3/4 lg:flex-col">
+                <p class="text-sm font-bold text-gray-700 dark:text-gray-400">Requested:</p>
+                <div class="flex flex-row space-x-2">
+                  <RequestsListItemsRequested
+                    :created-at="request?.mediaRequest.createdAt"></RequestsListItemsRequested>
+                  <span class="text-sm text-gray-700 dark:text-gray-400">by</span>
+                  <RequestsListItemsUser :media-request="request?.mediaRequest"></RequestsListItemsUser>
+                </div>
               </div>
             </div>
             <div class="flex basis-1/12">

@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="min-w-11 flex shrink-0">
     <img v-if="posterUrl" class="h-16 w-11" :src="posterUrl" lazy />
     <div v-else class="make-do-poster h-16 w-11 overflow-hidden bg-teal-700 p-1 text-white">
       <p>{{ title }}</p>
