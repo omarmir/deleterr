@@ -111,6 +111,7 @@ export interface MediaInfo {
   images?: Image[]
   releaseDate?: string
   title: string
+  ended?: boolean
 }
 
 export interface Image {

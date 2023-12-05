@@ -17,6 +17,7 @@
                 :media-type="request?.mediaRequest.media.mediaType"></RequestsListItemsThumb>
               <RequestsListItemsNameRelease
                 :title="request?.mediaInfo?.title"
+                :ended="request?.mediaInfo?.ended"
                 :release-date="request?.mediaInfo?.releaseDate"></RequestsListItemsNameRelease>
             </div>
             <div class="flex basis-4/12">
