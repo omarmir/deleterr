@@ -20,7 +20,7 @@
                 :ended="request?.mediaInfo?.ended"
                 :release-date="request?.mediaInfo?.releaseDate"></RequestsListItemsNameRelease>
             </div>
-            <div class="flex basis-4/12">
+            <div class="flex basis-3/12 overflow-hidden">
               <RequestsListItemsSeasons
                 :media-type="request?.mediaRequest.media.mediaType"
                 :season-status="request?.seasonStatus"></RequestsListItemsSeasons>
@@ -39,6 +39,15 @@
                 <p class="text-sm text-gray-700 dark:text-gray-400">by</p>
                 <RequestsListItemsUser :media-request="request?.mediaRequest"></RequestsListItemsUser>
               </div>
+            </div>
+            <div class="flex basis-1/12">
+              <Actions
+                :is-exempt="store.isMediaExempted(request?.mediaRequest?.id)"
+                :exemption-button-state="store.actionStates['exemption_' + request.mediaRequest.id]"
+                :deletion-button-state="store.actionStates['delete_' + request.mediaRequest.id]"
+                :external-id="request?.mediaRequest.media.externalServiceId"
+                @delete-media="deleteMedia(request?.mediaRequest.id, request?.mediaRequest.media.mediaType)"
+                @toggle-exempt="toggleExempt(request?.mediaRequest.id, request?.mediaRequest.media.tmdbId)" />
             </div>
           </div>
         </li>
@@ -62,10 +71,26 @@ import RequestsListItemsRequested from '~/components/Requests/ListItems/Requeste
 import RequestsListItemsTypeIcon from '~/components/Requests/ListItems/TypeIcon.vue'
 import RequestsListItemsSeasons from '~/components/Requests/ListItems/Seasons.vue'
 import RequestsListItemsUser from '~/components/Requests/ListItems/User.vue'
-//import Actions from '~/components/Actions.vue'
+import Actions from '~/components/Actions.vue'
 import { useRequestsStore } from '~/stores/requests.store'
+import { MediaType, SingleMediaExeption } from '~/@types/deleterr'
 
 const store = useRequestsStore()
 
 await store.getRequests()
+
+const toggleExempt = async (requestId?: number, tmdbId?: number) => {
+  if (requestId && tmdbId) {
+    let exemption: SingleMediaExeption = [requestId, tmdbId]
+    await store.toggleMediaExemption(exemption)
+  }
+}
+
+const deleteMedia = (requestId?: number, mediaType?: MediaType) => {
+  if (requestId && mediaType) {
+    if (mediaType == 'movie') {
+      store.deleteMovieFile(requestId)
+    }
+  }
+}
 </script>

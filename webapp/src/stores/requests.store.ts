@@ -99,6 +99,14 @@ export const useRequestsStore = defineStore('requests', () => {
     }
   }
 
+  const isMediaExempted = (requestId?: number) => {
+    return mediaExemptions.value.hasOwnProperty(requestId ?? 0)
+  }
+
+  const toggleMediaExemption = async (mediaExemption: SingleMediaExeption) => {
+    isMediaExempted(mediaExemption[0]) ? await removeMediaExemption(mediaExemption) : await addMediaExemption(mediaExemption)
+  }
+
   const addMediaExemption = async (mediaExemption: SingleMediaExeption) => {
     const mediaExemptionsEndpoint = '/api/v1/json/request/exemptions/save'
 
@@ -249,12 +257,12 @@ export const useRequestsStore = defineStore('requests', () => {
     error,
     mediaExemptions,
     actionStates,
+    isMediaExempted,
     // Commands
     search,
     resort,
     changePage,
-    addMediaExemption,
-    removeMediaExemption,
     deleteMovieFile,
+    toggleMediaExemption
   }
 })
