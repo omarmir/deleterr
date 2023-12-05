@@ -40,7 +40,7 @@ pub async fn get_request_status_for_series(
         (seasons_with_status, watched)
     };
 
-    let media_info = MediaInfo::from_sonarr(sonarr_series);
+    let media_info = MediaInfo::from_sonarr(sonarr_series.clone());
 
     let request_status = RequestStatus {
         media_info,

@@ -25,6 +25,7 @@ pub struct MediaInfo {
     pub images: Option<Vec<Image>>,
     pub release_date: Option<String>,
     pub title: String,
+    pub ended: Option<bool>,
 }
 
 impl MediaInfo {
@@ -33,20 +34,32 @@ impl MediaInfo {
             images: None,
             release_date: None,
             title: "N/A".to_string(),
+            ended: None,
         }
     }
 
-    pub fn new(release_date: Option<String>, title: String, images: Option<Vec<Image>>) -> Self {
+    pub fn new(
+        release_date: Option<String>,
+        title: String,
+        images: Option<Vec<Image>>,
+        ended: Option<bool>,
+    ) -> Self {
         MediaInfo {
             images,
             release_date,
             title,
+            ended,
         }
     }
 
     pub fn from_sonarr(series: Option<Series>) -> Self {
         match series {
-            Some(series) => MediaInfo::new(series.first_aired, series.title, series.images),
+            Some(series) => MediaInfo::new(
+                series.first_aired,
+                series.title,
+                series.images,
+                Some(series.ended),
+            ),
             None => MediaInfo::default(),
         }
     }
@@ -63,7 +76,7 @@ impl MediaInfo {
                     (None, None) => None,
                 };
 
-                MediaInfo::new(release_date, movie.title, movie.images)
+                MediaInfo::new(release_date, movie.title, movie.images, None)
             }
             None => MediaInfo::default(),
         }
