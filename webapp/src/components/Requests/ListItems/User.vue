@@ -1,5 +1,5 @@
 <template>
-  <div class="flex items-center text-sm text-gray-700 dark:text-gray-400">
+  <div class="flex shrink-0 text-sm text-gray-700 dark:text-gray-400">
     <div class="relative mr-3 flex flex-row place-items-center space-x-2 rounded-full">
       <img class="h-5 w-5 rounded-full object-cover" :src="mediaRequest?.requestedBy.avatar" alt="" loading="lazy" />
       <p class="font-semibold">

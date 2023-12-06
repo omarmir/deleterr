@@ -9,8 +9,8 @@
           v-for="request in store.requests"
           :key="request.mediaRequest.id"
           class="rounded-lg bg-gray-100 dark:bg-gray-800">
-          <div class="flex w-full flex-col space-y-2 p-3 lg:flex-row">
-            <div class="flex h-16 basis-full space-x-4 lg:basis-4/12" :data-id="request.mediaRequest.id">
+          <div class="flex w-full flex-col gap-3 p-3 lg:flex-row lg:gap-2">
+            <div class="min-h-16 flex basis-full space-x-4 lg:basis-4/12" :data-id="request.mediaRequest.id">
               <RequestsListItemsThumb
                 :images="request?.mediaInfo?.images"
                 :title="request?.mediaInfo?.title"
@@ -20,28 +20,25 @@
                 :ended="request?.mediaInfo?.ended"
                 :release-date="request?.mediaInfo?.releaseDate"></RequestsListItemsNameRelease>
             </div>
-            <div class="flex basis-full overflow-hidden lg:basis-3/12">
-              <RequestsListItemsSeasons
-                :media-type="request?.mediaRequest.media.mediaType"
-                :season-status="request?.seasonStatus"></RequestsListItemsSeasons>
+            <div class="flex basis-full place-items-center lg:basis-1/12">
+              <StatusPill :watched-status="request.watched" />
             </div>
-            <div class="flex basis-4/12 flex-row space-x-2">
-              <div class="flex basis-2/5 flex-col space-y-4 lg:basis-1/4">
-                <RequestsListItemsTypeIcon
-                  :media-type="request?.mediaRequest.media.mediaType"></RequestsListItemsTypeIcon>
-                <StatusPill :watched-status="request.watched" />
+            <div class="flex basis-6/12 flex-row flex-wrap gap-2 lg:self-center">
+              <div
+                v-if="isTV(request?.mediaRequest.media.mediaType)"
+                class="flex basis-full flex-row flex-wrap place-items-center gap-2">
+                <RequestsListTVIcon :media-type="request?.mediaRequest.media.mediaType"></RequestsListTVIcon>
+                <RequestsListItemsSeasons
+                  :media-type="request?.mediaRequest.media.mediaType"
+                  :season-status="request?.seasonStatus"></RequestsListItemsSeasons>
               </div>
-              <div class="flex basis-3/5 flex-row space-y-1 lg:basis-3/4 lg:flex-col">
-                <p class="text-sm font-bold text-gray-700 dark:text-gray-400">Requested:</p>
-                <div class="flex flex-row space-x-2">
-                  <RequestsListItemsRequested
-                    :created-at="request?.mediaRequest.createdAt"></RequestsListItemsRequested>
-                  <span class="text-sm text-gray-700 dark:text-gray-400">by</span>
-                  <RequestsListItemsUser :media-request="request?.mediaRequest"></RequestsListItemsUser>
-                </div>
-              </div>
+              <RequestsListMovieIcon v-else :media-type="request?.mediaRequest.media.mediaType"></RequestsListMovieIcon>
+              <span class="text-sm font-bold text-gray-700 dark:text-gray-400">Requested:</span>
+              <RequestsListItemsRequested :created-at="request?.mediaRequest.createdAt"></RequestsListItemsRequested>
+              <span class="text-sm text-gray-700 dark:text-gray-400">by</span>
+              <RequestsListItemsUser :media-request="request?.mediaRequest"></RequestsListItemsUser>
             </div>
-            <div class="flex basis-1/12">
+            <div class="flex basis-full lg:basis-1/12">
               <Actions
                 :is-exempt="store.isMediaExempted(request?.mediaRequest?.id)"
                 :exemption-button-state="store.actionStates['exemption_' + request.mediaRequest.id]"
@@ -69,7 +66,8 @@ import StatusPill from '~/components/Requests/ListItems/StatusPill.vue'
 import RequestsListItemsThumb from '~/components/Requests/ListItems/Thumb.vue'
 import RequestsListItemsNameRelease from '~/components/Requests/ListItems/NameRelease.vue'
 import RequestsListItemsRequested from '~/components/Requests/ListItems/Requested.vue'
-import RequestsListItemsTypeIcon from '~/components/Requests/ListItems/TypeIcon.vue'
+import RequestsListTVIcon from '~/components/Requests/ListItems/TVIcon.vue'
+import RequestsListMovieIcon from '~/components/Requests/ListItems/MovieIcon.vue'
 import RequestsListItemsSeasons from '~/components/Requests/ListItems/Seasons.vue'
 import RequestsListItemsUser from '~/components/Requests/ListItems/User.vue'
 import Actions from '~/components/Actions.vue'
@@ -93,5 +91,9 @@ const deleteMedia = (requestId?: number, mediaType?: MediaType) => {
       store.deleteMovieFile(requestId)
     }
   }
+}
+
+const isTV = (mediaType?: MediaType): boolean => {
+  return (mediaType ?? 'movie') == 'tv' ? true : false
 }
 </script>

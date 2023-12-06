@@ -1,13 +1,11 @@
 <template>
-  <div class="grow-o flex">
-    <span
-      :data-status="watchedStatus.toLowerCase()"
-      class="overflow-clip rounded-full px-2 py-1 text-xs font-semibold capitalize leading-tight">
-      {{
-        //@ts-ignore - enums in TS are weird
-        WatchedStatus[watchedStatus]
-      }}
-    </span>
+  <div
+    :data-status="watchedStatus.toLowerCase()"
+    class="flex shrink-0 overflow-clip rounded-full px-2 py-1 text-xs font-semibold capitalize leading-tight">
+    {{
+      //@ts-ignore - enums in TS are weird
+      WatchedStatus[watchedStatus]
+    }}
   </div>
 </template>
 <script lang="ts" setup>

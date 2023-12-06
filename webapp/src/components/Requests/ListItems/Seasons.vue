@@ -1,7 +1,7 @@
 <template>
-  <div v-if="mediaType === 'tv'" class="flex flex-col space-y-2 text-xs text-gray-700 dark:text-gray-400">
+  <div class="flex flex-row place-items-center gap-2 text-xs text-gray-700 dark:text-gray-400">
     <p class="text-sm font-bold">Seasons</p>
-    <div class="flex flex-row space-x-2">
+    <div class="flex flex-row gap-1">
       <div
         v-for="season in seasonStatus"
         :key="season.seasonNumber"

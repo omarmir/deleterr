@@ -1,7 +1,5 @@
 <template>
-  <div class="text-gray-700 dark:text-gray-400">
-    <p class="text-sm">{{ timeAgoSimple(createdAt) }}</p>
-  </div>
+  <div class="flex shrink-0 text-sm text-gray-700 dark:text-gray-400">{{ timeAgoSimple(createdAt) }}</div>
 </template>
 <script setup lang="ts">
 defineProps({
