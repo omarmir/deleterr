@@ -20,10 +20,10 @@
                 :ended="request?.mediaInfo?.ended"
                 :release-date="request?.mediaInfo?.releaseDate"></RequestsListItemsNameRelease>
             </div>
-            <div class="flex basis-full place-items-center lg:basis-1/12">
+            <div class="flex basis-full place-items-center lg:basis-2/12">
               <StatusPill :watched-status="request.watched" />
             </div>
-            <div class="flex basis-6/12 flex-row flex-wrap gap-2 lg:self-center">
+            <div class="flex basis-5/12 flex-row flex-wrap gap-2 lg:self-center">
               <div
                 v-if="isTV(request?.mediaRequest.media.mediaType)"
                 class="flex basis-full flex-row flex-wrap place-items-center gap-2">
