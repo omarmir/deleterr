@@ -1,11 +1,13 @@
 <!-- eslint-disable vue/no-v-html -->
 <template>
   <header class="z-10 bg-white py-4 shadow-md dark:bg-gray-800">
-    <div class="container mx-auto flex h-full items-center justify-between px-6 text-purple-600 dark:text-purple-300">
+    <div class="flex h-full items-center justify-between px-6 text-purple-600 dark:text-purple-300">
       <!-- Mobile hamburger -->
       <button
+        ref="ignoreElRef"
         class="-ml-1 mr-5 rounded-md p-1 focus:shadow-outline-purple focus:outline-none md:hidden"
-        aria-label="Menu">
+        aria-label="Menu"
+        @click="toggleSideMenu">
         <svg class="h-6 w-6" aria-hidden="true" fill="currentColor" viewBox="0 0 20 20">
           <path
             fill-rule="evenodd"
@@ -25,7 +27,7 @@
             </svg>
           </div>
           <input
-            class="form-input w-full rounded-md border-0 bg-gray-100 py-2 pl-8 pr-2 text-sm text-gray-700 placeholder-gray-600 focus:border-purple-300 focus:bg-white focus:placeholder-gray-500 focus:shadow-outline-purple focus:outline-none focus:ring-0 dark:bg-gray-700 dark:text-gray-200 dark:placeholder-gray-500 dark:focus:placeholder-gray-600 dark:focus:shadow-outline-gray"
+            class="form-input h-8 w-full rounded-md border-0 bg-gray-100 pl-8 pr-2 text-sm text-gray-700 placeholder-gray-600 focus:border-purple-300 focus:bg-white focus:placeholder-gray-500 focus:shadow-outline-purple focus:outline-none focus:ring-0 dark:bg-gray-700 dark:text-gray-200 dark:placeholder-gray-500 dark:focus:placeholder-gray-600 dark:focus:shadow-outline-gray"
             type="text"
             placeholder="Search for requests"
             aria-label="Search"
@@ -146,6 +148,7 @@
 import { ref } from 'vue'
 import type { Ref } from 'vue'
 import { useDarkMode } from '~/composables/useDarkMode'
+import { useSideMenu } from '~/composables/useSideMenu'
 import { useRequestsStore } from '~/stores/requests.store'
 import { useAuthStore } from '~/stores/auth.store'
 import { vOnClickOutside } from '@vueuse/components'
@@ -155,6 +158,7 @@ const requestStore = useRequestsStore()
 const authStore = useAuthStore()
 
 const { toggleDarkMode, isDarkModeEnabled } = useDarkMode()
+const { toggleSideMenu } = useSideMenu()
 
 let isProfileMenuOpen: Ref<Boolean> = ref(false)
 

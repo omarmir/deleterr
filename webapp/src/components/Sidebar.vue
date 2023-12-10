@@ -1,5 +1,22 @@
 <template>
-  <aside class="z-20 hidden w-64 flex-shrink-0 overflow-y-auto bg-white dark:bg-gray-800 md:block">
+  <aside
+    v-on-click-outside="outsideClick"
+    class="z-20 h-full w-64 flex-shrink-0 overflow-y-auto bg-white dark:bg-gray-800 md:block"
+    :class="isSideMenuOpenNow ? 'fixed pt-4' : 'hidden'">
+    <div v-if="isSideMenuOpenNow" class="flex h-8 flex-row items-center px-5">
+      <button
+        ref="ignoreElRef"
+        class="rounded-md p-1 text-purple-600 focus:shadow-outline-purple focus:outline-none dark:text-purple-300 md:hidden"
+        aria-label="Menu"
+        @click="toggleSideMenu">
+        <svg class="h-6 w-6" aria-hidden="true" fill="currentColor" viewBox="0 0 20 20">
+          <path
+            fill-rule="evenodd"
+            d="M3 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 15a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z"
+            clip-rule="evenodd"></path>
+        </svg>
+      </button>
+    </div>
     <div class="py-4 text-gray-500 dark:text-gray-400">
       <Logo />
       <ul class="mt-6">
@@ -47,4 +64,8 @@
 <script lang="ts" setup>
 import Logo from '~/components/Logo.vue'
 import MenuItem from '~/components/Sidebar/MenuItem.vue'
+import { useSideMenu } from '~/composables/useSideMenu'
+import { vOnClickOutside } from '@vueuse/components'
+
+const { isSideMenuOpenNow, outsideClick, toggleSideMenu } = useSideMenu()
 </script>
