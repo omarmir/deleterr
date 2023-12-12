@@ -8,7 +8,7 @@
         <li
           v-for="request in store.requests"
           :key="request.mediaRequest.id"
-          class="rounded-lg bg-gray-100 dark:bg-gray-800">
+          class="border-t border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-900">
           <div class="flex w-full flex-col gap-3 p-3 lg:flex-row lg:gap-2">
             <div class="min-h-16 flex basis-full space-x-4 lg:basis-4/12" :data-id="request.mediaRequest.id">
               <RequestsListItemsThumb
