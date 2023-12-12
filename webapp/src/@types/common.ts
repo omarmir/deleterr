@@ -1,8 +1,4 @@
-export enum InputType {
-  text = 'text',
-  number = 'number',
-  password = 'password',
-}
+export type InputType = 'text' | 'number' | 'password'
 
 export enum OperationState {
   loading,

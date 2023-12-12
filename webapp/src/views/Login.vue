@@ -38,7 +38,7 @@
                 placeholder="Username"></InputsInput>
               <InputsInput
                 v-model="authUser.password"
-                :type="InputType.password"
+                type="password"
                 label="Password"
                 placeholder="Password"></InputsInput>
               <ButtonsStatused
@@ -59,7 +59,7 @@
 import InputsInput from '~/components/Inputs/Input.vue'
 import ButtonsStatused from '~/components/Buttons/Statused.vue'
 import { AuthenticationUser } from '~/@types/deleterr'
-import { OperationState, InputType } from '~/@types/common'
+import { OperationState } from '~/@types/common'
 import { reactive } from 'vue'
 import { useVuelidate } from '@vuelidate/core'
 import { required } from '@vuelidate/validators'

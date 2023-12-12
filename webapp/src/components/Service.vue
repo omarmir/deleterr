@@ -12,7 +12,7 @@
         <p v-for="error in v$.host.$errors" :key="error.$uid" class="text-xs text-red-600">
           {{ error.$message }}
         </p>
-        <InputsInput v-model="serviceInfo.port" label="Port" placeholder="Port" :type="InputType.number"></InputsInput>
+        <InputsInput v-model="serviceInfo.port" label="Port" placeholder="Port" type="number"></InputsInput>
         <InputsInput v-model="serviceInfo.apiKey" :required="true" label="API Key" placeholder="API Key"></InputsInput>
         <p v-for="error in v$.apiKey.$errors" :key="error.$uid" class="text-xs text-red-600">
           {{ error.$message }}
@@ -49,7 +49,7 @@
 import { reactive } from 'vue'
 import { PropType } from 'vue'
 import { ServiceInfo, Services } from '~/@types/deleterr'
-import { InputType, OperationState } from '~/@types/common'
+import { OperationState } from '~/@types/common'
 import { ServiceOperations, ServiceStatus } from '~/@types/services'
 import { useVuelidate } from '@vuelidate/core'
 import { required } from '@vuelidate/validators'

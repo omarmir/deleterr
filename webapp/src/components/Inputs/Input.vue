@@ -1,14 +1,16 @@
 <template>
-  <label class="flex flex-col space-y-3 text-sm">
-    <span class="text-gray-700 dark:text-gray-400">
+  <label class="flex flex-col gap-2 text-sm" :class="{ 'lg:flex-row lg:place-items-center': isHorizontal }">
+    <span class="text-gray-700 dark:text-gray-400" :class="{ 'grow-1 lg:basis-1/2': isHorizontal }">
       {{ label }}
       <span v-if="required" class="text-red-600">*</span>
     </span>
     <input
-      class="form-input mt-1 block w-full rounded-md border p-2 text-sm focus:border-purple-400 focus:shadow-outline-purple focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:focus:shadow-outline-gray"
+      :class="isHorizontal ? '' : 'mt-1 w-full'"
+      class="form-input block rounded-md border p-2 text-sm focus:border-purple-400 focus:shadow-outline-purple focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:focus:shadow-outline-gray"
       :placeholder="placeholder"
       :type="type"
       :value="modelValue"
+      :label="label"
       @input="setValue" />
   </label>
 </template>
@@ -31,9 +33,14 @@ const props = defineProps({
   type: {
     type: String as PropType<InputType>,
     required: false,
-    default: InputType.text,
+    default: 'text',
   },
   disabled: {
+    type: Boolean,
+    required: false,
+    default: false,
+  },
+  isHorizontal: {
     type: Boolean,
     required: false,
     default: false,

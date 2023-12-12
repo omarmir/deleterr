@@ -6,6 +6,7 @@ import Services from '~/views/Services.vue'
 import NotFound from '~/views/404.vue'
 import Login from '~/views/Login.vue'
 import Page from '~/views/Page.vue'
+import Settings from '~/views/Settings.vue'
 import { createRouter, createWebHashHistory } from 'vue-router'
 import { createPinia } from 'pinia'
 import { useAuthStore } from '~/stores/auth.store'
@@ -25,6 +26,12 @@ const routes = [
         path: 'services',
         name: 'Services',
         component: Services,
+        meta: { requiresAuth: true },
+      },
+      {
+        path: 'settings',
+        name: 'Settings',
+        component: Settings,
         meta: { requiresAuth: true },
       },
       {
