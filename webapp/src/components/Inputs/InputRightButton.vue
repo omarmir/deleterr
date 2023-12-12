@@ -1,5 +1,5 @@
 <template>
-  <label class="my-3 block text-sm">
+  <label class="block text-sm">
     <span class="text-gray-700 dark:text-gray-400">
       {{ label }}
       <span v-if="required" class="text-red-600">*</span>
