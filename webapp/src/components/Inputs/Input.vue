@@ -14,7 +14,7 @@
 </template>
 <script lang="ts" setup>
 import { PropType } from 'vue'
-import { InputType } from '~/@types/deleterr.ts'
+import { InputType } from '~/@types/common'
 
 const props = defineProps({
   label: {

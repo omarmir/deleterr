@@ -6,12 +6,11 @@ import {
   RequestStatus,
   RequestStatusWithRecordInfo,
   SingleMediaExeption,
-  TestState,
   MovieDeletionRequest,
 } from '~/@types/deleterr'
-
 import { useToast } from '~/composables/useToast'
 import { useRouter } from 'vue-router'
+import { OperationState } from '~/@types/common'
 
 interface RequestResponse {
   requests?: RequestStatus[]
@@ -29,7 +28,7 @@ export const useRequestsStore = defineStore('requests', () => {
   const error: Ref<any | null> = ref(null)
   const mediaExemptions: Ref<MediaExemption> = ref({})
   // We are going to create a hashmap here with "exemption_<key>" or "deletion_<key>" as the key and the state as value.
-  const actionStates: Ref<{ [key: string]: TestState }> = ref({})
+  const actionStates: Ref<{ [key: string]: OperationState }> = ref({})
 
   const { publishToast } = useToast()
 
@@ -104,7 +103,9 @@ export const useRequestsStore = defineStore('requests', () => {
   }
 
   const toggleMediaExemption = async (mediaExemption: SingleMediaExeption) => {
-    isMediaExempted(mediaExemption[0]) ? await removeMediaExemption(mediaExemption) : await addMediaExemption(mediaExemption)
+    isMediaExempted(mediaExemption[0])
+      ? await removeMediaExemption(mediaExemption)
+      : await addMediaExemption(mediaExemption)
   }
 
   const addMediaExemption = async (mediaExemption: SingleMediaExeption) => {
@@ -120,7 +121,7 @@ export const useRequestsStore = defineStore('requests', () => {
     //{ credentials: 'include', method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(mediaExemption) }
 
     const key = mediaExemption[0]
-    actionStates.value['exemption_' + key] = TestState.loading
+    actionStates.value['exemption_' + key] = OperationState.loading
 
     // Simulate delay
     // await new Promise((resolve) => setTimeout(resolve, 2000))
@@ -131,7 +132,7 @@ export const useRequestsStore = defineStore('requests', () => {
 
       if (apiResponse.success) {
         mediaExemptions.value[key] = mediaExemption[1]
-        actionStates.value['exemption_' + key] = TestState.success
+        actionStates.value['exemption_' + key] = OperationState.success
         publishToast('Exempted', 'This media item will not be automatically deleted at next scheduled run.', 3, false)
       } else {
         handleErrorForExemption('exemption_' + key, apiResponse.error_msg)
@@ -152,7 +153,7 @@ export const useRequestsStore = defineStore('requests', () => {
     }
 
     const key = mediaExemption[0]
-    actionStates.value['exemption_' + key] = TestState.loading
+    actionStates.value['exemption_' + key] = OperationState.loading
 
     // Simulate delay
     // await new Promise((resolve) => setTimeout(resolve, 2000))
@@ -162,7 +163,7 @@ export const useRequestsStore = defineStore('requests', () => {
       let apiResponse: APIResponse<string> = await response.json()
       if (apiResponse.success) {
         delete mediaExemptions.value[key]
-        actionStates.value['exemption_' + key] = TestState.success
+        actionStates.value['exemption_' + key] = OperationState.success
         publishToast(
           'Exemption removed',
           'This media item will be automatically deleted at the next scheduled run.',
@@ -185,7 +186,7 @@ export const useRequestsStore = defineStore('requests', () => {
       credentials: 'include',
     }
 
-    actionStates.value['delete_' + requestId] = TestState.loading
+    actionStates.value['delete_' + requestId] = OperationState.loading
 
     // Simulate delay
     // await new Promise((resolve) => setTimeout(resolve, 2000))
@@ -194,7 +195,7 @@ export const useRequestsStore = defineStore('requests', () => {
       const response = await fetch(mediaDeleteEndpoint, requestOptions)
       let apiResponse: APIResponse<MovieDeletionRequest> = await response.json()
       if (apiResponse.success) {
-        actionStates.value['delete_' + requestId] = TestState.success
+        actionStates.value['delete_' + requestId] = OperationState.success
         publishToast(
           'Movie deleted',
           'Movie has been deleted! You may need to re-scan on plex for it to vanish',
@@ -215,9 +216,9 @@ export const useRequestsStore = defineStore('requests', () => {
 
   const handleErrorForExemption = (key: string, errorMsg?: string) => {
     publishToast('Exemption removed', 'Error: ' + errorMsg ?? 'Unknown!', 3, true)
-    actionStates.value[key] = TestState.failure
+    actionStates.value[key] = OperationState.failure
     setTimeout(() => {
-      actionStates.value[key] = TestState.hidden
+      actionStates.value[key] = OperationState.hidden
     }, 5000)
   }
 
@@ -263,6 +264,6 @@ export const useRequestsStore = defineStore('requests', () => {
     resort,
     changePage,
     deleteMovieFile,
-    toggleMediaExemption
+    toggleMediaExemption,
   }
 })

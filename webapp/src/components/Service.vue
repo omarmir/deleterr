@@ -19,18 +19,25 @@
         </p>
         <InputsCheckbox v-model="serviceInfo.useSsl">Use SSL</InputsCheckbox>
         <div class="flex justify-end space-x-4">
-          <ButtonsStatused :button-state="serviceStatus?.test" @click="saveOrTestService(ServiceOperations.Test)">
+          <ButtonsStatused
+            :button-state="serviceStatus?.test"
+            class="rounded-lg"
+            @click="saveOrTestService(ServiceOperations.Test)">
             Test
           </ButtonsStatused>
-          <ButtonsStatused :button-state="serviceStatus?.save" :is-submit="true" :is-outlined="false">
+          <ButtonsStatused
+            :button-state="serviceStatus?.save"
+            :is-submit="true"
+            :is-outlined="false"
+            class="rounded-lg">
             Save
           </ButtonsStatused>
         </div>
         <div class="text-sm text-red-600 first-letter:uppercase">
-          <p v-if="serviceStatus?.save === TestState.failure">
+          <p v-if="serviceStatus?.save === OperationState.failure">
             {{ serviceStatus?.errorMsg }}
           </p>
-          <p v-if="serviceStatus?.test === TestState.failure">
+          <p v-if="serviceStatus?.test === OperationState.failure">
             {{ serviceStatus?.errorMsg }}
           </p>
         </div>
@@ -41,8 +48,9 @@
 <script lang="ts" setup>
 import { reactive } from 'vue'
 import { PropType } from 'vue'
-import { TestState, ServiceInfo, Services, ServiceOperations, ServiceStatus } from '~/@types/deleterr'
-import { InputType } from '~/@types/deleterr.ts'
+import { ServiceInfo, Services } from '~/@types/deleterr'
+import { InputType, OperationState } from '~/@types/common'
+import { ServiceOperations, ServiceStatus } from '~/@types/services'
 import { useVuelidate } from '@vuelidate/core'
 import { required } from '@vuelidate/validators'
 import ButtonsStatused from '~/components/Buttons/Statused.vue'

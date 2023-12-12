@@ -4,8 +4,8 @@
       class="flex items-center justify-between rounded-lg px-2 py-2 text-sm font-medium leading-5 text-purple-600 focus:shadow-outline-gray focus:outline-none"
       aria-label="Exclude"
       @click="$emit('toggleExempt')">
-      <IndicatorsLoading v-if="exemptionButtonState === TestState.loading" />
-      <IndicatorsError v-else-if="exemptionButtonState === TestState.failure" />
+      <IndicatorsLoading v-if="exemptionButtonState === OperationState.loading" />
+      <IndicatorsError v-else-if="exemptionButtonState === OperationState.failure" />
       <svg
         v-else
         class="h-5 w-5"
@@ -26,8 +26,8 @@
       class="flex items-center justify-between rounded-lg px-2 py-2 text-sm font-medium leading-5 text-red-500 focus:shadow-outline-gray focus:outline-none"
       aria-label="Delete"
       @click="$emit('deleteMedia')">
-      <IndicatorsLoading v-if="deletionButtonState === TestState.loading" />
-      <IndicatorsError v-else-if="deletionButtonState === TestState.failure" />
+      <IndicatorsLoading v-if="deletionButtonState === OperationState.loading" />
+      <IndicatorsError v-else-if="deletionButtonState === OperationState.failure" />
       <svg v-else class="h-5 w-5" aria-hidden="true" fill="currentColor" viewBox="0 0 20 20">
         <path
           fill-rule="evenodd"
@@ -39,15 +39,15 @@
 </template>
 <script lang="ts" setup>
 import { PropType } from 'vue'
-import { TestState } from '~/@types/deleterr'
+import { OperationState } from '~/@types/common'
 import IndicatorsLoading from '~/components/Indicators/Loading.vue'
 import IndicatorsError from '~/components/Indicators/Error.vue'
 
 defineProps({
   isExempt: { required: true, type: Boolean, default: false },
-  exemptionButtonState: { type: Number as PropType<TestState>, required: false, default: TestState.hidden },
+  exemptionButtonState: { type: Number as PropType<OperationState>, required: false, default: OperationState.hidden },
   externalId: { type: Number, required: false },
-  deletionButtonState: { type: Number as PropType<TestState>, required: false, default: TestState.hidden },
+  deletionButtonState: { type: Number as PropType<OperationState>, required: false, default: OperationState.hidden },
 })
 
 defineEmits(['toggleExempt', 'deleteMedia'])

@@ -120,19 +120,6 @@ export interface Image {
   remoteUrl?: string
 }
 
-export enum InputType {
-  text = 'text',
-  number = 'number',
-  password = 'password',
-}
-
-export enum TestState {
-  loading,
-  success,
-  failure,
-  hidden,
-}
-
 export interface ServiceInfo {
   host: string
   port?: string
@@ -141,17 +128,4 @@ export interface ServiceInfo {
   service: Services
 }
 
-export interface ServiceStatus {
-  test: TestState
-  save: TestState
-  errorMsg: string
-}
-
-export enum ServiceOperations {
-  Save = 'save',
-  Test = 'test',
-}
-
 export type Services = 'tautulli' | 'overseerr' | 'radarr' | 'sonarr'
-
-export type AllServiceStatus = { [key in Services]: ServiceStatus }

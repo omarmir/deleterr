@@ -41,7 +41,11 @@
                 :type="InputType.password"
                 label="Password"
                 placeholder="Password"></InputsInput>
-              <ButtonsStatused :button-state="TestState.hidden" :is-outlined="false" class="mt-5" :is-submit="true">
+              <ButtonsStatused
+                :button-state="OperationState.hidden"
+                :is-outlined="false"
+                class="mt-5"
+                :is-submit="true">
                 Login
               </ButtonsStatused>
             </form>
@@ -54,7 +58,8 @@
 <script setup lang="ts">
 import InputsInput from '~/components/Inputs/Input.vue'
 import ButtonsStatused from '~/components/Buttons/Statused.vue'
-import { AuthenticationUser, TestState, InputType } from '~/@types/deleterr'
+import { AuthenticationUser } from '~/@types/deleterr'
+import { OperationState, InputType } from '~/@types/common'
 import { reactive } from 'vue'
 import { useVuelidate } from '@vuelidate/core'
 import { required } from '@vuelidate/validators'

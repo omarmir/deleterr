@@ -4,7 +4,7 @@
     <AllServices />
     <template #fallback>
       <PageLoading>
-        <template #message>Loading.</template>
+        <template #message>Loading</template>
       </PageLoading>
     </template>
   </Suspense>
