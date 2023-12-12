@@ -5,6 +5,8 @@ export interface Settings {
 //consider older seasons watched? If a newer season is watched consider older seasons watched?
 export interface SettingsOption {
   name: string
+  title: string
   value: boolean
-  label: string
+  subtitle: string
+  additionalDetail?: { name: string, label: string, value?: string }
 }
