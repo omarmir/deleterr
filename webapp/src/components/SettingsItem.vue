@@ -15,7 +15,7 @@
           class="peer relative h-6 w-6 shrink-0 appearance-none rounded-md border-2 border-purple-600 bg-white checked:border-0 checked:bg-purple-600 focus:shadow-outline-purple focus:outline-none dark:focus:shadow-outline-gray" />
         <div v-else-if="option.type == 'array'" class="flex flex-row place-items-center">
           <select
-            class="block appearance-none rounded-md border py-2 pl-2 pr-8 text-sm focus:border-purple-400 focus:shadow-outline-purple focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:focus:shadow-outline-gray">
+            class="block appearance-none rounded-md border bg-white py-2 pl-2 pr-8 text-sm focus:border-purple-400 focus:shadow-outline-purple focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:focus:shadow-outline-gray">
             <option v-for="item in option.value" :key="item.name" :value="item.value">{{ item.label }}</option>
           </select>
           <svg
