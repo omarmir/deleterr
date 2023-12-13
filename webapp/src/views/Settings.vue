@@ -55,30 +55,33 @@ const tvOptions: Array<SettingsOption> = [
   {
     title: 'Wait for show to end',
     name: 'showEnd',
+    type: 'boolean',
     value: false,
     subtitle: 'Wait for show to end before purging anything?',
   },
   {
     title: 'Purge seasons',
     name: 'purgeSeason',
+    type: 'boolean',
     value: false,
     subtitle: 'Delete seasons as they are watched or wait for show to be watched?',
   },
   {
-    title: 'In Progress as latest',
-    name: 'inProgressWatched',
-    value: false,
-    subtitle: 'Use the newest in progress season as watched progress?',
-  },
-  {
-    title: 'Watched as latest',
-    name: 'watchedWatched',
-    value: false,
-    subtitle: 'Use the newest watched season as watched progress?',
+    title: 'Watched marker',
+    name: 'watchedMarker',
+    type: 'array',
+    value: [
+      { name: 'inProgress', label: 'Latest in progress', value: 'inProgress' },
+      { name: 'watched', label: 'Latest watched', value: 'watched' },
+      { name: 'tautulli', label: 'Tautulli only', value: 'tautulli' },
+    ],
+    subtitle:
+      'You can use the latest in progress or watched season as a watch progress marker or you can use only tautulli',
   },
   {
     title: 'Purge period',
     name: 'purgePeriod',
+    type: 'boolean',
     value: false,
     subtitle: 'Delete shows after a set number of days after the last episode has been download?',
     additionalDetail: {
@@ -92,6 +95,7 @@ const movieOptions: Array<SettingsOption> = [
   {
     title: 'Purge period',
     name: 'purgePeriod',
+    type: 'boolean',
     value: false,
     subtitle: 'Delete movies after a set number of days after the movie has been download?',
     additionalDetail: {
