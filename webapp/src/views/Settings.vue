@@ -2,6 +2,12 @@
   <h2 class="my-6 text-2xl font-semibold text-gray-700 dark:text-gray-200">Settings</h2>
   <Suspense>
     <div class="flex flex-col space-y-5">
+      <CTA action-link="https://github.com/omarmir/deleterr">
+        <span>This is ALPHA software. Features are unstable. Please report any issues on GitHub!</span>
+        <template #action>
+          <span>GitHub &RightArrow;</span>
+        </template>
+      </CTA>
       <div>
         <h4 class="mb-4 text-lg font-semibold text-gray-600 dark:text-gray-300">Password</h4>
         <ContentCard>
@@ -50,6 +56,7 @@ import ButtonsStatused from '~/components/Buttons/Statused.vue'
 import SettingsItem from '~/components/SettingsItem.vue'
 import { SettingsOption } from '~/@types/settings'
 import { useSettingsStore } from '~/stores/settings.store'
+import CTA from '~/components/CTA.vue'
 
 const tvOptions: Array<SettingsOption> = [
   {
@@ -71,9 +78,9 @@ const tvOptions: Array<SettingsOption> = [
     name: 'watchedMarker',
     type: 'array',
     value: [
+      { name: 'tautulli', label: 'Tautulli only', value: 'tautulli' },
       { name: 'inProgress', label: 'Latest in progress', value: 'inProgress' },
       { name: 'watched', label: 'Latest watched', value: 'watched' },
-      { name: 'tautulli', label: 'Tautulli only', value: 'tautulli' },
     ],
     subtitle:
       'You can use the latest in progress or watched season as a watch progress marker or you can use only tautulli',
