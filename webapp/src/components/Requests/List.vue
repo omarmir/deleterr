@@ -4,7 +4,7 @@
       {{ store.error.toString() }}
     </div>
     <div v-if="!store.error" class="w-full overflow-x-auto">
-      <ul class="space-y-2">
+      <ul>
         <li
           v-for="request in store.requests"
           :key="request.mediaRequest.id"
@@ -50,7 +50,6 @@
           </div>
         </li>
       </ul>
-      <br />
       <PaginationWrapper
         :take="store.tableState.take"
         :filtered-requests="store.filteredRequests"
