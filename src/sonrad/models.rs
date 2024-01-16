@@ -10,6 +10,6 @@ pub struct SonRadStatus {
 #[serde(rename_all = "camelCase")]
 pub struct Image {
     pub cover_type: String,
-    pub url: String,
-    pub remote_url: String,
+    pub url: Option<String>,
+    pub remote_url: Option<String>,
 }
