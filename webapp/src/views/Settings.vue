@@ -28,7 +28,11 @@
           <form class="flex flex-col space-y-6" @submit.prevent="">
             <div class="flex flex-col gap-3">
               <h5 class="text-md font-semibold text-gray-600 dark:text-gray-300">TV Series</h5>
-              <SettingsItem v-for="option in tvOptions" :key="option.name" :option="option"></SettingsItem>
+              <SettingsItem
+                v-for="option in tvOptions"
+                :key="option.name"
+                :option="option"
+                @setting-changed="store.setSetting"></SettingsItem>
             </div>
             <div class="flex flex-col gap-3">
               <h5 class="text-md font-semibold text-gray-600 dark:text-gray-300">Movies</h5>
@@ -78,21 +82,21 @@ const tvOptions: Array<SettingsOption> = [
     name: 'watchedMarker',
     type: 'array',
     value: [
-      { name: 'tautulli', label: 'Tautulli only', value: 'tautulli' },
-      { name: 'inProgress', label: 'Latest in progress', value: 'inProgress' },
-      { name: 'watched', label: 'Latest watched', value: 'watched' },
+      { name: 'tautulliWatchedMarker', label: 'Tautulli only', value: 'tautulli' },
+      { name: 'inProgresswatchedMarker', label: 'Latest in progress', value: 'inProgress' },
+      { name: 'LatestWatchedwatchedMarker', label: 'Latest watched', value: 'watched' },
     ],
     subtitle:
       'You can use the latest in progress or watched season as a watch progress marker or you can use only tautulli',
   },
   {
     title: 'Purge period',
-    name: 'purgePeriod',
+    name: 'tvPurgePeriod',
     type: 'boolean',
     value: false,
     subtitle: 'Delete shows after a set number of days after the last episode has been download?',
     additionalDetail: {
-      name: 'period',
+      name: 'tvPurgePeriodDays',
       label: 'Number of days',
     },
   },
@@ -101,12 +105,12 @@ const tvOptions: Array<SettingsOption> = [
 const movieOptions: Array<SettingsOption> = [
   {
     title: 'Purge period',
-    name: 'purgePeriod',
+    name: 'moviePurgePeriod',
     type: 'boolean',
     value: false,
     subtitle: 'Delete movies after a set number of days after the movie has been download?',
     additionalDetail: {
-      name: 'period',
+      name: 'moviePurgePeriodDays',
       label: 'Number of days',
     },
   },

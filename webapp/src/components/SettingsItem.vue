@@ -12,11 +12,16 @@
           v-if="option.type == 'boolean'"
           :name="option.name"
           type="checkbox"
-          class="peer relative h-6 w-6 shrink-0 appearance-none rounded-md border-2 border-purple-600 bg-white checked:border-0 checked:bg-purple-600 focus:shadow-outline-purple focus:outline-none dark:focus:shadow-outline-gray" />
+          class="peer relative h-6 w-6 shrink-0 appearance-none rounded-md border-2 border-purple-600 bg-white checked:border-0 checked:bg-purple-600 focus:shadow-outline-purple focus:outline-none dark:focus:shadow-outline-gray"
+          @input="setValue" />
         <div v-else-if="option.type == 'array'" class="flex flex-row place-items-center">
           <select
-            class="block appearance-none rounded-md border bg-white py-2 pl-2 pr-8 text-sm focus:border-purple-400 focus:shadow-outline-purple focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:focus:shadow-outline-gray">
-            <option v-for="item in option.value" :key="item.name" :value="item.value">{{ item.label }}</option>
+            class="block appearance-none rounded-md border bg-white py-2 pl-2 pr-8 text-sm focus:border-purple-400 focus:shadow-outline-purple focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:focus:shadow-outline-gray"
+            :name="option.name"
+            @input="setValue">
+            <option v-for="item in option.value" :key="item.name" :value="item.value">
+              {{ item.label }}
+            </option>
           </select>
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -46,7 +51,8 @@
           class="block rounded-md border p-2 text-sm focus:border-purple-400 focus:shadow-outline-purple focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:focus:shadow-outline-gray"
           :placeholder="option.additionalDetail?.label"
           type="number"
-          label="" />
+          label=""
+          @input="setValue" />
       </div>
     </div>
   </div>
@@ -65,9 +71,11 @@ const props = defineProps({
 })
 
 const setValue = (event: Event): void => {
-  const newVal: string = (event.target as HTMLInputElement).value
-  if (!props.disabled) emit('update:modelValue', newVal)
+  const evt = event.target as HTMLInputElement
+  const newVal: string | boolean = evt.type == 'checkbox' ? evt.checked : evt.value
+  const name: string = evt.name
+  if (!props.disabled) emit('settingChanged', [name, newVal])
 }
 
-const emit = defineEmits(['update:modelValue'])
+const emit = defineEmits(['settingChanged'])
 </script>
