@@ -6,9 +6,7 @@ use actix_web::cookie::Key;
 use actix_web::{middleware::Logger, web, App, HttpServer};
 use actix_web_lab::web as lab_web;
 use deleterr::models::AppData;
-use std::sync::OnceLock;
 use std::sync::RwLock;
-use store::models::PersyManager;
 
 mod auth;
 mod common;
@@ -31,17 +29,11 @@ fn session_middleware(secret_key: Key) -> SessionMiddleware<CookieSessionStore> 
         .build()
 }
 
-static PERSY_MANAGER: OnceLock<PersyManager> = OnceLock::new();
-
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
     std::env::set_var("RUST_LOG", "debug");
     std::env::set_var("RUST_BACKTRACE", "1");
     env_logger::init();
-
-    PERSY_MANAGER
-        .set(PersyManager::new())
-        .expect("Unable to set store.");
 
     let app_state = AppData {
         last_update: RwLock::new(None),
