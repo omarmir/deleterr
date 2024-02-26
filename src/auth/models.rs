@@ -17,22 +17,17 @@ pub struct HashedUser {
 }
 
 impl HashedUser {
-    pub fn as_bytes(&self) -> Vec<u8> {
-        let json_str = serde_json::to_string(&self).expect("Failed to serialize to JSON");
-        let bytes = json_str.as_bytes();
-        bytes.to_vec()
+    pub fn as_vec(&self) -> Vec<u8> {
+        let user_bytes = serde_json::to_vec(&self).expect("Failed to serialize user to JSON");
+        user_bytes
     }
 }
 
-impl From<Vec<u8>> for HashedUser {
-    fn from(bytes: Vec<u8>) -> Self {
-        // Convert the bytes to a JSON string
-        let json_str = String::from_utf8_lossy(&bytes).to_string();
+impl From<&[u8]> for HashedUser {
+    fn from(bytes: &[u8]) -> Self {
+        let hashed_user: HashedUser =
+            serde_json::from_slice(bytes).expect("Failed to deserialize user info");
 
-        // Deserialize the JSON string into your struct
-        let user: HashedUser =
-            serde_json::from_str(&json_str).expect("Failed to deserialize from JSON");
-
-        user
+        hashed_user
     }
 }

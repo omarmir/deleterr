@@ -1,4 +1,8 @@
-use super::models::{APIResponse, DeleterrError, RequestResponse, RequestType, ServiceInfo};
+use super::models::{
+    api::{APIResponse, RequestResponse, RequestType},
+    deleterr_error::DeleterrError,
+    services::ServiceInfo,
+};
 use actix_web::{HttpResponse, Responder};
 use reqwest::{
     header::{HeaderMap, HeaderValue, ACCEPT},
