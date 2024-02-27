@@ -1,4 +1,5 @@
 use jammdb::{Error, DB};
+use std::str;
 const DATABASE_NAME: &str = "prunerr.db";
 
 pub fn get_data<'a>(bucket_name: &str, key: String) -> Result<Option<&'a [u8]>, Error> {
@@ -18,6 +19,26 @@ pub fn get_data<'a>(bucket_name: &str, key: String) -> Result<Option<&'a [u8]>, 
         }
         None => Ok(None),
     }
+}
+
+pub fn get_collection(bucket_name: &str) -> Result<Vec<(String, &[u8])>, Error> {
+    let db = DB::open(DATABASE_NAME)?;
+    let mut tx = db.tx(false)?;
+    let bucket = tx.get_bucket(bucket_name)?;
+
+    //let mut results: Vec<KVPair<'b, 'tx>> = Vec::new(); // Don't know the size
+
+    let pairs: Vec<(String, &[u8])> = bucket
+        .kv_pairs()
+        .map(|pair| {
+            (
+                str::from_utf8(pair.key()).unwrap_or("").to_string(),
+                pair.value(),
+            )
+        })
+        .collect();
+
+    Ok(pairs)
 }
 
 pub fn save_data(bucket_name: &str, data: &[u8], key: &str) -> Result<(), Error> {

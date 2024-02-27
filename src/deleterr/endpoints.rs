@@ -1,6 +1,7 @@
 use crate::auth::models::User;
-use crate::common::models::MediaExemption;
-use crate::common::{models::ServiceInfo, models::Services, services::process_request};
+use crate::common::models::exemptions::MediaExemption;
+use crate::common::models::services::{ServiceInfo, Services};
+use crate::common::services::process_request;
 use crate::deleterr::models::QueryParms;
 use crate::{auth, deleterr, overseerr, radarr, sonarr, sonrad, store, tautulli, AppData};
 use actix_session::Session;
@@ -44,19 +45,19 @@ async fn get_service_status_json(
 async fn save_service_submit_json(
     web::Json(service_info): web::Json<ServiceInfo>,
 ) -> impl Responder {
-    let inserted_result = store::services::upsert_service(service_info);
+    let inserted_result = store::services::services::upsert_service(service_info);
     return process_request(inserted_result);
 }
 
 #[get("/service/get")]
 async fn get_all_service_json() -> impl Responder {
-    let service_info = store::services::get_all_services();
+    let service_info = store::services::services::get_all_services();
     return process_request(service_info);
 }
 
 #[get("/service/get/{service_name}")]
 async fn get_service_json(path: web::Path<Services>) -> impl Responder {
-    let service_info = store::services::get_service(path.into_inner());
+    let service_info = store::services::services::get_service(path.into_inner());
     return process_request(service_info);
 }
 
@@ -127,9 +128,9 @@ async fn set_logout(session: Session) -> impl Responder {
     return process_request(resp);
 }
 
-#[post("/auth/user/save")]
-async fn save_user(web::Json(user): web::Json<User>) -> impl Responder {
-    let resp = auth::services::upsert_user(user);
+#[post("/auth/user/add")]
+async fn add_user(web::Json(user): web::Json<User>) -> impl Responder {
+    let resp = auth::services::add_user(user);
     return process_request(resp);
 }
 
@@ -157,7 +158,7 @@ pub fn config(cfg: &mut web::ServiceConfig) {
             .service(save_media_exemption)
             .service(remove_media_exemption)
             .service(delete_movie_file)
-            .service(save_user)
+            .service(add_user)
             .service(validate_user_session)
             .service(get_series_poster)
             .service(get_movie_poster),
