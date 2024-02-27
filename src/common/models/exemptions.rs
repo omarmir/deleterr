@@ -15,23 +15,19 @@ impl MediaExemption {
     }
 }
 
-impl From<Vec<u8>> for MediaExemption {
-    fn from(bytes: Vec<u8>) -> Self {
-        let (value1, value2) = (
-            usize::from_le_bytes(
-                bytes[0..8]
-                    .try_into()
-                    .expect("Failed to read request_id from database on media exemptions"),
-            ),
-            usize::from_le_bytes(
-                bytes[8..16]
-                    .try_into()
-                    .expect("Failed to read tmdb_id from database on media exemptions"),
-            ),
-        );
-        MediaExemption {
-            request_id: value1,
-            tmdb_id: value2,
-        }
+impl MediaExemption {
+    pub fn as_vec(&self) -> Vec<u8> {
+        let media_exemption_bytes =
+            serde_json::to_vec(&self).expect("Failed to serialize media exemption to JSON");
+        media_exemption_bytes
+    }
+}
+
+impl From<&[u8]> for MediaExemption {
+    fn from(bytes: &[u8]) -> Self {
+        let media_exemption: MediaExemption =
+            serde_json::from_slice(bytes).expect("Failed to deserialize media exemption");
+
+        media_exemption
     }
 }

@@ -41,6 +41,23 @@ pub fn get_collection(bucket_name: &str) -> Result<Vec<(String, &[u8])>, Error> 
     Ok(pairs)
 }
 
+pub fn get_usize_keys(bucket_name: &str) -> Result<Vec<usize>, Error> {
+    let db = DB::open(DATABASE_NAME)?;
+    let mut tx = db.tx(false)?;
+    let bucket = tx.get_bucket(bucket_name)?;
+
+    //let mut results: Vec<KVPair<'b, 'tx>> = Vec::new(); // Don't know the size
+
+    let pairs: Vec<usize> = bucket
+        .kv_pairs()
+        .map(|pair| {
+            let key = usize::from_le_bytes(pair.key().try_into().unwrap());
+        })
+        .collect();
+
+    Ok(pairs)
+}
+
 pub fn save_data(bucket_name: &str, data: &[u8], key: &str) -> Result<(), Error> {
     let db = DB::open(DATABASE_NAME)?;
     let tx = db.tx(true)?;
