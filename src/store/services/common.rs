@@ -46,13 +46,9 @@ pub fn get_usize_keys(bucket_name: &str) -> Result<Vec<usize>, Error> {
     let mut tx = db.tx(false)?;
     let bucket = tx.get_bucket(bucket_name)?;
 
-    //let mut results: Vec<KVPair<'b, 'tx>> = Vec::new(); // Don't know the size
-
     let pairs: Vec<usize> = bucket
         .kv_pairs()
-        .map(|pair| {
-            let key = usize::from_le_bytes(pair.key().try_into().unwrap());
-        })
+        .map(|pair| usize::from_le_bytes(pair.key().try_into().unwrap_or_default()))
         .collect();
 
     Ok(pairs)
