@@ -9,27 +9,36 @@ use crate::common::models::{
 const BUCKET_NAME: &str = "services";
 
 pub fn get_service(service: Services) -> Result<Option<ServiceInfo>, DeleterrError> {
-    let services_data = get_data(BUCKET_NAME, service.to_string()).unwrap_or(None);
+    let services_data = get_data(BUCKET_NAME, service.to_string());
 
     match services_data {
-        Some(data) => {
-            let service_info: ServiceInfo = ServiceInfo::from(data);
-            Ok(Some(service_info))
+        Ok(data) => {
+            if let Some(serv) = data {
+                let service_info: ServiceInfo = ServiceInfo::from(serv);
+                Ok(Some(service_info))
+            } else {
+                Ok(None)
+            }
         }
-        None => Ok(None),
+        Err(err) => Err(DeleterrError::from(err).add_prefix("Unable to get service.")),
     }
 }
 
 pub fn get_all_services() -> Result<HashMap<String, ServiceInfo>, DeleterrError> {
     let mut all_services: HashMap<String, ServiceInfo> = HashMap::new();
 
-    let collections = get_collection(BUCKET_NAME).unwrap_or(Vec::new());
+    let collections = get_collection(BUCKET_NAME);
 
-    for service in collections {
-        all_services.insert(service.0, ServiceInfo::from(service.1));
+    match collections {
+        Ok(services) => {
+            for service in services {
+                all_services.insert(service.0, ServiceInfo::from(service.1));
+            }
+
+            Ok(all_services)
+        }
+        Err(err) => Err(DeleterrError::from(err).add_prefix("Unable to get all services.")),
     }
-
-    Ok(all_services)
 }
 
 pub fn upsert_service(service_info: ServiceInfo) -> Result<(), DeleterrError> {
