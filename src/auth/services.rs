@@ -1,8 +1,8 @@
 use super::models::HashedUser;
 use crate::{
     auth::models::User,
-    common::models::{APIResponse, DeleterrError},
-    store::store::{does_record_exist, get_persy},
+    common::models::{api::APIResponse, deleterr_error::DeleterrError},
+    store::services::users::{add_user_to_store, get_user_by_username},
 };
 use actix_session::Session;
 use actix_web::{
@@ -12,7 +12,6 @@ use actix_web::{
 };
 use actix_web_lab::middleware::Next;
 use bcrypt::{hash, verify};
-use persy::{Persy, PersyId};
 
 pub fn login_user(session: Session, user: User) -> Result<String, DeleterrError> {
     let username = user.username.clone();
@@ -57,39 +56,13 @@ pub fn validate_session(session: Session, username: String) -> Result<String, De
 }
 
 pub fn verify_user(unhashed_user: User) -> Result<bool, DeleterrError> {
-    let persy = get_persy()?;
+    let user = get_user_by_username(&unhashed_user.username)?;
 
-    let user = get_user_by_username(unhashed_user.username, &persy)?;
+    let matches = verify(unhashed_user.password, user.hash.as_str()).map_err(|e| {
+        DeleterrError::new(e.to_string().as_str()).add_prefix("Unable to verify password hash.")
+    })?;
 
-    match user {
-        Some(user) => {
-            let matches = verify(unhashed_user.password, user.hash.as_str()).map_err(|e| {
-                DeleterrError::new(e.to_string().as_str())
-                    .add_prefix("Unable to verify password hash.")
-            })?;
-            Ok(matches)
-        }
-        None => Ok(false),
-    }
-}
-
-pub fn get_user_by_username(
-    username: String,
-    persy: &Persy,
-) -> Result<Option<HashedUser>, DeleterrError> {
-    let read_id = persy
-        .get::<String, PersyId>("users_index", &username)?
-        .next();
-
-    if let Some(id) = read_id {
-        let value = persy.read("users", &id)?;
-        match value {
-            Some(val) => Ok(Some(HashedUser::from(val))),
-            None => Ok(None),
-        }
-    } else {
-        Ok(None)
-    }
+    Ok(matches)
 }
 
 pub fn hash_password(pass: String) -> Result<String, DeleterrError> {
@@ -102,37 +75,14 @@ pub fn hash_password(pass: String) -> Result<String, DeleterrError> {
     Ok(hash)
 }
 
-pub fn upsert_user(unhashed_user: User) -> Result<String, DeleterrError> {
+pub fn add_user(unhashed_user: User) -> Result<(), DeleterrError> {
     let hash = hash_password(unhashed_user.password)?;
-
     let user = HashedUser {
         username: unhashed_user.username,
         hash,
     };
 
-    let persy = get_persy()?;
-    //Start a transaction all the operations in persy are done inside a transaction.
-    let persy_id = does_record_exist(&persy, &user.username, "users_index")?;
-
-    let mut tx = persy.begin()?;
-    let rec = &user.as_bytes();
-    match persy_id {
-        Some(id) => {
-            tx.update("users", &id, &rec)?;
-            let prepared = tx.prepare()?;
-            prepared.commit()?;
-            Ok(id.to_string())
-        }
-        None => {
-            let new_id = tx.insert("users", &rec)?;
-
-            tx.put::<String, PersyId>("users_index", user.username.to_string(), new_id)?;
-            let prepared = tx.prepare()?;
-            prepared.commit()?;
-
-            Ok(new_id.to_string())
-        }
-    }
+    add_user_to_store(user)
 }
 
 pub async fn reject_anonymous_users(

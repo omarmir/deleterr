@@ -1,9 +1,8 @@
-use crate::common::{
-    models::{APIServiceStatus, APIStatus, DeleterrError, RequestType, ServiceInfo, Services},
-    services::{create_api_url, get_api_endpoint, make_api_call},
-};
-
 use super::models::SonRadStatus;
+use crate::common::models::api::{APIServiceStatus, APIStatus, RequestType};
+use crate::common::models::deleterr_error::DeleterrError;
+use crate::common::models::services::{ServiceInfo, Services};
+use crate::common::services::{create_api_url, get_api_endpoint, make_api_call};
 
 pub async fn get_sonrad_status(
     service_info: ServiceInfo,

@@ -1,7 +1,6 @@
-use crate::{
-    common::models::{APIStatus, DeleterrError, ResponseCodeBasedAction},
-    overseerr::models::MediaType,
-};
+use crate::common::models::api::{APIStatus, ResponseCodeBasedAction};
+use crate::common::models::deleterr_error::DeleterrError;
+use crate::overseerr::models::MediaType;
 use actix_web::web::Data;
 use std::{cmp::Ordering, collections::HashMap};
 

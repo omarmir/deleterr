@@ -1,16 +1,15 @@
 use super::models::{
     AboutServer, MediaRequest, OverseerrListResponse, OverseerrRequestsCount, PageInfo,
 };
-use crate::common::{
-    models::{
-        APIServiceStatus, APIStatus, DeleterrError, RequestType, ResponseCodeBasedAction,
-        ServiceInfo, Services,
-    },
-    services::{create_api_url, get_api_endpoint, make_api_call},
+use crate::common::models::api::{
+    APIServiceStatus, APIStatus, RequestType, ResponseCodeBasedAction,
 };
+use crate::common::models::deleterr_error::DeleterrError;
+use crate::common::models::services::{ServiceInfo, Services};
+use crate::common::services::{create_api_url, get_api_endpoint, make_api_call};
 
 fn build_service_info() -> Result<ServiceInfo, DeleterrError> {
-    let service_info = crate::store::services::get_service(Services::Overseerr)?;
+    let service_info = crate::store::services::services::get_service(Services::Overseerr)?;
 
     service_info.ok_or(DeleterrError::new("Overseerr service not setup."))
 }
