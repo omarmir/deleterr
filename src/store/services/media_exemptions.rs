@@ -5,7 +5,7 @@ const BUCKET_NAME: &str = "media_exemptions";
 
 pub fn get_all_exemptions() -> Result<Vec<usize>, DeleterrError> {
     let collection = get_usize_keys(BUCKET_NAME).map_err(|err| {
-        DeleterrError::new(err.to_string().as_str()).add_prefix("Unable to save service.")
+        DeleterrError::new(err.to_string().as_str()).add_prefix("Unable to get all exemptions.")
     });
 
     collection
