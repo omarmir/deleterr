@@ -1,9 +1,11 @@
 use jammdb::{Error, DB};
 use std::str;
 
+use crate::store::models::EitherKeyType;
+
 const DATABASE_NAME: &str = "prunerr.db";
 
-pub fn get_data<'a>(bucket_name: &'a str, key: &String) -> Result<Option<Vec<u8>>, Error> {
+pub fn get_data<'a>(bucket_name: &'a str, key: &str) -> Result<Option<Vec<u8>>, Error> {
     let db = DB::open(DATABASE_NAME)?;
     let mut tx = db.tx(false)?;
 
@@ -16,7 +18,7 @@ pub fn get_data<'a>(bucket_name: &'a str, key: &String) -> Result<Option<Vec<u8>
         }
     };
 
-    let bucket_data = data_bucket.get(key);
+    let bucket_data = data_bucket.get(key.as_bytes());
 
     match bucket_data {
         Some(data) => {
@@ -84,7 +86,7 @@ pub fn save_data(bucket_name: &str, data: &[u8], key: &str) -> Result<(), Error>
     let data_bucket = tx.get_bucket(bucket_name);
     match data_bucket {
         Ok(bucket) => {
-            bucket.put(key, data)?;
+            bucket.put(key.as_bytes(), data)?;
         }
         Err(_) => {
             let data_bucket = tx.create_bucket(bucket_name)?;
@@ -94,7 +96,25 @@ pub fn save_data(bucket_name: &str, data: &[u8], key: &str) -> Result<(), Error>
     Ok(tx.commit()?)
 }
 
-pub fn remove_pair(bucket_name: &str, key: &str) -> Result<bool, Error> {
+pub fn save_usize_keys_only(bucket_name: &str, key: &usize) -> Result<(), Error> {
+    let db = DB::open(DATABASE_NAME)?;
+    let tx = db.tx(true)?;
+    let empty_bytes: &[u8] = &[];
+
+    let data_bucket = tx.get_bucket(bucket_name);
+    match data_bucket {
+        Ok(bucket) => {
+            bucket.put(key.to_le_bytes(), empty_bytes)?;
+        }
+        Err(_) => {
+            let data_bucket = tx.create_bucket(bucket_name)?;
+            data_bucket.put(key.to_le_bytes(), empty_bytes)?;
+        }
+    }
+    Ok(tx.commit()?)
+}
+
+pub fn remove_pair(bucket_name: &str, key_enum: EitherKeyType) -> Result<bool, Error> {
     let db = DB::open(DATABASE_NAME)?;
     let tx = db.tx(true)?;
     let data_bucket = match tx.get_bucket(bucket_name) {
@@ -105,13 +125,20 @@ pub fn remove_pair(bucket_name: &str, key: &str) -> Result<bool, Error> {
         }
     };
 
-    let deletion = match data_bucket.get_kv(key).is_some() {
+    let key: Vec<u8> = match key_enum {
+        EitherKeyType::Regular(val) => val.as_bytes().to_vec(),
+        EitherKeyType::Number(val) => val.to_le_bytes().to_vec(),
+    };
+
+    let deletion = match data_bucket.get_kv(&key).is_some() {
         true => {
-            data_bucket.delete(key)?;
+            data_bucket.delete(&key)?;
             true
         }
         false => false,
     };
+
+    tx.commit()?;
 
     Ok(deletion)
 }

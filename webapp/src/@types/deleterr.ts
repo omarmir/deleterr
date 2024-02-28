@@ -59,9 +59,7 @@ export interface EpisodeWithStatus {
   seasonNumber: number
 }
 
-export type MediaExemption = { [key: string]: number }
-
-export type SingleMediaExeption = [requestId: number, tmdbId: number]
+export type MediaExemptions = number[]
 
 export enum APIStatus {
   Success,

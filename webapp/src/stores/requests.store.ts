@@ -2,10 +2,9 @@ import { defineStore } from 'pinia'
 import { reactive, readonly, ref, Ref, watch } from 'vue'
 import {
   APIResponse,
-  MediaExemption,
+  MediaExemptions,
   RequestStatus,
   RequestStatusWithRecordInfo,
-  SingleMediaExeption,
   MovieDeletionRequest,
 } from '~/@types/deleterr'
 import { useToast } from '~/composables/useToast'
@@ -14,7 +13,7 @@ import { OperationState } from '~/@types/common'
 
 interface RequestResponse {
   requests?: RequestStatus[]
-  exemptions?: MediaExemption
+  exemptions?: MediaExemptions
   allRequests?: number
   filteredRequests?: number
 }
@@ -26,7 +25,7 @@ export const useRequestsStore = defineStore('requests', () => {
   const pageCount: Ref<number> = ref(0)
   const filteredRequests: Ref<number> = ref(0)
   const error: Ref<any | null> = ref(null)
-  const mediaExemptions: Ref<MediaExemption> = ref({})
+  const mediaExemptions: Ref<MediaExemptions> = ref([])
   // We are going to create a hashmap here with "exemption_<key>" or "deletion_<key>" as the key and the state as value.
   const actionStates: Ref<{ [key: string]: OperationState }> = ref({})
 
@@ -66,7 +65,7 @@ export const useRequestsStore = defineStore('requests', () => {
     // Use Promise.all again to extract JSON from the responses in parallel
     const [requestsResult, mediaExemptionsResult] = await Promise.all([
       requestsResponse.json() as Promise<APIResponse<RequestStatusWithRecordInfo>>,
-      mediaExemptionsResponse.json() as Promise<APIResponse<MediaExemption>>,
+      mediaExemptionsResponse.json() as Promise<APIResponse<MediaExemptions>>,
     ])
 
     if (!requestsResult.success || !mediaExemptionsResult.success) {
@@ -86,7 +85,7 @@ export const useRequestsStore = defineStore('requests', () => {
     try {
       const resp = await makeApiCallForRequests()
       requests.value = resp?.requests ?? []
-      mediaExemptions.value = resp?.exemptions ?? {}
+      mediaExemptions.value = resp?.exemptions ?? []
       allRequests.value = resp?.allRequests ?? 0
       filteredRequests.value = resp?.filteredRequests ?? 0
       currentPage.value = (tableState.skip ?? 0) / tableState.take
@@ -98,17 +97,17 @@ export const useRequestsStore = defineStore('requests', () => {
     }
   }
 
-  const isMediaExempted = (requestId?: number) => {
-    return mediaExemptions.value.hasOwnProperty(requestId ?? 0)
+  const isMediaExempted = (requestId: number) => {
+    return mediaExemptions.value.includes(requestId)
   }
 
-  const toggleMediaExemption = async (mediaExemption: SingleMediaExeption) => {
-    isMediaExempted(mediaExemption[0])
+  const toggleMediaExemption = async (mediaExemption: number) => {
+    isMediaExempted(mediaExemption)
       ? await removeMediaExemption(mediaExemption)
       : await addMediaExemption(mediaExemption)
   }
 
-  const addMediaExemption = async (mediaExemption: SingleMediaExeption) => {
+  const addMediaExemption = async (mediaExemption: number) => {
     const mediaExemptionsEndpoint = '/api/v1/json/request/exemptions/save'
 
     const requestOptions: RequestInit = {
@@ -120,7 +119,7 @@ export const useRequestsStore = defineStore('requests', () => {
 
     //{ credentials: 'include', method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(mediaExemption) }
 
-    const key = mediaExemption[0]
+    const key = mediaExemption
     actionStates.value['exemption_' + key] = OperationState.loading
 
     // Simulate delay
@@ -131,7 +130,7 @@ export const useRequestsStore = defineStore('requests', () => {
       let apiResponse: APIResponse<string> = await response.json()
 
       if (apiResponse.success) {
-        mediaExemptions.value[key] = mediaExemption[1]
+        mediaExemptions.value[key] = mediaExemption
         actionStates.value['exemption_' + key] = OperationState.success
         publishToast('Exempted', 'This media item will not be automatically deleted at next scheduled run.', 3, false)
       } else {
@@ -142,17 +141,17 @@ export const useRequestsStore = defineStore('requests', () => {
     }
   }
 
-  const removeMediaExemption = async (mediaExemption: SingleMediaExeption) => {
+  const removeMediaExemption = async (mediaExemption: number) => {
     const mediaExemptionsEndpoint = '/api/v1/json/request/exemptions/remove'
 
     const requestOptions: RequestInit = {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(mediaExemption[0]),
+      body: JSON.stringify(mediaExemption),
       credentials: 'include',
     }
 
-    const key = mediaExemption[0]
+    const key = mediaExemption
     actionStates.value['exemption_' + key] = OperationState.loading
 
     // Simulate delay

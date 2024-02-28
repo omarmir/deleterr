@@ -45,7 +45,7 @@
                 :deletion-button-state="store.actionStates['delete_' + request.mediaRequest.id]"
                 :external-id="request?.mediaRequest.media.externalServiceId"
                 @delete-media="deleteMedia(request?.mediaRequest.id, request?.mediaRequest.media.mediaType)"
-                @toggle-exempt="toggleExempt(request?.mediaRequest.id, request?.mediaRequest.media.tmdbId)" />
+                @toggle-exempt="toggleExempt(request?.mediaRequest.id)" />
             </div>
           </div>
         </li>
@@ -71,18 +71,13 @@ import RequestsListItemsSeasons from '~/components/Requests/ListItems/Seasons.vu
 import RequestsListItemsUser from '~/components/Requests/ListItems/User.vue'
 import Actions from '~/components/Actions.vue'
 import { useRequestsStore } from '~/stores/requests.store'
-import { MediaType, SingleMediaExeption } from '~/@types/deleterr'
+import { MediaType } from '~/@types/deleterr'
 
 const store = useRequestsStore()
 
 await store.getRequests()
 
-const toggleExempt = async (requestId?: number, tmdbId?: number) => {
-  if (requestId && tmdbId) {
-    let exemption: SingleMediaExeption = [requestId, tmdbId]
-    await store.toggleMediaExemption(exemption)
-  }
-}
+const toggleExempt = async (requestId: number) => await store.toggleMediaExemption(requestId)
 
 const deleteMedia = (requestId?: number, mediaType?: MediaType) => {
   if (requestId && mediaType) {
