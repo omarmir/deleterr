@@ -1,9 +1,5 @@
-use std::{collections::HashMap, str};
-
-use super::common::{get_collection, get_data, get_usize_keys, save_data};
-use crate::common::models::{
-    deleterr_error::DeleterrError, exemptions::MediaExemption, services::ServiceInfo,
-};
+use super::common::{get_usize_keys, save_data};
+use crate::common::models::{deleterr_error::DeleterrError, services::ServiceInfo};
 
 const BUCKET_NAME: &str = "media_exemptions";
 

@@ -1,14 +1,11 @@
 use super::models::Movie;
-use crate::{
-    common::models::ResponseCodeBasedAction,
-    common::{
-        models::{APIStatus, DeleterrError, RequestType, ServiceInfo, Services},
-        services::{create_api_url, get_api_endpoint, make_api_call},
-    },
-};
+use crate::common::models::api::{APIStatus, RequestType, ResponseCodeBasedAction};
+use crate::common::models::deleterr_error::DeleterrError;
+use crate::common::models::services::{ServiceInfo, Services};
+use crate::common::services::{create_api_url, get_api_endpoint, make_api_call};
 
 fn build_service_info() -> Result<ServiceInfo, DeleterrError> {
-    let service_info = crate::store::services::get_service(Services::Radarr)?;
+    let service_info = crate::store::services::services::get_service(Services::Radarr)?;
 
     service_info.ok_or(DeleterrError::new("Radarr service not setup."))
 }

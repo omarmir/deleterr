@@ -3,14 +3,10 @@ use super::models::{
 };
 use super::requests::{delete_cached_record, get_cached_record};
 use super::watched::{SeasonWithStatus, WatchedChecker};
-use crate::common::models::DeleterrError;
-use crate::overseerr;
+use crate::common::models::deleterr_error::DeleterrError;
 use crate::overseerr::models::{MediaRequest, MediaType};
-use crate::radarr;
 use crate::radarr::models::Movie;
-use crate::sonarr;
 use crate::sonarr::series::Series;
-use crate::tautulli;
 use crate::tautulli::user_watch_history::{
     ConvertToHashMapBySeason, GetFirstOrNone, UserWatchHistory,
 };
@@ -72,7 +68,7 @@ pub async fn get_request_status_for_movie(
 }
 
 pub async fn match_requests_to_watched() -> Result<RequestStatusWithRecordInfo, DeleterrError> {
-    let (os_requests, page_info) = overseerr::services::get_os_requests().await?;
+    let (os_requests, page_info) = crate::overseerr::services::get_os_requests().await?;
     let mut matched_requests = HashMap::with_capacity(page_info.results);
 
     for i in 0..os_requests.len() {
@@ -86,17 +82,17 @@ pub async fn match_requests_to_watched() -> Result<RequestStatusWithRecordInfo, 
         );
 
         let tau_hist =
-            tautulli::services::get_item_history(rating_key, user_id, media_type).await?;
+            crate::tautulli::services::get_item_history(rating_key, user_id, media_type).await?;
 
         let request_status = match media_type {
             MediaType::TV => {
-                let sonarr_series = sonarr::services::get_series(tvdb_id).await?;
+                let sonarr_series = crate::sonarr::services::get_series(tvdb_id).await?;
                 let request_status =
                     get_request_status_for_series(media_request, sonarr_series, tau_hist).await?;
                 request_status
             }
             MediaType::Movie => {
-                let radarr_movie = radarr::services::get_movie(tmdb_id).await?;
+                let radarr_movie = crate::radarr::services::get_movie(tmdb_id).await?;
                 let request_status =
                     get_request_status_for_movie(media_request, radarr_movie, tau_hist).await?;
 
@@ -136,11 +132,11 @@ pub async fn delete_movie_from_radarr_overseerr(
         .external_service_id
         .ok_or(DeleterrError::new("Missing external service (radarr) id!"))?;
 
-    let radarr_response = radarr::services::delete_movie(radarr_id.to_string().as_str())
+    let radarr_response = crate::radarr::services::delete_movie(radarr_id.to_string().as_str())
         .await
         .map_err(|err| err.add_prefix("Unble to delete from Radarr. Error: "))?;
 
-    let overseerr_response = overseerr::services::delete_media(media_id.to_string().as_str())
+    let overseerr_response = crate::overseerr::services::delete_media(media_id.to_string().as_str())
         .await
         .map_err(|err| err.add_prefix("Radarr media deleted but was unable to delete Overseer request. Please delete it manually. Error: "))?;
 

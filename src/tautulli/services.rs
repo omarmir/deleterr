@@ -1,12 +1,13 @@
 use super::models::TautulliResponse;
 use super::user_watch_history::UserWatchHistory;
-use crate::common::models::{APIServiceStatus, APIStatus, RequestType, Services};
-use crate::common::models::{DeleterrError, ServiceInfo};
+use crate::common::models::api::{APIServiceStatus, APIStatus, RequestType};
+use crate::common::models::deleterr_error::DeleterrError;
+use crate::common::models::services::{ServiceInfo, Services};
 use crate::common::services::{create_api_url, get_api_endpoint, make_api_call};
 use crate::overseerr::models::MediaType;
 
 fn build_service_info() -> Result<ServiceInfo, DeleterrError> {
-    let service_info = crate::store::services::get_service(Services::Tautulli)?;
+    let service_info = crate::store::services::services::get_service(Services::Tautulli)?;
 
     service_info.ok_or(DeleterrError::new("Tautulli service not setup."))
 }

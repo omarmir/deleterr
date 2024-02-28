@@ -1,12 +1,12 @@
-use crate::common::{
-    models::{DeleterrError, RequestType, ServiceInfo, Services},
-    services::{create_api_url, get_api_endpoint, make_api_call},
-};
+use crate::common::models::api::RequestType;
+use crate::common::models::deleterr_error::DeleterrError;
+use crate::common::models::services::{ServiceInfo, Services};
+use crate::common::services::{create_api_url, get_api_endpoint, make_api_call};
 
 use super::series::Series;
 
 fn build_service_info() -> Result<ServiceInfo, DeleterrError> {
-    let service_info = crate::store::services::get_service(Services::Sonarr)?;
+    let service_info = crate::store::services::services::get_service(Services::Sonarr)?;
 
     service_info.ok_or(DeleterrError::new("Sonarr service not setup."))
 }
