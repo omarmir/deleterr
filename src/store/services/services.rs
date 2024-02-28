@@ -9,7 +9,7 @@ use crate::common::models::{
 const BUCKET_NAME: &str = "services";
 
 pub fn get_service(service: Services) -> Result<Option<ServiceInfo>, DeleterrError> {
-    let services_data = get_data(BUCKET_NAME, service.to_string());
+    let services_data = get_data(BUCKET_NAME, &service.to_string());
 
     match services_data {
         Ok(data) => {

@@ -8,14 +8,6 @@ pub struct MediaExemption {
 }
 
 impl MediaExemption {
-    pub fn as_le_bytes(self) -> Vec<u8> {
-        let bytes1 = self.request_id.to_le_bytes();
-        let bytes2 = self.tmdb_id.to_le_bytes();
-        return [bytes1, bytes2].concat();
-    }
-}
-
-impl MediaExemption {
     pub fn as_vec(&self) -> Vec<u8> {
         let media_exemption_bytes =
             serde_json::to_vec(&self).expect("Failed to serialize media exemption to JSON");

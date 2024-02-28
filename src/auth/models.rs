@@ -23,10 +23,10 @@ impl HashedUser {
     }
 }
 
-impl From<&[u8]> for HashedUser {
-    fn from(bytes: &[u8]) -> Self {
+impl From<Vec<u8>> for HashedUser {
+    fn from(bytes: Vec<u8>) -> Self {
         let hashed_user: HashedUser =
-            serde_json::from_slice(bytes).expect("Failed to deserialize user info");
+            serde_json::from_slice(&bytes).expect("Failed to deserialize user info");
 
         hashed_user
     }

@@ -56,7 +56,7 @@ pub fn validate_session(session: Session, username: String) -> Result<String, De
 }
 
 pub fn verify_user(unhashed_user: User) -> Result<bool, DeleterrError> {
-    let user = get_user_by_username(unhashed_user.username)?;
+    let user = get_user_by_username(&unhashed_user.username)?;
 
     let matches = verify(unhashed_user.password, user.hash.as_str()).map_err(|e| {
         DeleterrError::new(e.to_string().as_str()).add_prefix("Unable to verify password hash.")

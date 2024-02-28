@@ -3,8 +3,8 @@ use crate::{auth::models::HashedUser, common::models::deleterr_error::DeleterrEr
 
 const BUCKET_NAME: &str = "users";
 
-pub fn get_user_by_username(username: String) -> Result<HashedUser, DeleterrError> {
-    let users_data = get_data(BUCKET_NAME, username).unwrap_or(None);
+pub fn get_user_by_username(username: &String) -> Result<HashedUser, DeleterrError> {
+    let users_data = get_data(BUCKET_NAME, &username).unwrap_or(None);
 
     match users_data {
         Some(data) => {
@@ -16,9 +16,9 @@ pub fn get_user_by_username(username: String) -> Result<HashedUser, DeleterrErro
 }
 
 pub fn add_user_to_store(user: HashedUser) -> Result<(), DeleterrError> {
-    let existing_user = get_user_by_username(user.username);
+    let existing_user = get_user_by_username(&user.username);
 
-    if let Ok(existing_user) = existing_user {
+    if existing_user.is_ok() {
         return Err(DeleterrError::new("User already exists"));
     }
 
@@ -31,7 +31,7 @@ pub fn add_user_to_store(user: HashedUser) -> Result<(), DeleterrError> {
 }
 
 pub fn update_user_in_store(user: HashedUser) -> Result<(), DeleterrError> {
-    let existing_user = get_user_by_username(user.username);
+    let existing_user = get_user_by_username(&user.username);
 
     if existing_user.is_err() {
         return Err(DeleterrError::new("User not found"));

@@ -63,7 +63,7 @@ async fn get_service_json(path: web::Path<Services>) -> impl Responder {
 
 #[get("/request/exemptions/get")]
 async fn get_media_exemption() -> impl Responder {
-    let media_exemptions = store::exemptions::get_all_exemptions();
+    let media_exemptions = store::services::media_exemptions::get_all_exemptions();
     return process_request(media_exemptions);
 }
 
@@ -71,13 +71,14 @@ async fn get_media_exemption() -> impl Responder {
 async fn save_media_exemption(
     web::Json(media_exemption): web::Json<MediaExemption>,
 ) -> impl Responder {
-    let exempted_result = store::exemptions::upsert_media_exemption(media_exemption);
+    let exempted_result =
+        store::services::media_exemptions::upsert_media_exemption(media_exemption);
     return process_request(exempted_result);
 }
 
 #[post("/request/exemptions/remove")]
 async fn remove_media_exemption(web::Json(request_id): web::Json<usize>) -> impl Responder {
-    let deleted_result = store::exemptions::remove_media_exemption(request_id);
+    let deleted_result = store::services::media_exemptions::remove_media_exemption(request_id);
     return process_request(deleted_result);
 }
 

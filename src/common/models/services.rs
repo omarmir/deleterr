@@ -29,6 +29,15 @@ impl From<&[u8]> for ServiceInfo {
     }
 }
 
+impl From<Vec<u8>> for ServiceInfo {
+    fn from(bytes: Vec<u8>) -> Self {
+        let service_info: ServiceInfo =
+            serde_json::from_slice(&bytes).expect("Failed to deserialize service info");
+
+        service_info
+    }
+}
+
 #[derive(Deserialize, Serialize, Debug, Clone)]
 #[serde(rename_all = "lowercase")]
 pub enum Services {
