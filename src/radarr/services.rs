@@ -10,6 +10,15 @@ fn build_service_info() -> Result<ServiceInfo, DeleterrError> {
     service_info.ok_or(DeleterrError::new("Radarr service not setup."))
 }
 
+fn check_radarr_response(code: u16) -> Result<bool, DeleterrError> {
+    match code {
+        200 => Ok(true),
+        404 => Err(DeleterrError::new(APIStatus::NotFound.to_string().as_str())),
+        401 => Err(DeleterrError::new(APIStatus::WrongKey.to_string().as_str())),
+        _ => Err(DeleterrError::new(APIStatus::Other.to_string().as_str())),
+    }
+}
+
 pub async fn get_movie(tmdb_id: &Option<usize>) -> Result<Option<Movie>, DeleterrError> {
     match tmdb_id {
         Some(tmdb_id) => {
@@ -24,7 +33,10 @@ pub async fn get_movie(tmdb_id: &Option<usize>) -> Result<Option<Movie>, Deleter
                 get_api_endpoint(api_url, query, Some(service_info.api_key), RequestType::Get)?;
             let request_response = make_api_call(client_req).await?;
 
-            let resp = request_response.response.json::<Vec<Movie>>().await;
+            let resp = match check_radarr_response(request_response.code) {
+                Ok(_) => Ok(request_response.response.json::<Vec<Movie>>().await?),
+                Err(err) => Err(err),
+            };
 
             match resp {
                 Ok(movie) => {
@@ -34,9 +46,7 @@ pub async fn get_movie(tmdb_id: &Option<usize>) -> Result<Option<Movie>, Deleter
                         Ok(None)
                     }
                 }
-                Err(error) => {
-                    Err(DeleterrError::from(error).add_prefix("Unable to process Radarr response,"))
-                }
+                Err(error) => Err(error.add_prefix("Unable to process Radarr response,")),
             }
         }
         None => Ok(None),
@@ -57,17 +67,16 @@ pub async fn delete_movie(radarr_id: &str) -> Result<ResponseCodeBasedAction, De
         RequestType::Delete,
     )?;
     let request_response = make_api_call(client_req).await?;
-    match request_response.code {
-        200 => {
-            return Ok(ResponseCodeBasedAction {
-                status: APIStatus::Success,
-                success: true,
-            })
-        }
-        404 => return Err(DeleterrError::new(APIStatus::NotFound.to_string().as_str())),
-        401 => return Err(DeleterrError::new(APIStatus::WrongKey.to_string().as_str())),
-        _ => return Err(DeleterrError::new(APIStatus::Other.to_string().as_str())),
+
+    let resp = match check_radarr_response(request_response.code) {
+        Ok(_) => Ok(ResponseCodeBasedAction {
+            status: APIStatus::Success,
+            success: true,
+        }),
+        Err(err) => Err(err),
     };
+
+    resp
 }
 
 pub async fn get_cover(movie_id: usize) -> Result<Vec<u8>, DeleterrError> {
@@ -82,7 +91,10 @@ pub async fn get_cover(movie_id: usize) -> Result<Vec<u8>, DeleterrError> {
 
     let request_response = make_api_call(client_req).await?;
 
-    let resp = request_response.response.bytes().await;
+    let resp = match check_radarr_response(request_response.code) {
+        Ok(_) => Ok(request_response.response.bytes().await?),
+        Err(err) => Err(err),
+    };
 
     match resp {
         Ok(img) => Ok(img.to_vec()),
