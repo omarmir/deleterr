@@ -1,5 +1,5 @@
 use super::models::{
-    api::{APIResponse, RequestResponse, RequestType},
+    api::{APIResponse, APIStatus, RequestResponse, RequestType},
     deleterr_error::DeleterrError,
     services::ServiceInfo,
 };
@@ -12,16 +12,22 @@ use std::time::Duration;
 
 pub async fn make_api_call(
     client_request: reqwest::RequestBuilder,
-) -> Result<RequestResponse, Error> {
+) -> Result<RequestResponse, DeleterrError> {
     let response = client_request.send().await?;
 
-    let request_response: RequestResponse = RequestResponse {
-        code: response.status().as_u16(),
-        status: response.status().to_string(),
-        response,
-    };
+    let response_code = response.status().as_u16();
 
-    Ok(request_response)
+    match response_code {
+        200 => Ok(RequestResponse {
+            code: response.status().as_u16(),
+            status: response.status().to_string(),
+            response,
+        }),
+        404 => Err(DeleterrError::new(APIStatus::NotFound.to_string().as_str())),
+        401 => Err(DeleterrError::new(APIStatus::WrongKey.to_string().as_str())),
+        403 => Err(DeleterrError::new(APIStatus::WrongKey.to_string().as_str())),
+        _ => Err(DeleterrError::new(APIStatus::Other.to_string().as_str())),
+    }
 }
 
 pub fn process_request<T>(response: Result<T, DeleterrError>) -> impl Responder
