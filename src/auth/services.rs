@@ -85,7 +85,7 @@ pub fn add_user(unhashed_user: User) -> Result<(), DeleterrError> {
     add_user_to_store(user)
 }
 
-pub async fn reject_anonymous_users(
+pub async fn _reject_anonymous_users(
     mut req: ServiceRequest,
     next: Next<impl MessageBody + 'static>,
 ) -> Result<ServiceResponse<impl MessageBody>, actix_web::Error> {

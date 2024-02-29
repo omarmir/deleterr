@@ -30,7 +30,7 @@ pub fn add_user_to_store(user: HashedUser) -> Result<(), DeleterrError> {
     }
 }
 
-pub fn update_user_in_store(user: HashedUser) -> Result<(), DeleterrError> {
+pub fn _update_user_in_store(user: HashedUser) -> Result<(), DeleterrError> {
     let existing_user = get_user_by_username(&user.username);
 
     if existing_user.is_err() {

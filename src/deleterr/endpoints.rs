@@ -1,5 +1,4 @@
 use crate::auth::models::User;
-use crate::common::models::exemptions::MediaExemption;
 use crate::common::models::services::{ServiceInfo, Services};
 use crate::common::services::process_request;
 use crate::deleterr::models::QueryParms;
@@ -10,7 +9,7 @@ use actix_web::{
     web::{self, Data},
     Responder,
 };
-use actix_web_lab::middleware::from_fn;
+//use actix_web_lab::middleware::from_fn;
 
 #[get("/requests")]
 async fn get_all_requests_json(
@@ -68,9 +67,7 @@ async fn get_media_exemption() -> impl Responder {
 }
 
 #[post("/request/exemptions/save")]
-async fn save_media_exemption(
-    web::Json(media_exemption): web::Json<MediaExemption>,
-) -> impl Responder {
+async fn save_media_exemption(web::Json(media_exemption): web::Json<usize>) -> impl Responder {
     let exempted_result =
         store::services::media_exemptions::upsert_media_exemption(media_exemption);
     return process_request(exempted_result);
@@ -148,7 +145,7 @@ async fn validate_user_session(
 pub fn config(cfg: &mut web::ServiceConfig) {
     cfg.service(
         web::scope("/api/v1/json")
-            .wrap(from_fn(auth::services::reject_anonymous_users))
+            //.wrap(from_fn(auth::services::reject_anonymous_users))
             .service(get_all_requests_json)
             .service(get_requests_count_json)
             .service(get_service_status_json)
