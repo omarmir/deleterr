@@ -19,37 +19,24 @@
         </p>
         <InputsCheckbox v-model="serviceInfo.useSsl">Use SSL</InputsCheckbox>
         <div class="flex justify-end space-x-4">
-          <ButtonsStatused class="rounded-lg" :operation-state="operationState" @click="testService">
-            Test
-          </ButtonsStatused>
-          <ButtonsStatused
-            class="rounded-lg"
-            :operation-state="operationState"
-            :is-outlined="false"
-            @click="saveService">
-            Save
-          </ButtonsStatused>
-        </div>
-        <div class="text-sm text-red-600 first-letter:uppercase">
-          <p v-if="operationState == OperationState.failure">
-            {{ serviceError }}
-          </p>
+          <ButtonsStatused class="rounded-lg" :callback="testService">Test</ButtonsStatused>
+          <ButtonsStatused class="rounded-lg" :callback="saveService" :is-outlined="false">Save</ButtonsStatused>
         </div>
       </form>
     </div>
   </div>
 </template>
 <script lang="ts" setup>
-import { Ref, reactive, ref } from 'vue'
+import { reactive } from 'vue'
 import { PropType } from 'vue'
-import { ServiceInfo, Services } from '~/@types/deleterr'
+import { APIResponse, ServiceInfo, Services } from '~/@types/deleterr'
 import { useVuelidate } from '@vuelidate/core'
 import { required } from '@vuelidate/validators'
 import ButtonsStatused from '~/components/Buttons/Statused.vue'
 import InputsInput from '~/components/Inputs/Input.vue'
 import InputsCheckbox from '~/components/Inputs/Checkbox.vue'
 import { useServiceStore } from '~/stores/services.store'
-import { OperationState } from '~/@types/common'
+import { ServiceStatus } from '~/@types/services'
 
 const props = defineProps({
   logo: { type: String, required: true },
@@ -78,48 +65,19 @@ const rules = {
 
 const store = useServiceStore()
 
-const operationState: Ref<OperationState> = ref(OperationState.hidden)
-const serviceError: Ref<undefined | string> = ref(undefined)
-
 const v$ = useVuelidate(rules, serviceInfo as any)
 
-const saveService = async () => {
+const saveService = async (): Promise<APIResponse<ServiceStatus> | undefined> => {
   const validation = await v$.value.$validate()
   if (validation) {
-    operationState.value = OperationState.loading
-    const result = await store.saveService(serviceInfo)
-
-    if (result.success) {
-      operationState.value = OperationState.success
-    } else {
-      operationState.value = OperationState.failure
-    }
-
-    serviceError.value = result.error_msg
-
-    setTimeout(() => {
-      operationState.value = OperationState.hidden
-    }, 5000)
+    return store.saveService(serviceInfo)
   }
 }
 
-const testService = async () => {
+const testService = async (): Promise<APIResponse<ServiceStatus> | undefined> => {
   const validation = await v$.value.$validate()
   if (validation) {
-    operationState.value = OperationState.loading
-    const result = await store.saveService(serviceInfo)
-
-    if (result.success) {
-      operationState.value = OperationState.success
-    } else {
-      operationState.value = OperationState.failure
-    }
-
-    serviceError.value = result.error_msg
-
-    setTimeout(() => {
-      operationState.value = OperationState.hidden
-    }, 5000)
+    return store.testService(serviceInfo)
   }
 }
 </script>
