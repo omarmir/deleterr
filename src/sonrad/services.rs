@@ -17,35 +17,13 @@ pub async fn get_sonrad_status(
     // We need to make sure its actaully the response from Radarr/Sonarr and not just an OK response
     let resp = request_response.response.json::<SonRadStatus>().await;
 
-    let service_status = match resp {
-        Ok(rd_resp) => {
-            if rd_resp.app_name == service_info.service.to_name() {
-                APIServiceStatus {
-                    status: APIStatus::Success,
-                    service: Services::Radarr,
-                    is_success: true,
-                }
-            } else {
-                APIServiceStatus {
-                    status: APIStatus::NotFound,
-                    service: Services::Radarr,
-                    is_success: false,
-                }
-            }
-        }
-        _ => match &request_response.code {
-            401 => APIServiceStatus {
-                status: APIStatus::WrongKey,
-                service: Services::Radarr,
-                is_success: false,
-            },
-            _ => APIServiceStatus {
-                status: APIStatus::Other,
-                service: Services::Radarr,
-                is_success: false,
-            },
-        },
-    };
-
-    Ok(service_status)
+    match resp {
+        Ok(_) => Ok(APIServiceStatus {
+            status: APIStatus::Success,
+            service: service_info.service,
+            is_success: true,
+        }),
+        Err(error) => Err(DeleterrError::from(error)
+            .add_prefix("Unable to get status for {service_info.service}")),
+    }
 }
