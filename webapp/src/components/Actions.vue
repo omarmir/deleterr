@@ -3,9 +3,9 @@
     <button
       class="flex items-center justify-between rounded-lg px-2 py-2 text-sm font-medium leading-5 text-purple-600 focus:shadow-outline-gray focus:outline-none"
       aria-label="Exclude"
-      @click="$emit('toggleExempt')">
-      <IndicatorsLoading v-if="exemptionButtonState === OperationState.loading" />
-      <IndicatorsError v-else-if="exemptionButtonState === OperationState.failure" />
+      @click="exemptMedia">
+      <IndicatorsLoading v-if="exemptionState === OperationState.loading" />
+      <IndicatorsError v-else-if="exemptionState === OperationState.failure" />
       <svg
         v-else
         class="h-5 w-5"
@@ -25,9 +25,9 @@
       v-if="externalId"
       class="flex items-center justify-between rounded-lg px-2 py-2 text-sm font-medium leading-5 text-red-500 focus:shadow-outline-gray focus:outline-none"
       aria-label="Delete"
-      @click="$emit('deleteMedia')">
-      <IndicatorsLoading v-if="deletionButtonState === OperationState.loading" />
-      <IndicatorsError v-else-if="deletionButtonState === OperationState.failure" />
+      @click="deleteMedia">
+      <IndicatorsLoading v-if="deletionState === OperationState.loading" />
+      <IndicatorsError v-else-if="deletionState === OperationState.failure" />
       <svg v-else class="h-5 w-5" aria-hidden="true" fill="currentColor" viewBox="0 0 20 20">
         <path
           fill-rule="evenodd"
@@ -38,17 +38,55 @@
   </div>
 </template>
 <script lang="ts" setup>
-import { PropType } from 'vue'
+import { PropType, Ref, ref } from 'vue'
 import { OperationState } from '~/@types/common'
 import IndicatorsLoading from '~/components/Indicators/Loading.vue'
 import IndicatorsError from '~/components/Indicators/Error.vue'
+import { APIResponse } from '~/@types/deleterr'
 
-defineProps({
+const props = defineProps({
   isExempt: { required: true, type: Boolean, default: false },
-  exemptionButtonState: { type: Number as PropType<OperationState>, required: false, default: OperationState.hidden },
   externalId: { type: Number, required: false },
-  deletionButtonState: { type: Number as PropType<OperationState>, required: false, default: OperationState.hidden },
+  deletionCallback: {
+    type: Function as PropType<() => Promise<APIResponse<any> | undefined>>,
+    required: true,
+  },
+  exemptionCallback: {
+    type: Function as PropType<() => Promise<APIResponse<any> | undefined>>,
+    required: true,
+  },
 })
 
-defineEmits(['toggleExempt', 'deleteMedia'])
+const deletionState: Ref<OperationState> = ref(OperationState.hidden)
+const exemptionState: Ref<OperationState> = ref(OperationState.hidden)
+
+const deleteMedia = async () => {
+  deletionState.value = OperationState.loading
+
+  const result = await props.deletionCallback()
+
+  if (result) {
+    result.success ? (deletionState.value = OperationState.success) : (deletionState.value = OperationState.failure)
+    setTimeout(() => {
+      deletionState.value = OperationState.hidden
+    }, 5000)
+  } else {
+    deletionState.value = OperationState.hidden
+  }
+}
+
+const exemptMedia = async () => {
+  exemptionState.value = OperationState.loading
+
+  const result = await props.exemptionCallback()
+
+  if (result) {
+    result.success ? (exemptionState.value = OperationState.success) : (exemptionState.value = OperationState.failure)
+    setTimeout(() => {
+      exemptionState.value = OperationState.hidden
+    }, 5000)
+  } else {
+    exemptionState.value = OperationState.hidden
+  }
+}
 </script>

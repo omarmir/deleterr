@@ -41,11 +41,9 @@
             <div class="flex basis-full lg:basis-1/12">
               <Actions
                 :is-exempt="store.isMediaExempted(request?.mediaRequest?.id)"
-                :exemption-button-state="store.actionStates['exemption_' + request.mediaRequest.id]"
-                :deletion-button-state="store.actionStates['delete_' + request.mediaRequest.id]"
                 :external-id="request?.mediaRequest.media.externalServiceId"
-                @delete-media="deleteMedia(request?.mediaRequest.id, request?.mediaRequest.media.mediaType)"
-                @toggle-exempt="toggleExempt(request?.mediaRequest.id)" />
+                :deletion-callback="() => deleteMedia(request?.mediaRequest.id, request?.mediaRequest.media.mediaType)"
+                :exemption-callback="() => toggleExempt(request?.mediaRequest.id)" />
             </div>
           </div>
         </li>
@@ -71,20 +69,25 @@ import RequestsListItemsSeasons from '~/components/Requests/ListItems/Seasons.vu
 import RequestsListItemsUser from '~/components/Requests/ListItems/User.vue'
 import Actions from '~/components/Actions.vue'
 import { useRequestsStore } from '~/stores/requests.store'
-import { MediaType } from '~/@types/deleterr'
+import { APIResponse, MediaType, MovieDeletionRequest } from '~/@types/deleterr'
 
 const store = useRequestsStore()
 
 await store.getRequests()
 
-const toggleExempt = async (requestId: number) => await store.toggleMediaExemption(requestId)
-
-const deleteMedia = (requestId?: number, mediaType?: MediaType) => {
+const deleteMedia = async (
+  requestId?: number,
+  mediaType?: MediaType
+): Promise<APIResponse<MovieDeletionRequest> | undefined> => {
   if (requestId && mediaType) {
     if (mediaType == 'movie') {
-      store.deleteMovieFile(requestId)
+      return store.deleteMovieFile(requestId)
     }
   }
+}
+
+const toggleExempt = async (requestId: number): Promise<APIResponse<string> | undefined> => {
+  return store.toggleMediaExemption(requestId)
 }
 
 const isTV = (mediaType?: MediaType): boolean => {

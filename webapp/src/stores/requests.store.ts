@@ -9,8 +9,6 @@ import {
 } from '~/@types/deleterr'
 import { useToast } from '~/composables/useToast'
 import { useRouter } from 'vue-router'
-import { OperationState } from '~/@types/common'
-
 interface RequestResponse {
   requests?: RequestStatus[]
   exemptions?: MediaExemptions
@@ -26,8 +24,6 @@ export const useRequestsStore = defineStore('requests', () => {
   const filteredRequests: Ref<number> = ref(0)
   const error: Ref<any | null> = ref(null)
   const mediaExemptions: Ref<MediaExemptions> = ref([])
-  // We are going to create a hashmap here with "exemption_<key>" or "deletion_<key>" as the key and the state as value.
-  const actionStates: Ref<{ [key: string]: OperationState }> = ref({})
 
   const { publishToast } = useToast()
 
@@ -52,7 +48,7 @@ export const useRequestsStore = defineStore('requests', () => {
     const urlWithQueryParams = `/api/v1/json/requests?${queryString}`
     const mediaExemptionsEndpoint = '/api/v1/json/request/exemptions/get'
 
-    // Use Promise.all to run both promises in parallel
+    // Use Promise.all to run both promises in parallel*
     const [requestsResponse, mediaExemptionsResponse] = await Promise.all([
       fetch(urlWithQueryParams, {
         credentials: 'include',
@@ -62,7 +58,7 @@ export const useRequestsStore = defineStore('requests', () => {
       }),
     ])
 
-    // Use Promise.all again to extract JSON from the responses in parallel
+    // Use Promise.all again to extract JSON from the responses in parallel*
     const [requestsResult, mediaExemptionsResult] = await Promise.all([
       requestsResponse.json() as Promise<APIResponse<RequestStatusWithRecordInfo>>,
       mediaExemptionsResponse.json() as Promise<APIResponse<MediaExemptions>>,
@@ -101,13 +97,13 @@ export const useRequestsStore = defineStore('requests', () => {
     return mediaExemptions.value.includes(requestId)
   }
 
-  const toggleMediaExemption = async (mediaExemption: number) => {
-    isMediaExempted(mediaExemption)
+  const toggleMediaExemption = async (mediaExemption: number): Promise<APIResponse<string> | undefined> => {
+    return isMediaExempted(mediaExemption)
       ? await removeMediaExemption(mediaExemption)
       : await addMediaExemption(mediaExemption)
   }
 
-  const addMediaExemption = async (mediaExemption: number) => {
+  const addMediaExemption = async (mediaExemption: number): Promise<APIResponse<string> | undefined> => {
     const mediaExemptionsEndpoint = '/api/v1/json/request/exemptions/save'
 
     const requestOptions: RequestInit = {
@@ -117,11 +113,6 @@ export const useRequestsStore = defineStore('requests', () => {
       credentials: 'include',
     }
 
-    //{ credentials: 'include', method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(mediaExemption) }
-
-    const key = mediaExemption
-    actionStates.value['exemption_' + key] = OperationState.loading
-
     // Simulate delay
     // await new Promise((resolve) => setTimeout(resolve, 2000))
 
@@ -130,18 +121,24 @@ export const useRequestsStore = defineStore('requests', () => {
       let apiResponse: APIResponse<string> = await response.json()
 
       if (apiResponse.success) {
-        mediaExemptions.value[key] = mediaExemption
-        actionStates.value['exemption_' + key] = OperationState.success
         publishToast('Exempted', 'This media item will not be automatically deleted at next scheduled run.', 3, false)
+        mediaExemptions.value.push(mediaExemption)
+        return apiResponse
       } else {
-        handleErrorForExemption('exemption_' + key, apiResponse.error_msg)
+        publishToast('Unable to add exemption', 'Error: ' + apiResponse.error_msg ?? 'Unknown!', 3, true)
+        return apiResponse
       }
-    } catch (err) {
-      handleErrorForExemption('exemption_' + key, (err as any).toString())
+    } catch (err: any) {
+      const apiResponse: APIResponse<string> = {
+        success: false,
+        error_msg: err
+      }
+      publishToast('Unable to add exemption', 'Error: ' + err.toString(), 10, true)
+      return apiResponse
     }
   }
 
-  const removeMediaExemption = async (mediaExemption: number) => {
+  const removeMediaExemption = async (mediaExemption: number): Promise<APIResponse<string> | undefined> => {
     const mediaExemptionsEndpoint = '/api/v1/json/request/exemptions/remove'
 
     const requestOptions: RequestInit = {
@@ -151,41 +148,43 @@ export const useRequestsStore = defineStore('requests', () => {
       credentials: 'include',
     }
 
-    const key = mediaExemption
-    actionStates.value['exemption_' + key] = OperationState.loading
-
     // Simulate delay
     // await new Promise((resolve) => setTimeout(resolve, 2000))
 
     try {
       const response = await fetch(mediaExemptionsEndpoint, requestOptions)
       let apiResponse: APIResponse<string> = await response.json()
+
       if (apiResponse.success) {
-        delete mediaExemptions.value[key]
-        actionStates.value['exemption_' + key] = OperationState.success
         publishToast(
           'Exemption removed',
           'This media item will be automatically deleted at the next scheduled run.',
           3,
           true
         )
+        mediaExemptions.value = mediaExemptions.value.filter((exemption) => exemption != mediaExemption)
+        return apiResponse
       } else {
-        handleErrorForExemption('exemption_' + key, apiResponse.error_msg)
+        publishToast('Unable to remove exemption', 'Error: ' + apiResponse.error_msg ?? 'Unknown!', 3, true)
+        return apiResponse
       }
-    } catch (err) {
-      handleErrorForExemption('exemption_' + key, (err as any).toString())
+    } catch (err: any) {
+      const apiResponse: APIResponse<string> = {
+        success: false,
+        error_msg: err
+      }
+      publishToast('Unable to remove exemption', 'Error: ' + err.toString(), 10, true)
+      return apiResponse
     }
   }
 
-  const deleteMovieFile = async (requestId: number) => {
+  const deleteMovieFile = async (requestId: number): Promise<APIResponse<MovieDeletionRequest>> => {
     const mediaDeleteEndpoint = `/api/v1/json/movie/delete/${requestId}`
     const requestOptions: RequestInit = {
       method: 'DELETE',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
     }
-
-    actionStates.value['delete_' + requestId] = OperationState.loading
 
     // Simulate delay
     // await new Promise((resolve) => setTimeout(resolve, 2000))
@@ -194,31 +193,26 @@ export const useRequestsStore = defineStore('requests', () => {
       const response = await fetch(mediaDeleteEndpoint, requestOptions)
       let apiResponse: APIResponse<MovieDeletionRequest> = await response.json()
       if (apiResponse.success) {
-        actionStates.value['delete_' + requestId] = OperationState.success
         publishToast(
           'Movie deleted',
           'Movie has been deleted! You may need to re-scan on plex for it to vanish',
           5,
           false
         )
-        getRequests()
+        getRequests() //TODO: We may wish to remove it locally instead
+        return apiResponse
       } else {
-        handleErrorForExemption(
-          'delete_' + requestId,
-          apiResponse.error_msg ?? apiResponse.error_msg ?? 'Unknown error'
-        )
+        publishToast('Unable to delete movie', 'Error: ' + apiResponse.error_msg ?? 'Unknown!', 3, true)
+        return apiResponse
       }
-    } catch (err) {
-      handleErrorForExemption('delete_' + requestId, (err as any).toString())
+    } catch (err: any) {
+      const apiResponse: APIResponse<MovieDeletionRequest> = {
+        success: false,
+        error_msg: err.toString()
+      }
+      publishToast('Unable to delete movie', 'Error: ' + (err as any).toString(), 10, true)
+      return apiResponse
     }
-  }
-
-  const handleErrorForExemption = (key: string, errorMsg?: string) => {
-    publishToast('Exemption removed', 'Error: ' + errorMsg ?? 'Unknown!', 3, true)
-    actionStates.value[key] = OperationState.failure
-    setTimeout(() => {
-      actionStates.value[key] = OperationState.hidden
-    }, 5000)
   }
 
   watch(tableState, (_newState: TableState) => getRequests())
@@ -256,7 +250,6 @@ export const useRequestsStore = defineStore('requests', () => {
     filteredRequests,
     error,
     mediaExemptions,
-    actionStates,
     isMediaExempted,
     // Commands
     search,
