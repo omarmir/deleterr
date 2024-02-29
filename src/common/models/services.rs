@@ -57,14 +57,3 @@ impl ToString for Services {
         }
     }
 }
-
-impl Services {
-    pub fn to_name(&self) -> String {
-        match self {
-            Services::Tautulli => "Tautulli".to_string(),
-            Services::Overseerr => "Overseerr".to_string(),
-            Services::Radarr => "Radarr".to_string(),
-            Services::Sonarr => "Sonarr".to_string(),
-        }
-    }
-}
