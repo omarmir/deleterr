@@ -2,10 +2,12 @@ import { defineStore } from 'pinia'
 import { ref, Ref } from 'vue'
 import { APIResponse, AuthenticationUser } from '~/@types/deleterr'
 import { useRouter } from 'vue-router'
+import { useToast } from '~/composables/useToast'
 
 export const useAuthStore = defineStore('auth', () => {
   const username: Ref<string | undefined> = ref(undefined)
   const isLoggedIn: Ref<boolean | undefined> = ref(undefined)
+  const { publishToast } = useToast()
 
   const router = useRouter()
 
@@ -28,7 +30,7 @@ export const useAuthStore = defineStore('auth', () => {
       isLoggedIn.value = apiResponse.success
       username.value = sessionStorage.getItem('loggedUser') ?? undefined
     } catch (err) {
-      console.log((err as any).toString())
+      publishToast('Unable to validate session', 'Error: ' + (err as any).toString(), 10, true)
       isLoggedIn.value = false
       username.value = undefined
     } finally {
@@ -46,7 +48,7 @@ export const useAuthStore = defineStore('auth', () => {
     }
 
     // Simulate delay
-    await new Promise((resolve) => setTimeout(resolve, 2000))
+    //await new Promise((resolve) => setTimeout(resolve, 2000))
 
     try {
       const response = await fetch(loginEndpoint, requestOptions)
@@ -54,11 +56,9 @@ export const useAuthStore = defineStore('auth', () => {
       if (apiResponse.success) {
         ;[username.value, isLoggedIn.value] = [apiResponse.data ?? '', true]
         sessionStorage.setItem('loggedUser', apiResponse.data ?? '')
-        //router.push(originalPath.value ?? '/')
-        //originalPath.value = undefined
       } else {
-        console.log(apiResponse.error_msg)
         sessionStorage.removeItem('loggedUser')
+        publishToast('Unable to Login', 'Error: ' + apiResponse.error_msg, 10, true)
       }
 
       return apiResponse
@@ -70,7 +70,7 @@ export const useAuthStore = defineStore('auth', () => {
         success: false,
         error_msg: err
       }
-
+      publishToast('Unable to login', 'Error: ' + (err as any).toString(), 10, true)
       return apiResponse
     }
   }
@@ -91,8 +91,10 @@ export const useAuthStore = defineStore('auth', () => {
         router.push('/login')
       } else {
         console.log(apiResponse.error_msg)
+        publishToast('Unable to Login', 'Error: ' + apiResponse.error_msg, 10, true)
       }
     } catch (err) {
+      publishToast('Unable to logout', 'Error: ' + (err as any).toString(), 10, true)
       console.log((err as any).toString())
     }
   }
