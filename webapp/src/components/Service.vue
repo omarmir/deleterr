@@ -7,7 +7,7 @@
       </span>
     </h4>
     <div class="flex flex-col space-y-6 rounded-lg bg-white px-4 py-3 shadow-md dark:bg-gray-800">
-      <form class="flex flex-col space-y-3" @submit.prevent="saveOrTestService(ServiceOperations.Save)">
+      <form class="flex flex-col space-y-3" @submit.prevent>
         <InputsInput v-model="serviceInfo.host" :required="true" label="Host" placeholder="Host"></InputsInput>
         <p v-for="error in v$.host.$errors" :key="error.$uid" class="text-xs text-red-600">
           {{ error.$message }}
@@ -19,26 +19,20 @@
         </p>
         <InputsCheckbox v-model="serviceInfo.useSsl">Use SSL</InputsCheckbox>
         <div class="flex justify-end space-x-4">
-          <ButtonsStatused
-            :button-state="serviceStatus?.test"
-            class="rounded-lg"
-            @click="saveOrTestService(ServiceOperations.Test)">
+          <ButtonsStatused class="rounded-lg" :operation-state="operationState" @click="testService">
             Test
           </ButtonsStatused>
           <ButtonsStatused
-            :button-state="serviceStatus?.save"
-            :is-submit="true"
+            class="rounded-lg"
+            :operation-state="operationState"
             :is-outlined="false"
-            class="rounded-lg">
+            @click="saveService">
             Save
           </ButtonsStatused>
         </div>
         <div class="text-sm text-red-600 first-letter:uppercase">
-          <p v-if="serviceStatus?.save === OperationState.failure">
-            {{ serviceStatus?.errorMsg }}
-          </p>
-          <p v-if="serviceStatus?.test === OperationState.failure">
-            {{ serviceStatus?.errorMsg }}
+          <p v-if="operationState == OperationState.failure">
+            {{ serviceError }}
           </p>
         </div>
       </form>
@@ -46,16 +40,16 @@
   </div>
 </template>
 <script lang="ts" setup>
-import { reactive } from 'vue'
+import { Ref, reactive, ref } from 'vue'
 import { PropType } from 'vue'
 import { ServiceInfo, Services } from '~/@types/deleterr'
-import { OperationState } from '~/@types/common'
-import { ServiceOperations, ServiceStatus } from '~/@types/services'
 import { useVuelidate } from '@vuelidate/core'
 import { required } from '@vuelidate/validators'
 import ButtonsStatused from '~/components/Buttons/Statused.vue'
 import InputsInput from '~/components/Inputs/Input.vue'
 import InputsCheckbox from '~/components/Inputs/Checkbox.vue'
+import { useServiceStore } from '~/stores/services.store'
+import { OperationState } from '~/@types/common'
 
 const props = defineProps({
   logo: { type: String, required: true },
@@ -65,10 +59,6 @@ const props = defineProps({
   },
   serviceType: {
     type: String as PropType<Services>,
-    required: true,
-  },
-  serviceStatus: {
-    type: Object as PropType<ServiceStatus>,
     required: true,
   },
 })
@@ -86,16 +76,50 @@ const rules = {
   apiKey: { required },
 }
 
-const emit = defineEmits<{
-  (e: 'save', serviceInfo: ServiceInfo): void
-  (e: 'test', serviceInfo: ServiceInfo): void
-}>()
+const store = useServiceStore()
 
-const saveOrTestService = async (operation: ServiceOperations) => {
-  const result = await v$.value.$validate()
-
-  if (result) operation === ServiceOperations.Test ? emit('test', serviceInfo) : emit('save', serviceInfo)
-}
+const operationState: Ref<OperationState> = ref(OperationState.hidden)
+const serviceError: Ref<undefined | string> = ref(undefined)
 
 const v$ = useVuelidate(rules, serviceInfo as any)
+
+const saveService = async () => {
+  const validation = await v$.value.$validate()
+  if (validation) {
+    operationState.value = OperationState.loading
+    const result = await store.saveService(serviceInfo)
+
+    if (result.success) {
+      operationState.value = OperationState.success
+    } else {
+      operationState.value = OperationState.failure
+    }
+
+    serviceError.value = result.error_msg
+
+    setTimeout(() => {
+      operationState.value = OperationState.hidden
+    }, 5000)
+  }
+}
+
+const testService = async () => {
+  const validation = await v$.value.$validate()
+  if (validation) {
+    operationState.value = OperationState.loading
+    const result = await store.saveService(serviceInfo)
+
+    if (result.success) {
+      operationState.value = OperationState.success
+    } else {
+      operationState.value = OperationState.failure
+    }
+
+    serviceError.value = result.error_msg
+
+    setTimeout(() => {
+      operationState.value = OperationState.hidden
+    }, 5000)
+  }
+}
 </script>

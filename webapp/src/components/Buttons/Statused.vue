@@ -1,9 +1,9 @@
 <template>
   <ButtonsBase :is-outlined="true">
     <template #icons>
-      <span v-if="buttonState !== OperationState.hidden" class="pr-2">
+      <span v-if="operationState !== OperationState.hidden" class="pr-2">
         <svg
-          v-if="buttonState === OperationState.loading"
+          v-if="operationState === OperationState.loading"
           class="h-5 w-5"
           xmlns="http://www.w3.org/2000/svg"
           width="24"
@@ -27,7 +27,7 @@
           </path>
         </svg>
         <svg
-          v-else-if="buttonState === OperationState.success"
+          v-else-if="operationState === OperationState.success"
           class="h-5 w-5 text-green-500"
           fill="none"
           stroke="currentColor"
@@ -41,7 +41,7 @@
             d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
         </svg>
         <svg
-          v-else-if="buttonState === OperationState.failure"
+          v-else-if="operationState === OperationState.failure"
           class="h-5 w-5 text-red-500"
           fill="none"
           stroke="currentColor"
@@ -64,6 +64,6 @@ import { PropType } from 'vue'
 import { OperationState } from '~/@types/common'
 import ButtonsBase from '~/components/Buttons/Base.vue'
 defineProps({
-  buttonState: { type: Number as PropType<OperationState>, required: false, default: OperationState.hidden },
+  operationState: { type: Number as PropType<OperationState>, required: true },
 })
 </script>

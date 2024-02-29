@@ -1,15 +1,9 @@
-import { OperationState } from './common'
-import { Services } from './deleterr'
+import { APIStatus, Services } from './deleterr'
 
 export interface ServiceStatus {
-  test: OperationState
-  save: OperationState
-  errorMsg: string
-}
-
-export enum ServiceOperations {
-  Save = 'save',
-  Test = 'test',
+  service: Services
+  isSuccess: boolean
+  status: APIStatus
 }
 
 export type AllServiceStatus = { [key in Services]: ServiceStatus }
