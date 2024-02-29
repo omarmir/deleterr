@@ -24,7 +24,7 @@ pub async fn get_movie(tmdb_id: &Option<usize>) -> Result<Option<Movie>, Deleter
                 get_api_endpoint(api_url, query, Some(service_info.api_key), RequestType::Get)?;
             let request_response = make_api_call(client_req)
                 .await
-                .map_err(|err| err.add_prefix("Unable to get Radarr movie."))?;
+                .map_err(|err| err.add_prefix("Unable to get Radarr movie, "))?;
 
             let resp = request_response.response.json::<Vec<Movie>>().await;
 
@@ -37,7 +37,8 @@ pub async fn get_movie(tmdb_id: &Option<usize>) -> Result<Option<Movie>, Deleter
                     }
                 }
                 Err(error) => {
-                    Err(DeleterrError::from(error).add_prefix("Unable to process Radarr response."))
+                    Err(DeleterrError::from(error)
+                        .add_prefix("Unable to process Radarr response, "))
                 }
             }
         }
@@ -66,7 +67,7 @@ pub async fn delete_movie(radarr_id: &str) -> Result<ResponseCodeBasedAction, De
             success: true,
         }),
         Err(error) => {
-            Err(DeleterrError::from(error).add_prefix("Unable to delete movie from Radarr."))
+            Err(DeleterrError::from(error).add_prefix("Unable to delete movie from Radarr, "))
         }
     }
 }

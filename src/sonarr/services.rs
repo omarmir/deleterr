@@ -24,7 +24,9 @@ pub async fn get_series(tvdb_id: &Option<usize>) -> Result<Option<Series>, Delet
             let client_req =
                 get_api_endpoint(api_url, query, Some(service_info.api_key), RequestType::Get)?;
 
-            let request_response = make_api_call(client_req).await?;
+            let request_response = make_api_call(client_req)
+                .await
+                .map_err(|err| err.add_prefix("Unable to get Sonarr show, "))?;
 
             let resp = request_response.response.json::<Vec<Series>>().await;
 
@@ -37,7 +39,8 @@ pub async fn get_series(tvdb_id: &Option<usize>) -> Result<Option<Series>, Delet
                     }
                 }
                 Err(error) => {
-                    Err(DeleterrError::from(error).add_prefix("Unable to process Sonarr response,"))
+                    Err(DeleterrError::from(error)
+                        .add_prefix("Unable to process Sonarr response, "))
                 }
             }
         }
