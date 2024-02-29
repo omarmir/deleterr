@@ -223,7 +223,7 @@ export const useRequestsStore = defineStore('requests', () => {
       ;[internalTableState.search, internalTableState.skip] = [searchStr, 0]
       currentPage.value = 0
       // If searching from another page, take them to the main page to see results
-      if (router.currentRoute.value.path != '/') router.push('/')
+      if (router.currentRoute.value.path != '/') router.push('/') //TODO: Maybe we move this over to the component itself
     }
   }
 
