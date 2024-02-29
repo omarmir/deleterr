@@ -1,6 +1,6 @@
 <template>
   <button
-    type="button"
+    :type="isSubmit ? 'submit' : 'button'"
     :class="
       isOutlined
         ? 'border-purple-600 text-purple-600 active:bg-purple-600 dark:text-white'

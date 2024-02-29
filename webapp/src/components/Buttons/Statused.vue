@@ -1,5 +1,5 @@
 <template>
-  <ButtonsBase :is-outlined="true">
+  <ButtonsBase :is-outlined="true" @click="performAction()">
     <template #icons>
       <span v-if="operationState !== OperationState.hidden" class="pr-2">
         <svg
@@ -60,10 +60,32 @@
   </ButtonsBase>
 </template>
 <script lang="ts" setup>
-import { PropType } from 'vue'
+import { defineProps, Ref, ref, PropType } from 'vue'
 import { OperationState } from '~/@types/common'
+import { APIResponse } from '~/@types/deleterr'
 import ButtonsBase from '~/components/Buttons/Base.vue'
-defineProps({
-  operationState: { type: Number as PropType<OperationState>, required: true },
+
+const props = defineProps({
+  callback: {
+    type: Function as PropType<() => Promise<APIResponse<any> | undefined>>,
+    required: true,
+  },
 })
+
+const operationState: Ref<OperationState> = ref(OperationState.hidden)
+
+const performAction = async () => {
+  operationState.value = OperationState.loading
+
+  const result = await props.callback()
+
+  if (result) {
+    result.success ? (operationState.value = OperationState.success) : (operationState.value = OperationState.failure)
+    setTimeout(() => {
+      operationState.value = OperationState.hidden
+    }, 5000)
+  } else {
+    operationState.value = OperationState.hidden
+  }
+}
 </script>

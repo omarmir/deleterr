@@ -6,7 +6,7 @@ import { useRouter } from 'vue-router'
 export const useAuthStore = defineStore('auth', () => {
   const username: Ref<string | undefined> = ref(undefined)
   const isLoggedIn: Ref<boolean | undefined> = ref(undefined)
-  const originalPath: Ref<string | undefined> = ref(undefined)
+
   const router = useRouter()
 
   async function validateSession(): Promise<boolean> {
@@ -36,7 +36,7 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
-  const login = async function login(authUser: AuthenticationUser) {
+  const login = async function login(authUser: AuthenticationUser): Promise<APIResponse<string>> {
     const loginEndpoint = `/auth/login`
     const requestOptions: RequestInit = {
       method: 'POST',
@@ -46,23 +46,32 @@ export const useAuthStore = defineStore('auth', () => {
     }
 
     // Simulate delay
-    // await new Promise((resolve) => setTimeout(resolve, 2000))
+    await new Promise((resolve) => setTimeout(resolve, 2000))
 
     try {
       const response = await fetch(loginEndpoint, requestOptions)
-      let apiResponse: APIResponse<string> = await response.json()
+      const apiResponse: APIResponse<string> = await response.json()
       if (apiResponse.success) {
         ;[username.value, isLoggedIn.value] = [apiResponse.data ?? '', true]
         sessionStorage.setItem('loggedUser', apiResponse.data ?? '')
-        router.push(originalPath.value ?? '/')
-        originalPath.value = undefined
+        //router.push(originalPath.value ?? '/')
+        //originalPath.value = undefined
       } else {
         console.log(apiResponse.error_msg)
         sessionStorage.removeItem('loggedUser')
       }
-    } catch (err) {
-      console.log((err as any).toString())
+
+      return apiResponse
+
+    } catch (err: any) {
+      ;[username.value, isLoggedIn.value] = [undefined, false]
       sessionStorage.removeItem('loggedUser')
+      const apiResponse: APIResponse<string> = {
+        success: false,
+        error_msg: err
+      }
+
+      return apiResponse
     }
   }
 
@@ -88,5 +97,5 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
-  return { validateSession, username, login, logout, originalPath, isLoggedIn }
+  return { validateSession, username, login, logout, isLoggedIn }
 })

@@ -9,7 +9,7 @@ use actix_web::{
     web::{self, Data},
     Responder,
 };
-//use actix_web_lab::middleware::from_fn;
+use actix_web_lab::middleware::from_fn;
 
 #[get("/requests")]
 async fn get_all_requests_json(
@@ -145,7 +145,7 @@ async fn validate_user_session(
 pub fn config(cfg: &mut web::ServiceConfig) {
     cfg.service(
         web::scope("/api/v1/json")
-            //.wrap(from_fn(auth::services::reject_anonymous_users))
+            .wrap(from_fn(auth::services::reject_anonymous_users))
             .service(get_all_requests_json)
             .service(get_requests_count_json)
             .service(get_service_status_json)

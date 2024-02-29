@@ -7,7 +7,7 @@ import NotFound from '~/views/404.vue'
 import Login from '~/views/Login.vue'
 import Page from '~/views/Page.vue'
 import Settings from '~/views/Settings.vue'
-import { createRouter, createWebHashHistory } from 'vue-router'
+import { NavigationGuardNext, RouteLocationNormalized, createRouter, createWebHashHistory } from 'vue-router'
 import { createPinia } from 'pinia'
 import { useAuthStore } from '~/stores/auth.store'
 
@@ -53,15 +53,15 @@ const router = createRouter({
   routes,
 })
 
-router.beforeEach(async (to) => {
+router.beforeEach(async (to: RouteLocationNormalized, _from: RouteLocationNormalized, next: NavigationGuardNext) => {
   const store = useAuthStore()
 
   if (to.meta.requiresAuth && !(await store.validateSession())) {
-    store.originalPath = to.path
+    //store.originalPath = to.path
 
-    return {
-      name: 'Login',
-    }
+    next({ name: 'Login' })
+  } else {
+    next()
   }
 })
 

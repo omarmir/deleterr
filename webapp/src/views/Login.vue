@@ -30,7 +30,7 @@
         <div class="flex items-center justify-center p-6 sm:p-12 md:w-full">
           <div class="w-full">
             <h1 class="mb-4 text-xl font-semibold text-gray-700 dark:text-gray-200">Login</h1>
-            <form class="space-y-4" @submit.prevent="submitForm">
+            <form class="space-y-4" @submit.prevent>
               <InputsInput
                 v-model="authUser.username"
                 :required="true"
@@ -41,11 +41,7 @@
                 type="password"
                 label="Password"
                 placeholder="Password"></InputsInput>
-              <ButtonsStatused
-                :button-state="OperationState.hidden"
-                :is-outlined="false"
-                class="mt-5"
-                :is-submit="true">
+              <ButtonsStatused :callback="submitForm" :is-outlined="false" class="rounded-lg" :is-submit="true">
                 Login
               </ButtonsStatused>
             </form>
@@ -58,14 +54,15 @@
 <script setup lang="ts">
 import InputsInput from '~/components/Inputs/Input.vue'
 import ButtonsStatused from '~/components/Buttons/Statused.vue'
-import { AuthenticationUser } from '~/@types/deleterr'
-import { OperationState } from '~/@types/common'
+import { APIResponse, AuthenticationUser } from '~/@types/deleterr'
 import { reactive } from 'vue'
 import { useVuelidate } from '@vuelidate/core'
 import { required } from '@vuelidate/validators'
 import { useAuthStore } from '~/stores/auth.store'
+import { useRouter } from 'vue-router'
 
 const store = useAuthStore()
+const router = useRouter()
 
 const authUser: AuthenticationUser = reactive({
   username: '',
@@ -79,11 +76,16 @@ const rules = {
 
 const v$ = useVuelidate(rules, authUser as any)
 
-const submitForm = async () => {
+const submitForm = async (): Promise<APIResponse<String> | undefined> => {
   const result = await v$.value.$validate()
 
   if (result) {
-    store.login(authUser)
+    const result = await store.login(authUser)
+    if (result.success) {
+      console.log()
+      router.push(router.currentRoute.value.redirectedFrom?.fullPath ?? '/')
+    }
+    return result
   }
 }
 </script>
