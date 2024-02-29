@@ -58,9 +58,12 @@ pub async fn get_cover(series_id: usize) -> Result<Vec<u8>, DeleterrError> {
     let client_req =
         get_api_endpoint(api_url, query, Some(service_info.api_key), RequestType::Get)?;
 
-    let request_response = make_api_call(client_req).await?;
+    let request_response = make_api_call(client_req).await;
 
-    let resp = request_response.response.bytes().await;
+    let resp = match request_response {
+        Ok(req_resp) => Ok(req_resp.response.bytes().await?),
+        Err(err) => Err(err),
+    };
 
     match resp {
         Ok(img) => Ok(img.to_vec()),

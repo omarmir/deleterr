@@ -29,7 +29,9 @@ pub async fn get_requests() -> Result<OverseerrListResponse<MediaRequest>, Delet
     let client_req =
         get_api_endpoint(api_url, query, Some(service_info.api_key), RequestType::Get)?;
 
-    let request_response = make_api_call(client_req).await?;
+    let request_response = make_api_call(client_req)
+        .await
+        .map_err(|err| err.add_prefix("Unable to get Overseerr requests."))?;
     let resp = request_response
         .response
         .json::<OverseerrListResponse<MediaRequest>>()
@@ -47,7 +49,9 @@ pub async fn get_requests_count() -> Result<OverseerrRequestsCount, DeleterrErro
 
     let client_req =
         get_api_endpoint(api_url, query, Some(service_info.api_key), RequestType::Get)?;
-    let request_response = make_api_call(client_req).await?;
+    let request_response = make_api_call(client_req)
+        .await
+        .map_err(|err| err.add_prefix("Unable to get Overseerr request count."))?;
     let resp = request_response
         .response
         .json::<OverseerrRequestsCount>()
@@ -69,18 +73,15 @@ pub async fn delete_media(media_id: &str) -> Result<ResponseCodeBasedAction, Del
         Some(service_info.api_key),
         RequestType::Delete,
     )?;
-    let request_response = make_api_call(client_req).await?;
-    match request_response.code {
-        204 => {
-            return Ok(ResponseCodeBasedAction {
-                status: APIStatus::Success,
-                success: true,
-            })
-        }
-        404 => return Err(DeleterrError::new(APIStatus::NotFound.as_str())),
-        403 => return Err(DeleterrError::new(APIStatus::WrongKey.as_str())),
-        _ => return Err(DeleterrError::new(APIStatus::Other.as_str())),
-    };
+    let request_response = make_api_call(client_req).await;
+
+    match request_response {
+        Ok(_) => Ok(ResponseCodeBasedAction {
+            status: APIStatus::Success,
+            success: true,
+        }),
+        Err(error) => Err(error.add_prefix("Unable to delete request in Overseerr.")),
+    }
 }
 
 pub async fn get_overseerr_status(
@@ -94,32 +95,24 @@ pub async fn get_overseerr_status(
     let client_req =
         get_api_endpoint(api_url, query, Some(service_info.api_key), RequestType::Get)?;
 
-    let request_response = make_api_call(client_req).await?;
+    let request_response = make_api_call(client_req)
+        .await
+        .map_err(|err| err.add_prefix("Unable to get Overseerr status."))?;
+
     // We need to make sure its actaully the response from Overseer and not just an OK response
     let resp = request_response.response.json::<AboutServer>().await;
 
     //This is a nested match which is a bit messy but the if let statements were harder to parse mentally
-    let service_status = match resp {
-        Ok(_) => APIServiceStatus {
+    match resp {
+        Ok(_) => Ok(APIServiceStatus {
             status: APIStatus::Success,
             service: Services::Overseerr,
             is_success: true,
-        },
-        _ => match &request_response.code {
-            403 => APIServiceStatus {
-                status: APIStatus::WrongKey,
-                service: Services::Overseerr,
-                is_success: false,
-            },
-            _ => APIServiceStatus {
-                status: APIStatus::Other,
-                service: Services::Overseerr,
-                is_success: false,
-            },
-        },
-    };
-
-    Ok(service_status)
+        }),
+        Err(error) => {
+            Err(DeleterrError::from(error).add_prefix("Unable to process Overseerr response, "))
+        }
+    }
 }
 
 pub async fn get_os_requests() -> Result<(Vec<MediaRequest>, PageInfo), DeleterrError> {

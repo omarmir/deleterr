@@ -41,17 +41,6 @@ impl ToString for APIStatus {
     }
 }
 
-impl APIStatus {
-    pub fn as_str(&self) -> &str {
-        match self {
-            APIStatus::Success => "Sucess",
-            APIStatus::WrongKey => "Wrong API key provided",
-            APIStatus::Other => "Unknown error",
-            APIStatus::NotFound => "Record not found!",
-        }
-    }
-}
-
 pub struct RequestResponse {
     pub code: u16,
     pub status: String,

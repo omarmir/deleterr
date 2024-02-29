@@ -40,7 +40,9 @@ pub async fn get_item_history(
             ];
 
             let client_req = get_api_endpoint(api_url, query, None, RequestType::Get)?;
-            let request_response = make_api_call(client_req).await?;
+            let request_response = make_api_call(client_req)
+                .await
+                .map_err(|err| err.add_prefix("Unable to get Tautulli item history, "))?;
             let resp = request_response.response.json::<TautulliResponse>().await?;
             Ok(resp.response.data.data)
         }
@@ -55,7 +57,9 @@ pub async fn get_tautulli_status(
     let api_url = create_api_url(&endpoint, &service_info);
     let query = vec![("cmd", "status"), ("apikey", service_info.api_key.as_str())];
     let client_req = get_api_endpoint(api_url, query, None, RequestType::Get)?;
-    let request_response = make_api_call(client_req).await?;
+    let request_response = make_api_call(client_req)
+        .await
+        .map_err(|err| err.add_prefix("Unable to get Tautulli status, "))?;
     let resp = request_response.response.json::<TautulliResponse>().await?;
 
     //This is a nested match which is a bit messy but the if let statements were harder to parse mentally

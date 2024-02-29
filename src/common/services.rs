@@ -19,7 +19,13 @@ pub async fn make_api_call(
 
     match response_code {
         200 => Ok(RequestResponse {
-            code: response.status().as_u16(),
+            code: response_code,
+            status: response.status().to_string(),
+            response,
+        }),
+        // Overseerr delete code
+        204 => Ok(RequestResponse {
+            code: response_code,
             status: response.status().to_string(),
             response,
         }),
