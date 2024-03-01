@@ -2,22 +2,20 @@
   <div>
     <div class="grid grid-cols-1 items-start lg:grid-cols-3">
       <label class="flex basis-full flex-col justify-start gap-2 dark:text-gray-400 lg:basis-1/3" :for="option.name">
-        <p class="text-sm font-bold">{{ option.title }}</p>
+        <p class="text-sm font-bold">{{ title }}</p>
         <p class="pr-2 text-sm">
-          {{ option.subtitle }}
+          {{ subtitle }}
         </p>
       </label>
       <div class="col-span-2 flex flex-row place-items-center gap-4">
         <input
-          v-if="option.type == 'boolean'"
-          :name="option.name"
+          v-if="optionType == 'boolean'"
           type="checkbox"
           class="peer relative h-6 w-6 shrink-0 appearance-none rounded-md border-2 border-purple-600 bg-white checked:border-0 checked:bg-purple-600 focus:shadow-outline-purple focus:outline-none dark:focus:shadow-outline-gray"
           @input="setValue" />
-        <div v-else-if="option.type == 'array'" class="flex flex-row place-items-center">
+        <div v-else-if="optionType == 'array'" class="flex flex-row place-items-center">
           <select
             class="block appearance-none rounded-md border bg-white py-2 pl-2 pr-8 text-sm focus:border-purple-400 focus:shadow-outline-purple focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:focus:shadow-outline-gray"
-            :name="option.name"
             @input="setValue">
             <option v-for="item in option.value" :key="item.name" :value="item.value">
               {{ item.label }}
@@ -44,30 +42,15 @@
           stroke-linejoin="round">
           <polyline points="20 6 9 17 4 12"></polyline>
         </svg>
-        <input
-          v-if="option.additionalDetail"
-          :aria-label="option.additionalDetail?.label"
-          :name="option.additionalDetail.name"
-          class="block rounded-md border p-2 text-sm focus:border-purple-400 focus:shadow-outline-purple focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:focus:shadow-outline-gray"
-          :placeholder="option.additionalDetail?.label"
-          type="number"
-          label=""
-          @input="setValue" />
       </div>
     </div>
   </div>
 </template>
 <script setup lang="ts">
-import { PropType } from 'vue'
-import { SettingsOption } from '~/@types/settings'
-
 const props = defineProps({
-  option: { type: Object as PropType<SettingsOption>, required: true },
-  disabled: {
-    type: Boolean,
-    required: false,
-    default: false,
-  },
+  title: { type: String, required: true },
+  optionType: { type: String, required: true },
+  subtitle: { type: String, required: true },
 })
 
 const setValue = (event: Event): void => {

@@ -28,18 +28,21 @@
           <form class="flex flex-col space-y-6" @submit.prevent="">
             <div class="flex flex-col gap-3">
               <h5 class="text-md font-semibold text-gray-600 dark:text-gray-300">TV Series</h5>
-              <SettingsItem
-                v-for="option in tvOptions"
-                :key="option.name"
-                :option="option"
-                @setting-changed="store.setSetting"></SettingsItem>
+              <InputsSelect
+                label="Deletion strategy"
+                :required="true"
+                :options="[
+                  { name: 'Watched', value: 'watched' },
+                  { name: 'Time', value: 'time' },
+                  { name: 'Both', value: 'both' },
+                ]"></InputsSelect>
+              <InputsCheckbox label="Wait for show to end?" :required="true"></InputsCheckbox>
             </div>
             <div class="flex flex-col gap-3">
               <h5 class="text-md font-semibold text-gray-600 dark:text-gray-300">Movies</h5>
-              <SettingsItem v-for="option in movieOptions" :key="option.name" :option="option"></SettingsItem>
             </div>
             <div class="flex justify-end">
-              <ButtonsStatused :is-submit="true" :is-outlined="false" class="rounded-lg">Save changes</ButtonsStatused>
+              <!--<ButtonsStatused :is-submit="true" :is-outlined="false" class="rounded-lg">Save changes</ButtonsStatused>-->
             </div>
           </form>
         </ContentCard>
@@ -56,65 +59,27 @@
 import PageLoading from '~/components/PageLoading.vue'
 import ContentCard from '~/components/ContentCard.vue'
 import InputsInputRightButton from '~/components/Inputs/InputRightButton.vue'
+import InputsSelect from '~/components/Inputs/Select.vue'
+import InputsCheckbox from '~/components/Inputs/Checkbox.vue'
 import ButtonsStatused from '~/components/Buttons/Statused.vue'
-import SettingsItem from '~/components/SettingsItem.vue'
-import { SettingsOption } from '~/@types/settings'
 import { useSettingsStore } from '~/stores/settings.store'
 import CTA from '~/components/CTA.vue'
 
-const tvOptions: Array<SettingsOption> = [
-  {
-    title: 'Wait for show to end',
-    name: 'showEnd',
-    type: 'boolean',
-    value: false,
-    subtitle: 'Wait for show to end before purging anything?',
-  },
-  {
-    title: 'Purge seasons',
-    name: 'purgeSeason',
-    type: 'boolean',
-    value: false,
-    subtitle: 'Delete seasons as they are watched or wait for show to be watched?',
-  },
-  {
-    title: 'Watched marker',
-    name: 'watchedMarker',
-    type: 'array',
-    value: [
-      { name: 'tautulliWatchedMarker', label: 'Tautulli only', value: 'tautulli' },
-      { name: 'inProgresswatchedMarker', label: 'Latest in progress', value: 'inProgress' },
-      { name: 'LatestWatchedwatchedMarker', label: 'Latest watched', value: 'watched' },
-    ],
-    subtitle:
-      'You can use the latest in progress or watched season as a watch progress marker or you can use only tautulli',
-  },
-  {
-    title: 'Purge period',
-    name: 'tvPurgePeriod',
-    type: 'boolean',
-    value: false,
-    subtitle: 'Delete shows after a set number of days after the last episode has been download?',
-    additionalDetail: {
-      name: 'tvPurgePeriodDays',
-      label: 'Number of days',
-    },
-  },
-]
-
-const movieOptions: Array<SettingsOption> = [
-  {
-    title: 'Purge period',
-    name: 'moviePurgePeriod',
-    type: 'boolean',
-    value: false,
-    subtitle: 'Delete movies after a set number of days after the movie has been download?',
-    additionalDetail: {
-      name: 'moviePurgePeriodDays',
-      label: 'Number of days',
-    },
-  },
-]
-
 const store = useSettingsStore()
+
+/**
+ * Deletion strategy: Watched / Time / Both
+Wait for show to end
+
+if Watched:
+Watched marker
+
+Time
+Purge period
+
+Both
+Watche marker
+Purge period
+
+ */
 </script>
