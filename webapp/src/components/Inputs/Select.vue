@@ -1,10 +1,10 @@
 <template>
   <div class="flex w-full flex-row place-items-center">
     <select
+      v-model="model"
       class="block w-full appearance-none rounded-md border bg-white py-2 pl-2 pr-8 text-sm focus:border-purple-400 focus:shadow-outline-purple focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:focus:shadow-outline-gray"
       :required="required"
-      :name="name"
-      @input="setValue">
+      :name="name">
       <option v-for="item in options" :key="item.value" :value="item.value">
         {{ item.label }}
       </option>
@@ -28,7 +28,6 @@ defineProps({
     type: String,
     required: true,
   },
-  modelValue: String,
   options: { type: Array as PropType<{ value: string; label: string }[]>, required: true },
   required: {
     type: Boolean,
@@ -37,11 +36,5 @@ defineProps({
   },
 })
 
-const setValue = (event: Event): void => {
-  const newVal: boolean = (event.target as HTMLInputElement).checked
-  //if (!props.disabled)
-  emit('update:modelValue', newVal)
-}
-
-const emit = defineEmits(['update:modelValue'])
+const model = defineModel({ type: String })
 </script>

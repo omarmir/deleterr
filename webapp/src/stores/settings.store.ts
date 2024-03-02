@@ -8,13 +8,12 @@ export const useSettingsStore = defineStore('settings', () => {
 
   const newPassword: Ref<string | undefined> = ref(undefined)
   const settings: Ref<Settings> = ref({
-    tv: {
-      tvPurgeMarker: 'watched',
-      watchedMarker: 'watched',
-      purgeDelay: undefined,
-      purgeStrategy: 'season',
-    },
-    movie: { moviePurgeMarker: 'watched' },
+    tvPurgeMarker: 'watched',
+    tvWatchedMarker: 'watched',
+    tvPurgeDelay: undefined,
+    tvPurgeStrategy: 'season',
+    moviePurgeMarker: 'watched',
+    moviePurgeDelay: undefined,
   })
 
   const getSettings = async () => {

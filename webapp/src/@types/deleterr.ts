@@ -127,15 +127,12 @@ export interface ServiceInfo {
 }
 
 export interface Settings {
-  tv: {
-    tvPurgeMarker: 'watched' | 'time' | 'both'
-    watchedMarker: 'inProgress' | 'watched' | undefined
-    purgeDelay: number | undefined
-    purgeStrategy: 'season' | 'show'
-  }
-  movie: {
-    moviePurgeMarker: 'watched' | 'time' | 'both'
-  }
+  tvPurgeMarker: 'watched' | 'time' | 'both'
+  tvWatchedMarker: 'inProgress' | 'watched' | undefined
+  tvPurgeDelay: number | undefined
+  tvPurgeStrategy: 'season' | 'show'
+  moviePurgeMarker: 'watched' | 'time' | 'both'
+  moviePurgeDelay: number | undefined
 }
 
 export type Services = 'tautulli' | 'overseerr' | 'radarr' | 'sonarr'

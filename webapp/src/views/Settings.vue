@@ -32,8 +32,8 @@
             <div class="flex max-w-3xl flex-col gap-4">
               <SettingsServiceGroup :required="true" name="tvPurgeMarker" label="Purge marker">
                 <InputsSelect
+                  v-model="store.settings.tvPurgeMarker"
                   label="Purge marker"
-                  :is-horizontal="true"
                   :required="true"
                   name="tvPurgeMarker"
                   :options="[
@@ -43,11 +43,16 @@
                   ]"></InputsSelect>
                 <template #subtitle>
                   Delete after the requestor has watched the item or after a specified time has elapsed or whichever
-                  comes first?
+                  comes first
                 </template>
               </SettingsServiceGroup>
-              <SettingsServiceGroup :required="true" name="watchedMarker" label="Watched marker">
+              <SettingsServiceGroup
+                v-if="store.settings.tvPurgeMarker !== 'time'"
+                :required="true"
+                name="watchedMarker"
+                label="Watched marker">
                 <InputsSelect
+                  v-model="store.settings.tvWatchedMarker"
                   label="Watched marker"
                   name="watchedMarker"
                   :is-horizontal="true"
@@ -60,34 +65,38 @@
                   You can use the latest in progress or watched season as a watch progress marker
                 </template>
               </SettingsServiceGroup>
-              <SettingsServiceGroup :required="true" name="purgeDelay" label="Purge delay">
+              <SettingsServiceGroup
+                v-if="store.settings.tvPurgeMarker !== 'watched'"
+                :required="true"
+                name="tvPurgeDelay"
+                label="Purge delay">
                 <InputsInput
-                  name="purgeDelay"
+                  v-model="store.settings.tvPurgeDelay"
+                  name="tvPurgeDelay"
                   type="number"
                   :required="true"
-                  label="Purge delay"
-                  :is-horizontal="true" />
+                  label="Purge delay" />
                 <template #subtitle>
-                  Delete shows after a set number of days after the last episode has been download?
+                  Delete shows after a set number of days after the last episode has been download
                 </template>
               </SettingsServiceGroup>
-              <SettingsServiceGroup :required="true" name="purgeStrategy" label="Purge strategy">
+              <SettingsServiceGroup :required="true" name="tvPurgeStrategy" label="Purge strategy">
                 <InputsSelect
+                  v-model="store.settings.tvPurgeStrategy"
                   label="Purge strategy"
-                  name="purgeStrategy"
-                  :is-horizontal="true"
+                  name="tvPurgeStrategy"
                   :required="true"
                   :options="[
                     { label: 'Season', value: 'season' },
                     { label: 'Show', value: 'show' },
                   ]" />
-                <template #subtitle>Delete seasons as they are watched or wait for show to be watched?</template>
+                <template #subtitle>Delete seasons as they are watched or wait for show to be watched</template>
               </SettingsServiceGroup>
               <h5 class="text-md mt-4 font-semibold text-gray-600 dark:text-gray-300">Movies</h5>
               <SettingsServiceGroup :required="true" name="moviePurgeMarker" label="Purge marker">
                 <InputsSelect
+                  v-model="store.settings.moviePurgeMarker"
                   label="Purge marker"
-                  :is-horizontal="true"
                   :required="true"
                   name="moviePurgeMarker"
                   :options="[
@@ -96,8 +105,23 @@
                     { label: 'Both', value: 'both' },
                   ]"></InputsSelect>
                 <template #subtitle>
-                  Delete after the requestor has watched the item or after a specified time has elapsed or whichever
-                  comes first?
+                  Delete after the requestor has watched the item or after a specified time has elapsed regardless of
+                  watch status or whichever comes first
+                </template>
+              </SettingsServiceGroup>
+              <SettingsServiceGroup
+                v-if="store.settings.moviePurgeMarker !== 'watched'"
+                :required="true"
+                name="moviePurgeDelay"
+                label="Purge delay">
+                <InputsInput
+                  v-model="store.settings.moviePurgeDelay"
+                  name="moviePurgeDelay"
+                  type="number"
+                  :required="true"
+                  label="Purge delay" />
+                <template #subtitle>
+                  Delete shows after a set number of days after the last episode has been download
                 </template>
               </SettingsServiceGroup>
               <div class="flex justify-end">
@@ -136,25 +160,28 @@ const store = useSettingsStore()
 
 const saveSettings = async (): Promise<APIResponse<Settings> | undefined> => {
   const rules = {
-    tv: {
-      moviePurgeMarker: { required },
-      watchedMarker: {},
-      purgeDelay: {},
-      purgeStrategy: { required },
-    },
-    movie: {
-      tvPurgeMarker: { required },
-    },
+    tvMoviePurgeMarker: { required },
+    tvWatchedMarker: {},
+    tvPurgeDelay: {},
+    tvPurgeStrategy: { required },
+    moviePurgeMarker: { required },
+    moviePurgeDelay: {},
   }
 
-  if (store.settings?.tv.tvPurgeMarker == 'watched') {
-    rules.tv.watchedMarker = { required }
-  } else if (store.settings?.tv.tvPurgeMarker == 'time') {
-    rules.tv.purgeDelay = { required, numeric, minValue: minValue(1) }
-  } else {
-    rules.tv.watchedMarker = { required }
-    rules.tv.purgeDelay = { required, numeric, minValue: minValue(1) }
+  switch (store.settings?.tvPurgeMarker) {
+    case 'watched':
+      rules.tvWatchedMarker = { required }
+      break
+    case 'time':
+      rules.tvPurgeDelay = { required, numeric, minValue: minValue(1) }
+      break
+    default:
+      rules.tvWatchedMarker = { required }
+      rules.tvPurgeDelay = { required, numeric, minValue: minValue(1) }
   }
+
+  if (store.settings?.moviePurgeMarker !== 'watched')
+    rules.moviePurgeDelay = { required, numeric, minValue: minValue(1) }
 
   const v$ = useVuelidate(rules, store.settings as any)
 
