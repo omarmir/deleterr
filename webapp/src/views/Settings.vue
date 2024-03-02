@@ -15,6 +15,8 @@
             <InputsServiceGroup :required="true" name="password" label="Password">
               <InputsInputRightButton
                 v-model="store.newPassword"
+                :callback="store.updatePassword"
+                name="password"
                 type="password"
                 :required="true"
                 label="Change password"
@@ -55,7 +57,6 @@
                   v-model="store.settings.tvWatchedMarker"
                   label="Watched marker"
                   name="watchedMarker"
-                  :is-horizontal="true"
                   :required="true"
                   :options="[
                     { label: 'Latest in progress', value: 'inProgress' },
