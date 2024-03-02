@@ -126,4 +126,16 @@ export interface ServiceInfo {
   service: Services
 }
 
+export interface Settings {
+  tv: {
+    tvPurgeMarker: 'watched' | 'time' | 'both'
+    watchedMarker: 'inProgress' | 'watched' | undefined
+    purgeDelay: number | undefined
+    purgeStrategy: 'season' | 'show'
+  }
+  movie: {
+    moviePurgeMarker: 'watched' | 'time' | 'both'
+  }
+}
+
 export type Services = 'tautulli' | 'overseerr' | 'radarr' | 'sonarr'

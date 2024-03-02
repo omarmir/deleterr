@@ -8,16 +8,34 @@
     </h4>
     <div class="flex flex-col space-y-6 rounded-lg bg-white px-4 py-3 shadow-md dark:bg-gray-800">
       <form class="flex flex-col space-y-3" @submit.prevent>
-        <InputsInput v-model="serviceInfo.host" :required="true" label="Host" placeholder="Host"></InputsInput>
+        <InputsServiceGroup :required="true" name="host" label="Host">
+          <InputsInput
+            v-model="serviceInfo.host"
+            type="text"
+            name="host"
+            :required="true"
+            label="Host"
+            placeholder="e.g. localhost or 192.168.0.101" />
+        </InputsServiceGroup>
         <p v-for="error in v$.host.$errors" :key="error.$uid" class="text-xs text-red-600">
           {{ error.$message }}
         </p>
-        <InputsInput v-model="serviceInfo.port" label="Port" placeholder="Port" type="number"></InputsInput>
-        <InputsInput v-model="serviceInfo.apiKey" :required="true" label="API Key" placeholder="API Key"></InputsInput>
+
+        <InputsServiceGroup :required="true" name="port" label="Port">
+          <InputsInput v-model="serviceInfo.port" type="number" name="port" label="Port" placeholder="e.g. 5050" />
+        </InputsServiceGroup>
+        <InputsServiceGroup :required="true" name="apiKey" label="API Key">
+          <InputsInput
+            v-model="serviceInfo.apiKey"
+            type="text"
+            name="apiKey"
+            label="API Key"
+            placeholder="e.g. e56a4ls3820483usdu8uf8yur38f8y" />
+        </InputsServiceGroup>
+        <InputsCheckbox v-model="serviceInfo.useSsl">Use SSL</InputsCheckbox>
         <p v-for="error in v$.apiKey.$errors" :key="error.$uid" class="text-xs text-red-600">
           {{ error.$message }}
         </p>
-        <InputsCheckbox v-model="serviceInfo.useSsl">Use SSL</InputsCheckbox>
         <div class="flex justify-end space-x-4">
           <ButtonsStatused class="rounded-lg" :callback="testService">Test</ButtonsStatused>
           <ButtonsStatused class="rounded-lg" :callback="saveService" :is-outlined="false">Save</ButtonsStatused>
@@ -35,6 +53,7 @@ import { required } from '@vuelidate/validators'
 import ButtonsStatused from '~/components/Buttons/Statused.vue'
 import InputsInput from '~/components/Inputs/Input.vue'
 import InputsCheckbox from '~/components/Inputs/Checkbox.vue'
+import InputsServiceGroup from '~/components/Inputs/ServiceGroup.vue'
 import { useServiceStore } from '~/stores/services.store'
 import { ServiceStatus } from '~/@types/services'
 
