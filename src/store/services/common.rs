@@ -1,7 +1,9 @@
+use crate::{
+    common::models::deleterr_error::DeleterrError,
+    store::models::{EitherKeyType, Preferences},
+};
 use jammdb::{Error, DB};
 use std::str;
-
-use crate::store::models::EitherKeyType;
 
 const DATABASE_NAME: &str = "prunerr.db";
 
@@ -58,27 +60,6 @@ pub fn get_collection(bucket_name: &str) -> Result<Vec<(String, Vec<u8>)>, Error
     Ok(pairs)
 }
 
-pub fn get_usize_keys(bucket_name: &str) -> Result<Vec<usize>, Error> {
-    let db = DB::open(DATABASE_NAME)?;
-    let mut tx = db.tx(false)?;
-
-    let data_bucket = match tx.get_bucket(bucket_name) {
-        Ok(bucket) => bucket,
-        Err(_) => {
-            tx = db.tx(true)?;
-            let bucket = tx.create_bucket(bucket_name)?;
-            bucket
-        }
-    };
-
-    let pairs: Vec<usize> = data_bucket
-        .kv_pairs()
-        .map(|pair| usize::from_le_bytes(pair.key().try_into().unwrap_or_default()))
-        .collect();
-
-    Ok(pairs)
-}
-
 pub fn save_data(bucket_name: &str, data: &[u8], key: &str) -> Result<(), Error> {
     let db = DB::open(DATABASE_NAME)?;
     let tx = db.tx(true)?;
@@ -88,28 +69,66 @@ pub fn save_data(bucket_name: &str, data: &[u8], key: &str) -> Result<(), Error>
     Ok(tx.commit()?)
 }
 
-pub fn save_multiple_items(bucket_name: &str, data: Vec<(&str, &str)>) -> Result<(), Error> {
+pub fn upsert_exemption(
+    bucket_name: &str,
+    key: &str,
+    exemption: usize,
+) -> Result<(), DeleterrError> {
     let db = DB::open(DATABASE_NAME)?;
     let tx = db.tx(true)?;
 
-    let bucket = tx.get_or_create_bucket(bucket_name)?;
-    for item in data {
-        bucket.put(item.0, item.1)?;
-    }
-    Ok(tx.commit()?)
+    let data_bucket = tx.get_or_create_bucket(bucket_name)?;
+
+    let items: Vec<usize> = match data_bucket.get(key.as_bytes()) {
+        Some(data) => {
+            let mut exemptions =
+                Preferences::to_exemptions_from_vec(Some(data.kv().value().to_vec()));
+            exemptions.push(exemption);
+            exemptions
+        }
+        None => vec![exemption],
+    };
+
+    let bytes = Preferences::to_vec_from_exemptions(&items);
+    data_bucket.put(key, bytes)?;
+
+    tx.commit()?;
+
+    Ok(())
 }
 
-pub fn save_usize_keys_only(bucket_name: &str, key: &usize) -> Result<(), Error> {
+pub fn remove_exemption(
+    bucket_name: &str,
+    key: &str,
+    exemption: usize,
+) -> Result<(), DeleterrError> {
     let db = DB::open(DATABASE_NAME)?;
     let tx = db.tx(true)?;
-    let empty_bytes: &[u8] = &[];
 
-    let bucket = tx.get_or_create_bucket(bucket_name)?;
-    bucket.put(key.to_le_bytes(), empty_bytes)?;
-    Ok(tx.commit()?)
+    let data_bucket = tx.get_or_create_bucket(bucket_name)?;
+
+    let items: Result<Vec<usize>, DeleterrError> = match data_bucket.get(key.as_bytes()) {
+        Some(data) => {
+            let mut exemptions =
+                Preferences::to_exemptions_from_vec(Some(data.kv().value().to_vec()));
+            if let Some(index) = exemptions.iter().position(|&x| x == exemption) {
+                // Remove the value at the found index
+                exemptions.remove(index);
+            };
+            Ok(exemptions)
+        }
+        None => Err(DeleterrError::new("Exemption not found.")),
+    };
+
+    let bytes = Preferences::to_vec_from_exemptions(&items?);
+    data_bucket.put(key, bytes)?;
+
+    tx.commit()?;
+
+    Ok(())
 }
 
-pub fn remove_pair(bucket_name: &str, key_enum: EitherKeyType) -> Result<bool, Error> {
+pub fn _remove_pair(bucket_name: &str, key_enum: EitherKeyType) -> Result<bool, Error> {
     let db = DB::open(DATABASE_NAME)?;
     let tx = db.tx(true)?;
 

@@ -68,8 +68,7 @@ async fn get_media_exemption() -> impl Responder {
 
 #[post("/request/exemptions/save")]
 async fn save_media_exemption(web::Json(media_exemption): web::Json<usize>) -> impl Responder {
-    let exempted_result =
-        store::services::media_exemptions::upsert_media_exemption(media_exemption);
+    let exempted_result = store::services::media_exemptions::add_media_exemption(media_exemption);
     return process_request(exempted_result);
 }
 

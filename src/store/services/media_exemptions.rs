@@ -1,28 +1,33 @@
-use super::common::{get_usize_keys, remove_pair, save_usize_keys_only};
-use crate::{common::models::deleterr_error::DeleterrError, store::models::EitherKeyType};
+use super::common::{get_data, remove_exemption, upsert_exemption};
+use crate::{common::models::deleterr_error::DeleterrError, store::models::Preferences};
 
-const BUCKET_NAME: &str = "media_exemptions";
+const BUCKET_NAME: &str = "preferences";
+const KEY: &str = "media_exemptions";
 
 pub fn get_all_exemptions() -> Result<Vec<usize>, DeleterrError> {
-    let collection = get_usize_keys(BUCKET_NAME).map_err(|err| {
+    let collection = get_data(BUCKET_NAME, KEY).map_err(|err| {
         DeleterrError::new(err.to_string().as_str()).add_prefix("Unable to get all exemptions.")
-    });
+    })?;
 
-    collection
+    let exemptions = Preferences::to_exemptions_from_vec(collection);
+
+    //let exemptions = MediaExemptions::from(collection.unwrap_or(Vec::new()));
+
+    Ok(exemptions)
 }
 
-pub fn upsert_media_exemption(media_exemption: usize) -> Result<(), DeleterrError> {
-    let service_upsert = save_usize_keys_only(&BUCKET_NAME, &media_exemption).map_err(|err| {
+pub fn add_media_exemption(media_exemption: usize) -> Result<(), DeleterrError> {
+    let exemption_upsert = upsert_exemption(&BUCKET_NAME, KEY, media_exemption).map_err(|err| {
         DeleterrError::new(err.to_string().as_str()).add_prefix("Unable to save media exemption.")
     });
 
-    service_upsert
+    exemption_upsert
 }
 
-pub fn remove_media_exemption(request_id: usize) -> Result<bool, DeleterrError> {
-    let deletion = remove_pair(&BUCKET_NAME, EitherKeyType::Number(request_id)).map_err(|err| {
+pub fn remove_media_exemption(media_exemption: usize) -> Result<(), DeleterrError> {
+    let exemption_removal = remove_exemption(&BUCKET_NAME, KEY, media_exemption).map_err(|err| {
         DeleterrError::new(err.to_string().as_str()).add_prefix("Unable to remove media exemption.")
     });
 
-    deletion
+    exemption_removal
 }
