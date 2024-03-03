@@ -72,7 +72,7 @@ export const useSettingsStore = defineStore('settings', () => {
     const requestOptions: RequestInit = {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(saveSettingsEndpoint),
+      body: JSON.stringify(settings.value),
       credentials: 'include',
     }
 
