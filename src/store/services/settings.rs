@@ -18,6 +18,11 @@ pub fn get_all_settings() -> Result<Settings, DeleterrError> {
 }
 
 pub fn save_settings(settings: Settings) -> Result<(), DeleterrError> {
+    if !settings.validate_settings() {
+        return Err(DeleterrError::new(
+            "Required fields incomplete for watched marker (delay/marker).",
+        ));
+    }
     let save_setting = save_data(&BUCKET_NAME, &settings.as_vec(), KEY).map_err(|err| {
         DeleterrError::new(err.to_string().as_str()).add_prefix("Unable to save settings.")
     });
