@@ -2,6 +2,7 @@ use crate::auth::models::User;
 use crate::common::models::services::{ServiceInfo, Services};
 use crate::common::services::process_request;
 use crate::deleterr::models::QueryParms;
+use crate::store::models::settings::Settings;
 use crate::{auth, deleterr, overseerr, radarr, sonarr, sonrad, store, tautulli, AppData};
 use actix_session::Session;
 use actix_web::{
@@ -111,6 +112,19 @@ async fn get_movie_poster(path: web::Path<usize>) -> actix_web::HttpResponse {
         .body(img)
 }
 
+// Settings
+#[post("/settings/save")]
+async fn save_settings_submit_json(web::Json(settings): web::Json<Settings>) -> impl Responder {
+    let saved_result = store::services::settings::save_settings(settings);
+    return process_request(saved_result);
+}
+
+#[get("/settings/get")]
+async fn get_all_settings_json() -> impl Responder {
+    let settings = store::services::settings::get_all_settings();
+    return process_request(settings);
+}
+
 // Auth
 #[post("/auth/login")]
 async fn set_login(session: Session, web::Json(user): web::Json<User>) -> impl Responder {
@@ -158,7 +172,9 @@ pub fn config(cfg: &mut web::ServiceConfig) {
             .service(add_user)
             .service(validate_user_session)
             .service(get_series_poster)
-            .service(get_movie_poster),
+            .service(get_movie_poster)
+            .service(save_settings_submit_json)
+            .service(get_all_settings_json),
     )
     .service(set_login)
     .service(set_logout);

@@ -1,7 +1,4 @@
-use crate::{
-    common::models::deleterr_error::DeleterrError,
-    store::models::{EitherKeyType, Preferences},
-};
+use crate::{common::models::deleterr_error::DeleterrError, store::models::exemptions::Exemptions};
 use jammdb::{Error, DB};
 use std::str;
 
@@ -82,14 +79,14 @@ pub fn upsert_exemption(
     let items: Vec<usize> = match data_bucket.get(key.as_bytes()) {
         Some(data) => {
             let mut exemptions =
-                Preferences::to_exemptions_from_vec(Some(data.kv().value().to_vec()));
+                Exemptions::to_exemptions_from_vec(Some(data.kv().value().to_vec()));
             exemptions.push(exemption);
             exemptions
         }
         None => vec![exemption],
     };
 
-    let bytes = Preferences::to_vec_from_exemptions(&items);
+    let bytes = Exemptions::to_vec_from_exemptions(&items);
     data_bucket.put(key, bytes)?;
 
     tx.commit()?;
@@ -110,7 +107,7 @@ pub fn remove_exemption(
     let items: Result<Vec<usize>, DeleterrError> = match data_bucket.get(key.as_bytes()) {
         Some(data) => {
             let mut exemptions =
-                Preferences::to_exemptions_from_vec(Some(data.kv().value().to_vec()));
+                Exemptions::to_exemptions_from_vec(Some(data.kv().value().to_vec()));
             if let Some(index) = exemptions.iter().position(|&x| x == exemption) {
                 // Remove the value at the found index
                 exemptions.remove(index);
@@ -120,34 +117,10 @@ pub fn remove_exemption(
         None => Err(DeleterrError::new("Exemption not found.")),
     };
 
-    let bytes = Preferences::to_vec_from_exemptions(&items?);
+    let bytes = Exemptions::to_vec_from_exemptions(&items?);
     data_bucket.put(key, bytes)?;
 
     tx.commit()?;
 
     Ok(())
-}
-
-pub fn _remove_pair(bucket_name: &str, key_enum: EitherKeyType) -> Result<bool, Error> {
-    let db = DB::open(DATABASE_NAME)?;
-    let tx = db.tx(true)?;
-
-    let bucket = tx.get_bucket(bucket_name)?;
-
-    let key: Vec<u8> = match key_enum {
-        EitherKeyType::Regular(val) => val.as_bytes().to_vec(),
-        EitherKeyType::Number(val) => val.to_le_bytes().to_vec(),
-    };
-
-    let deletion = match bucket.get_kv(&key).is_some() {
-        true => {
-            bucket.delete(&key)?;
-            true
-        }
-        false => false,
-    };
-
-    tx.commit()?;
-
-    Ok(deletion)
 }

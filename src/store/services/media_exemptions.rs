@@ -1,5 +1,5 @@
 use super::common::{get_data, remove_exemption, upsert_exemption};
-use crate::{common::models::deleterr_error::DeleterrError, store::models::Preferences};
+use crate::{common::models::deleterr_error::DeleterrError, store::models::exemptions::Exemptions};
 
 const BUCKET_NAME: &str = "preferences";
 const KEY: &str = "media_exemptions";
@@ -9,7 +9,7 @@ pub fn get_all_exemptions() -> Result<Vec<usize>, DeleterrError> {
         DeleterrError::new(err.to_string().as_str()).add_prefix("Unable to get all exemptions.")
     })?;
 
-    let exemptions = Preferences::to_exemptions_from_vec(collection);
+    let exemptions = Exemptions::to_exemptions_from_vec(collection);
 
     //let exemptions = MediaExemptions::from(collection.unwrap_or(Vec::new()));
 
