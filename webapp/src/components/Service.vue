@@ -17,7 +17,7 @@
             label="Host"
             placeholder="e.g. localhost or 192.168.0.101" />
         </InputsServiceGroup>
-        <InputsServiceGroup :required="false" name="port" label="Port">
+        <InputsServiceGroup :required="false" name="port" label="Port" :errors="[]">
           <InputsInput v-model="serviceInfo.port" type="number" name="port" label="Port" placeholder="e.g. 5050" />
         </InputsServiceGroup>
         <InputsServiceGroup :required="true" name="apiKey" label="API Key" :errors="v$.apiKey.$errors">
