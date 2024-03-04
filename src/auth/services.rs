@@ -2,7 +2,7 @@ use super::models::HashedUser;
 use crate::{
     auth::models::User,
     common::models::{api::APIResponse, deleterr_error::DeleterrError},
-    store::services::users::{add_user_to_store, get_user_by_username},
+    store::services::users::{add_user_to_store, get_user_by_username, update_user_in_store},
 };
 use actix_session::Session;
 use actix_web::{
@@ -11,7 +11,6 @@ use actix_web::{
     FromRequest, HttpResponse,
 };
 use actix_web_lab::middleware::Next;
-use bcrypt::{hash, verify};
 
 pub fn login_user(session: Session, user: User) -> Result<String, DeleterrError> {
     let username = user.username.clone();
@@ -57,32 +56,35 @@ pub fn validate_session(session: Session, username: String) -> Result<String, De
 
 pub fn verify_user(unhashed_user: User) -> Result<bool, DeleterrError> {
     let user = get_user_by_username(&unhashed_user.username)?;
-
-    let matches = verify(unhashed_user.password, user.hash.as_str()).map_err(|e| {
-        DeleterrError::new(e.to_string().as_str()).add_prefix("Unable to verify password hash.")
-    })?;
+    let matches = user.verify_hash(unhashed_user.password)?;
 
     Ok(matches)
 }
 
-pub fn hash_password(pass: String) -> Result<String, DeleterrError> {
-    let hash = hash(pass, 10)
-        .map_err(|e| {
-            DeleterrError::new(e.to_string().as_str()).add_prefix("Unable to hash password.")
-        })?
-        .to_string();
+pub fn update_password(session: Session, new_password: String) -> Result<(), DeleterrError> {
+    let user_session: Option<String> = session
+        .get("message")
+        .map_err(|err| DeleterrError::new(err.to_string().as_str()))?;
 
-    Ok(hash)
+    match user_session {
+        Some(username) => {
+            let hashed_user = HashedUser::from_user(User {
+                username: username,
+                password: new_password,
+            })?;
+            let updated_user = update_user_in_store(hashed_user);
+
+            updated_user
+        }
+        None => Err(DeleterrError::new(
+            "Unauthorized. No session, log in again.",
+        )),
+    }
 }
 
 pub fn add_user(unhashed_user: User) -> Result<(), DeleterrError> {
-    let hash = hash_password(unhashed_user.password)?;
-    let user = HashedUser {
-        username: unhashed_user.username,
-        hash,
-    };
-
-    add_user_to_store(user)
+    let hashed_user = HashedUser::from_user(unhashed_user)?;
+    add_user_to_store(hashed_user)
 }
 
 pub async fn reject_anonymous_users(

@@ -145,6 +145,16 @@ async fn add_user(web::Json(user): web::Json<User>) -> impl Responder {
     return process_request(resp);
 }
 
+#[post("/auth/user/password")]
+async fn update_password(
+    session: Session,
+    web::Json(new_password): web::Json<String>,
+) -> impl Responder {
+    let is_login_success = auth::services::update_password(session, new_password);
+
+    return process_request(is_login_success);
+}
+
 #[post("/auth/user/validate")]
 async fn validate_user_session(
     session: Session,
@@ -174,7 +184,8 @@ pub fn config(cfg: &mut web::ServiceConfig) {
             .service(get_series_poster)
             .service(get_movie_poster)
             .service(save_settings_submit_json)
-            .service(get_all_settings_json),
+            .service(get_all_settings_json)
+            .service(update_password),
     )
     .service(set_login)
     .service(set_logout);

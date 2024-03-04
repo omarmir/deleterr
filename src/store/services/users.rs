@@ -8,7 +8,7 @@ pub fn get_user_by_username(username: &String) -> Result<HashedUser, DeleterrErr
 
     match users_data {
         Some(data) => {
-            let hashed_user: HashedUser = HashedUser::from(data);
+            let hashed_user: HashedUser = HashedUser::from_vec(data)?;
             Ok(hashed_user)
         }
         None => Err(DeleterrError::new("User not found")),
@@ -30,7 +30,7 @@ pub fn add_user_to_store(user: HashedUser) -> Result<(), DeleterrError> {
     }
 }
 
-pub fn _update_user_in_store(user: HashedUser) -> Result<(), DeleterrError> {
+pub fn update_user_in_store(user: HashedUser) -> Result<(), DeleterrError> {
     let existing_user = get_user_by_username(&user.username);
 
     if existing_user.is_err() {
