@@ -6,7 +6,8 @@ import { useToast } from '~/composables/useToast'
 export const useSettingsStore = defineStore('settings', () => {
   const { publishToast } = useToast()
 
-  const newPassword: Ref<string | undefined> = ref(undefined)
+  const newPassword: Ref<{ newPassword: string | undefined }> = ref({ newPassword: undefined }) // nested nonsense to accomodate vuelidate
+
   const settings: Ref<Settings> = ref({
     tvPurgeMarker: 'watched',
     tvWatchedMarker: 'watched',
@@ -22,7 +23,7 @@ export const useSettingsStore = defineStore('settings', () => {
     const requestOptions: RequestInit = {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(newPassword.value),
+      body: JSON.stringify(newPassword.value.newPassword),
       credentials: 'include',
     }
 
@@ -32,7 +33,7 @@ export const useSettingsStore = defineStore('settings', () => {
 
       if (apiResponse.success) {
         publishToast('Updated', 'Password updated.', 3, false)
-        newPassword.value = undefined
+        newPassword.value.newPassword = undefined
         return apiResponse
       } else {
         publishToast('Unable update password', 'Error: ' + apiResponse.error_msg ?? 'Unknown!', 3, true)
