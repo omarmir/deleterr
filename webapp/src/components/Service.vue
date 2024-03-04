@@ -8,7 +8,7 @@
     </h4>
     <div class="flex flex-col space-y-6 rounded-lg bg-white px-4 py-3 shadow-md dark:bg-gray-800">
       <form class="flex flex-col space-y-3" @submit.prevent>
-        <InputsServiceGroup :required="true" name="host" label="Host">
+        <InputsServiceGroup :required="true" name="host" label="Host" :errors="v$.host.$errors">
           <InputsInput
             v-model="serviceInfo.host"
             type="text"
@@ -17,14 +17,10 @@
             label="Host"
             placeholder="e.g. localhost or 192.168.0.101" />
         </InputsServiceGroup>
-        <p v-for="error in v$.host.$errors" :key="error.$uid" class="text-xs text-red-600">
-          {{ error.$message }}
-        </p>
-
         <InputsServiceGroup :required="false" name="port" label="Port">
           <InputsInput v-model="serviceInfo.port" type="number" name="port" label="Port" placeholder="e.g. 5050" />
         </InputsServiceGroup>
-        <InputsServiceGroup :required="true" name="apiKey" label="API Key">
+        <InputsServiceGroup :required="true" name="apiKey" label="API Key" :errors="v$.apiKey.$errors">
           <InputsInput
             v-model="serviceInfo.apiKey"
             type="text"
@@ -33,9 +29,6 @@
             placeholder="e.g. e56a4ls3820483usdu8uf8yur38f8y" />
         </InputsServiceGroup>
         <InputsCheckbox v-model="serviceInfo.useSsl">Use SSL</InputsCheckbox>
-        <p v-for="error in v$.apiKey.$errors" :key="error.$uid" class="text-xs text-red-600">
-          {{ error.$message }}
-        </p>
         <div class="flex justify-end space-x-4">
           <ButtonsStatused class="rounded-lg" :callback="testService">Test</ButtonsStatused>
           <ButtonsStatused class="rounded-lg" :callback="saveService" :is-outlined="false">Save</ButtonsStatused>
