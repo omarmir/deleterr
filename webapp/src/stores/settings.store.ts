@@ -17,7 +17,7 @@ export const useSettingsStore = defineStore('settings', () => {
   })
 
   const updatePassword = async (): Promise<APIResponse<boolean> | undefined> => {
-    const saveSettingsEndpoint = '/api/v1/json/auth/user/update'
+    const saveSettingsEndpoint = '/api/v1/json/auth/user/password'
 
     const requestOptions: RequestInit = {
       method: 'POST',
