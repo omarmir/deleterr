@@ -21,7 +21,7 @@
           {{ error.$message }}
         </p>
 
-        <InputsServiceGroup :required="true" name="port" label="Port">
+        <InputsServiceGroup :required="false" name="port" label="Port">
           <InputsInput v-model="serviceInfo.port" type="number" name="port" label="Port" placeholder="e.g. 5050" />
         </InputsServiceGroup>
         <InputsServiceGroup :required="true" name="apiKey" label="API Key">
