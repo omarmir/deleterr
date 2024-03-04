@@ -7,7 +7,7 @@
           <div class="flex justify-between">
             <p
               class="flex items-center text-sm font-semibold"
-              :class="toast.danger ? 'text-red-600' : 'text-gray-700 dark:text-gray-400'">
+              :class="toast.danger ? 'text-red-600' : 'text-purple-600 dark:text-purple-300'">
               {{ toast.title }}
             </p>
             <button class="p-1" @click="closeToast(toast.id)">
