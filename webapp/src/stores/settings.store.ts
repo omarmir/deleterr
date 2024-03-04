@@ -32,6 +32,7 @@ export const useSettingsStore = defineStore('settings', () => {
 
       if (apiResponse.success) {
         publishToast('Updated', 'Password updated.', 3, false)
+        newPassword.value = undefined
         return apiResponse
       } else {
         publishToast('Unable update password', 'Error: ' + apiResponse.error_msg ?? 'Unknown!', 3, true)
