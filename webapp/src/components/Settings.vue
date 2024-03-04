@@ -5,7 +5,11 @@
       <form class="flex flex-col space-y-4" @submit.prevent>
         <h5 class="text-md font-semibold text-gray-600 dark:text-gray-300">TV Series</h5>
         <div class="flex max-w-3xl flex-col gap-4">
-          <SettingsServiceGroup :required="true" name="tvPurgeMarker" label="Purge marker">
+          <SettingsServiceGroup
+            :errors="v$.tvPurgeMarker.$errors"
+            :required="true"
+            name="tvPurgeMarker"
+            label="Purge marker">
             <InputsSelect
               v-model="store.settings.tvPurgeMarker"
               label="Purge marker"
@@ -23,6 +27,7 @@
           </SettingsServiceGroup>
           <SettingsServiceGroup
             v-if="store.settings.tvPurgeMarker !== 'time'"
+            :errors="v$.tvWatchedMarker.$errors"
             :required="true"
             name="watchedMarker"
             label="Watched marker">
@@ -43,6 +48,7 @@
             v-if="store.settings.tvPurgeMarker !== 'watched'"
             :required="true"
             name="tvPurgeDelay"
+            :errors="v$.tvPurgeDelay.$errors"
             label="Purge delay">
             <InputsInput
               v-model="store.settings.tvPurgeDelay"
@@ -54,7 +60,11 @@
               Delete shows after a set number of days after the last episode has been download
             </template>
           </SettingsServiceGroup>
-          <SettingsServiceGroup :required="true" name="tvPurgeStrategy" label="Purge strategy">
+          <SettingsServiceGroup
+            :errors="v$.tvPurgeStrategy.$errors"
+            :required="true"
+            name="tvPurgeStrategy"
+            label="Purge strategy">
             <InputsSelect
               v-model="store.settings.tvPurgeStrategy"
               label="Purge strategy"
@@ -67,7 +77,11 @@
             <template #subtitle>Delete seasons as they are watched or wait for show to be watched</template>
           </SettingsServiceGroup>
           <h5 class="text-md mt-4 font-semibold text-gray-600 dark:text-gray-300">Movies</h5>
-          <SettingsServiceGroup :required="true" name="moviePurgeMarker" label="Purge marker">
+          <SettingsServiceGroup
+            :errors="v$.moviePurgeMarker.$errors"
+            :required="true"
+            name="moviePurgeMarker"
+            label="Purge marker">
             <InputsSelect
               v-model="store.settings.moviePurgeMarker"
               label="Purge marker"
@@ -86,6 +100,7 @@
           <SettingsServiceGroup
             v-if="store.settings.moviePurgeMarker !== 'watched'"
             :required="true"
+            :errors="v$.moviePurgeDelay.$errors"
             name="moviePurgeDelay"
             label="Purge delay">
             <InputsInput
@@ -98,9 +113,6 @@
               Delete shows after a set number of days after the last episode has been download
             </template>
           </SettingsServiceGroup>
-          <p v-for="error in errors" :key="error.$uid" class="text-xs text-red-600">
-            {{ error.$property + ' - ' + error.$message }}
-          </p>
           <div class="flex justify-end">
             <ButtonsStatused :callback="saveSettings" :is-submit="true" :is-outlined="false" class="rounded-lg">
               Save changes
@@ -118,51 +130,40 @@ import SettingsServiceGroup from '~/components/Inputs/SettingsGroup.vue'
 import ButtonsStatused from '~/components/Buttons/Statused.vue'
 import ContentCard from '~/components/ContentCard.vue'
 import useVuelidate from '@vuelidate/core'
-import { required, numeric, minValue } from '@vuelidate/validators'
+import { required, numeric, minValue, requiredIf } from '@vuelidate/validators'
 import { Settings } from '~/@types/deleterr'
 import { APIResponse } from '~/@types/deleterr'
 import { useSettingsStore } from '~/stores/settings.store'
-import { ErrorObject } from '@vuelidate/core'
-import { Ref, ref } from 'vue'
 
 const store = useSettingsStore()
 
-const errors: Ref<ErrorObject[]> = ref([])
-
 await store.getSettings()
 
+const rules = {
+  tvPurgeMarker: { required },
+  tvWatchedMarker: {
+    requiredIf: requiredIf(() => store.settings.tvPurgeMarker !== 'time'),
+  },
+  tvPurgeDelay: {
+    requiredIf: requiredIf(() => store.settings.tvPurgeMarker !== 'watched'),
+    minValue: minValue(1),
+    numeric: numeric,
+  },
+  tvPurgeStrategy: { required },
+  moviePurgeMarker: { required },
+  moviePurgeDelay: {
+    requiredIf: requiredIf(() => store.settings.moviePurgeMarker !== 'watched'),
+    minValue: minValue(1),
+    numeric: numeric,
+  },
+}
+
+const v$ = useVuelidate(rules, store.settings as any)
+
 const saveSettings = async (): Promise<APIResponse<Settings> | undefined> => {
-  const rules = {
-    tvPurgeMarker: { required },
-    tvWatchedMarker: {},
-    tvPurgeDelay: {},
-    tvPurgeStrategy: { required },
-    moviePurgeMarker: { required },
-    moviePurgeDelay: {},
-  }
-
-  switch (store.settings?.tvPurgeMarker) {
-    case 'watched':
-      rules.tvWatchedMarker = { required }
-      break
-    case 'time':
-      rules.tvPurgeDelay = { required, numeric, minValue: minValue(1) }
-      break
-    default:
-      rules.tvWatchedMarker = { required }
-      rules.tvPurgeDelay = { required, numeric, minValue: minValue(1) }
-  }
-
-  if (store.settings?.moviePurgeMarker !== 'watched')
-    rules.moviePurgeDelay = { required, numeric, minValue: minValue(1) }
-
-  const v$ = useVuelidate(rules, store.settings as any)
-
   const validation = await v$.value.$validate()
   if (validation) {
     return store.saveSettings()
-  } else {
-    errors.value = v$.value.$errors
   }
 }
 </script>

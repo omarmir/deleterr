@@ -12,9 +12,17 @@
     <div class="flex grow flex-row text-sm text-gray-600 dark:text-gray-500">
       <slot name="subtitle"></slot>
     </div>
+    <div class="col-span-2 grid">
+      <p v-for="error in errors" :key="error.$uid" class="text-xs text-red-600">
+        {{ error.$message }}
+      </p>
+    </div>
   </div>
 </template>
 <script lang="ts" setup>
+import { ErrorObject } from '@vuelidate/core'
+import { PropType } from 'vue'
+
 defineProps({
   label: {
     type: String,
@@ -28,6 +36,11 @@ defineProps({
     type: Boolean,
     required: false,
     default: false,
+  },
+  errors: {
+    type: Object as PropType<ErrorObject[]>,
+    required: true,
+    default: [] as ErrorObject[],
   },
 })
 </script>
