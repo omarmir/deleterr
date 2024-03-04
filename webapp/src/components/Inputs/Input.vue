@@ -5,8 +5,7 @@
     class="w-full appearance-none rounded-md border bg-white py-2 pl-2 text-sm focus:border-purple-400 focus:shadow-outline-purple focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:focus:shadow-outline-gray"
     :placeholder="placeholder"
     :type="type"
-    :name="name"
-    :required="required" />
+    :name="name" />
 </template>
 <script lang="ts" setup>
 import { PropType } from 'vue'

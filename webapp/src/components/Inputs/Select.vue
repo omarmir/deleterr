@@ -4,7 +4,6 @@
       :id="name"
       v-model="model"
       class="block w-full appearance-none rounded-md border bg-white py-2 pl-2 pr-8 text-sm focus:border-purple-400 focus:shadow-outline-purple focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:focus:shadow-outline-gray"
-      :required="required"
       :name="name">
       <option v-for="item in options" :key="item.value" :value="item.value">
         {{ item.label }}
