@@ -27,7 +27,7 @@
         </div>
         <div
           class="h-1 transition-all"
-          :class="toast.danger ? 'bg-rejectedtext' : 'bg-accent'"
+          :class="toast.danger ? 'bg-red-600' : 'bg-purple-600 dark:bg-purple-300'"
           :style="{ width: width + '%' }"></div>
       </div>
     </div>
