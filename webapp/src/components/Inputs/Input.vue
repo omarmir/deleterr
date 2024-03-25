@@ -18,7 +18,7 @@ defineProps({
     default: false,
   },
   type: {
-    type: String as PropType<'number' | 'text'>,
+    type: String as PropType<'number' | 'text' | 'password'>,
     required: true,
   },
   name: {

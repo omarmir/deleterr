@@ -33,14 +33,17 @@
             <form class="space-y-4" @submit.prevent>
               <InputsInput
                 v-model="authUser.username"
+                type="text"
+                name="username"
                 :required="true"
                 label="Username"
-                placeholder="Username"></InputsInput>
+                placeholder="Username" />
               <InputsInput
                 v-model="authUser.password"
+                name="password"
                 type="password"
                 label="Password"
-                placeholder="Password"></InputsInput>
+                placeholder="Password" />
               <ButtonsStatused :callback="submitForm" :is-outlined="false" class="rounded-lg" :is-submit="true">
                 Login
               </ButtonsStatused>
