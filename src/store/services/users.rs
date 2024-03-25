@@ -1,4 +1,4 @@
-use super::common::{get_data, save_data};
+use super::common::{get_collection, get_data, save_data};
 use crate::{auth::models::HashedUser, common::models::deleterr_error::DeleterrError};
 
 const BUCKET_NAME: &str = "users";
@@ -42,5 +42,14 @@ pub fn update_user_in_store(user: HashedUser) -> Result<(), DeleterrError> {
     match user_update {
         Ok(_) => Ok(()),
         Err(err) => Err(DeleterrError::from(err).add_prefix("Unable to update user.")),
+    }
+}
+
+pub fn is_users_setup() -> Result<bool, DeleterrError> {
+    let user_collection = get_collection(&BUCKET_NAME)?;
+
+    match user_collection.len() {
+        0 => Ok(false),
+        _ => Ok(true),
     }
 }

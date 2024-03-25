@@ -165,6 +165,12 @@ async fn validate_user_session(
     return process_request(is_login_success);
 }
 
+#[get("/auth/setup/status")]
+async fn get_setup_status() -> impl Responder {
+    let is_users_setup = store::services::users::is_users_setup();
+    return process_request(is_users_setup);
+}
+
 pub fn config(cfg: &mut web::ServiceConfig) {
     cfg.service(
         web::scope("/api/v1/json")
@@ -188,5 +194,6 @@ pub fn config(cfg: &mut web::ServiceConfig) {
             .service(update_password),
     )
     .service(set_login)
-    .service(set_logout);
+    .service(set_logout)
+    .service(get_setup_status);
 }

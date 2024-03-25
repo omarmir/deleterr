@@ -10,6 +10,7 @@ import Settings from '~/views/Settings.vue'
 import { NavigationGuardNext, RouteLocationNormalized, createRouter, createWebHashHistory } from 'vue-router'
 import { createPinia } from 'pinia'
 import { useAuthStore } from '~/stores/auth.store'
+import Setup from './views/Setup.vue'
 
 const routes = [
   {
@@ -42,6 +43,12 @@ const routes = [
     ],
   },
   {
+    path: '/setup',
+    name: 'Setup',
+    component: Setup,
+    meta: { requiresAuth: false },
+  },
+  {
     path: '/login',
     name: 'Login',
     component: Login,
@@ -59,7 +66,11 @@ router.beforeEach(async (to: RouteLocationNormalized, _from: RouteLocationNormal
   if (to.meta.requiresAuth && !(await store.validateSession())) {
     //store.originalPath = to.path
 
-    next({ name: 'Login' })
+    if (await store.checkUsersSetup()) {
+      next({ name: 'Login' })
+    } else {
+      next({ name: 'Setup' })
+    }
   } else {
     next()
   }

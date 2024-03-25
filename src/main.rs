@@ -35,9 +35,12 @@ async fn main() -> std::io::Result<()> {
     std::env::set_var("RUST_BACKTRACE", "1");
     env_logger::init();
 
+    let is_users_setup = store::services::users::is_users_setup().unwrap_or(false);
+
     let app_state = AppData {
         last_update: RwLock::new(None),
         request_cache: RwLock::new(None),
+        is_users_setup: RwLock::new(is_users_setup),
     };
 
     let data = web::Data::new(app_state);

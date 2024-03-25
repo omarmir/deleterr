@@ -11,6 +11,22 @@ export const useAuthStore = defineStore('auth', () => {
 
   const router = useRouter()
 
+  async function checkUsersSetup(): Promise<boolean | undefined> {
+    const checkUsersEndpoint = `/auth/setup/status`
+    const requestOptions: RequestInit = {
+      method: 'GET',
+      headers: { 'Content-Type': 'application/json' },
+    }
+
+    try {
+      const response = await fetch(checkUsersEndpoint, requestOptions)
+      let apiResponse: APIResponse<boolean> = await response.json()
+      return apiResponse.data
+    } catch (err) {
+      publishToast('Unable to confirm a user has been initialized', 'Error: ' + (err as any).toString(), 10, true)
+    }
+  }
+
   async function validateSession(): Promise<boolean> {
     if (!sessionStorage.getItem('loggedUser')) return false
 
@@ -38,7 +54,7 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
-  const login = async function login(authUser: AuthenticationUser): Promise<APIResponse<string>> {
+  async function login(authUser: AuthenticationUser): Promise<APIResponse<string>> {
     const loginEndpoint = `/auth/login`
     const requestOptions: RequestInit = {
       method: 'POST',
@@ -62,13 +78,12 @@ export const useAuthStore = defineStore('auth', () => {
       }
 
       return apiResponse
-
     } catch (err: any) {
       ;[username.value, isLoggedIn.value] = [undefined, false]
       sessionStorage.removeItem('loggedUser')
       const apiResponse: APIResponse<string> = {
         success: false,
-        error_msg: err
+        error_msg: err,
       }
       publishToast('Unable to login', 'Error: ' + (err as any).toString(), 10, true)
       return apiResponse
@@ -99,5 +114,32 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
-  return { validateSession, username, login, logout, isLoggedIn }
+  async function addInitialUser(authUser: AuthenticationUser): Promise<APIResponse<boolean | undefined>> {
+    const checkUsersEndpoint = `/api/v1/json/auth/user/add`
+    const requestOptions: RequestInit = {
+      method: 'POST',
+      body: JSON.stringify(authUser),
+      headers: { 'Content-Type': 'application/json' },
+    }
+
+    try {
+      const response = await fetch(checkUsersEndpoint, requestOptions)
+      let apiResponse: APIResponse<boolean> = await response.json()
+      if (apiResponse.success) {
+        publishToast('User added', 'Login with credentials.', 10, false)
+      } else {
+        publishToast('Unable to add user', apiResponse.error_msg ?? '', 10, true)
+      }
+
+      return apiResponse
+    } catch (err: any) {
+      const apiResponse: APIResponse<undefined> = {
+        success: false,
+        error_msg: err,
+      }
+      publishToast('Unable to add user', 'Error: ' + apiResponse.error_msg, 10, true)
+      return apiResponse
+    }
+  }
+  return { validateSession, username, login, logout, isLoggedIn, checkUsersSetup, addInitialUser }
 })

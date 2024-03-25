@@ -132,4 +132,5 @@ pub enum SortableProps {
 pub struct AppData {
     pub last_update: RwLock<Option<SystemTime>>,
     pub request_cache: RwLock<Option<RequestStatusWithRecordInfo>>,
+    pub is_users_setup: RwLock<bool>,
 }

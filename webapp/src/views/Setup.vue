@@ -1,6 +1,6 @@
 <template>
   <BlankPage>
-    <h1 class="mb-4 text-xl font-semibold text-gray-700 dark:text-gray-200">Login</h1>
+    <h1 class="mb-4 text-xl font-semibold text-gray-700 dark:text-gray-200">Add Credentials</h1>
     <form class="space-y-4" @submit.prevent>
       <InputsInput
         v-model="authUser.username"
@@ -16,7 +16,7 @@
         label="Password"
         placeholder="Password" />
       <ButtonsStatused :callback="submitForm" :is-outlined="false" class="rounded-lg" :is-submit="true">
-        Login
+        Add User
       </ButtonsStatused>
     </form>
   </BlankPage>
@@ -47,14 +47,13 @@ const rules = {
 
 const v$ = useVuelidate(rules, authUser as any)
 
-const submitForm = async (): Promise<APIResponse<String> | undefined> => {
+const submitForm = async (): Promise<APIResponse<boolean | undefined> | undefined> => {
   const result = await v$.value.$validate()
 
   if (result) {
-    const result = await store.login(authUser)
+    const result = await store.addInitialUser(authUser)
     if (result.success) {
-      console.log()
-      router.push(router.currentRoute.value.redirectedFrom?.fullPath ?? '/')
+      router.push(router.currentRoute.value.redirectedFrom?.fullPath ?? '/login')
     }
     return result
   }
