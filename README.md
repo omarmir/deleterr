@@ -63,6 +63,7 @@ Contributions are welcome! As the project is in its early stages and likely nich
 - [x] Delete movies
 - [ ] Delete shows or seasons
 - [ ] Allow marking specific users that are exempted from automatic deletion
+- [ ] Allow marking specific media files that are exempted from automatic deletion
 - [x] Setup credentials and authentication requirement
 - [x] Use persistent store for ROST instead of .env file
 - [ ] **Setup schedule for automatic deletion**
