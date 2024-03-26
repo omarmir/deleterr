@@ -1,5 +1,8 @@
 use super::common::{get_collection, get_data, save_data};
-use crate::{auth::models::HashedUser, common::models::deleterr_error::DeleterrError};
+use crate::{
+    auth::models::{HashedUser, User},
+    common::models::deleterr_error::DeleterrError,
+};
 
 const BUCKET_NAME: &str = "users";
 
@@ -51,5 +54,23 @@ pub fn is_users_setup() -> Result<bool, DeleterrError> {
     match user_collection.len() {
         0 => Ok(false),
         _ => Ok(true),
+    }
+}
+
+pub fn add_user(unhashed_user: User) -> Result<(), DeleterrError> {
+    let hashed_user = HashedUser::from_user(unhashed_user)?;
+    add_user_to_store(hashed_user)
+}
+
+pub fn initialize_user(unhashed_user: User) -> Result<(), DeleterrError> {
+    let is_users_setup = is_users_setup()?;
+    match is_users_setup {
+        true => Err(DeleterrError::new(
+            "Cannot initialize users when there is already a user setup.",
+        )),
+        false => {
+            let hashed_user = HashedUser::from_user(unhashed_user)?;
+            add_user_to_store(hashed_user)
+        }
     }
 }

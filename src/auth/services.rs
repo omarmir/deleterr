@@ -2,7 +2,7 @@ use super::models::HashedUser;
 use crate::{
     auth::models::User,
     common::models::{api::APIResponse, deleterr_error::DeleterrError},
-    store::services::users::{add_user_to_store, get_user_by_username, update_user_in_store},
+    store::services::users::{get_user_by_username, update_user_in_store},
 };
 use actix_session::Session;
 use actix_web::{
@@ -80,11 +80,6 @@ pub fn update_password(session: Session, new_password: String) -> Result<(), Del
             "Unauthorized. No session, log in again.",
         )),
     }
-}
-
-pub fn add_user(unhashed_user: User) -> Result<(), DeleterrError> {
-    let hashed_user = HashedUser::from_user(unhashed_user)?;
-    add_user_to_store(hashed_user)
 }
 
 pub async fn reject_anonymous_users(

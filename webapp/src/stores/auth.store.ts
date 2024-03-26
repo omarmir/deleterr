@@ -115,7 +115,7 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   async function addInitialUser(authUser: AuthenticationUser): Promise<APIResponse<boolean | undefined>> {
-    const checkUsersEndpoint = `/api/v1/json/auth/user/add`
+    const checkUsersEndpoint = `/auth/user/initialize`
     const requestOptions: RequestInit = {
       method: 'POST',
       body: JSON.stringify(authUser),

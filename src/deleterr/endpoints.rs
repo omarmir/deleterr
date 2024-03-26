@@ -141,7 +141,7 @@ async fn set_logout(session: Session) -> impl Responder {
 
 #[post("/auth/user/add")]
 async fn add_user(web::Json(user): web::Json<User>) -> impl Responder {
-    let resp = auth::services::add_user(user);
+    let resp = store::services::users::add_user(user);
     return process_request(resp);
 }
 
@@ -171,6 +171,12 @@ async fn get_setup_status() -> impl Responder {
     return process_request(is_users_setup);
 }
 
+#[post("/auth/user/initialize")]
+async fn initialize_user(web::Json(user): web::Json<User>) -> impl Responder {
+    let resp = store::services::users::initialize_user(user);
+    return process_request(resp);
+}
+
 pub fn config(cfg: &mut web::ServiceConfig) {
     cfg.service(
         web::scope("/api/v1/json")
@@ -195,5 +201,6 @@ pub fn config(cfg: &mut web::ServiceConfig) {
     )
     .service(set_login)
     .service(set_logout)
-    .service(get_setup_status);
+    .service(get_setup_status)
+    .service(initialize_user);
 }
