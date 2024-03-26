@@ -61,11 +61,12 @@ Contributions are welcome! As the project is in its early stages and likely nich
 - [x] Display if the requesting user has watched the media
 - [x] Mark or unmark a media as excluded from automatic deletion
 - [x] Delete movies
+- [ ] Delete shows or seasons
 - [ ] Allow marking specific users that are exempted from automatic deletion
-- [ ] Setup credentials and authentication requirement
-- [ ] Use persistent store for ROST instead of .env file
+- [x] Setup credentials and authentication requirement
+- [x] Use persistent store for ROST instead of .env file
 - [ ] **Setup schedule for automatic deletion**
-- [ ] Mobile friendly
+- [x] Mobile friendly
 
 **Additional features planned**
 
