@@ -91,15 +91,13 @@ pub async fn get_overseerr_radar_info() -> Result<Option<ServiceInfo>, DeleterrE
     let api_url = create_api_url(&endpoint, &service_info);
     let query: Vec<(&str, &str)> = Vec::with_capacity(0);
 
-    let client_req = get_api_endpoint(
-        api_url,
-        query,
-        Some(service_info.api_key),
-        RequestType::Delete,
-    )?;
+    let client_req =
+        get_api_endpoint(api_url, query, Some(service_info.api_key), RequestType::Get)?;
+
     let request_response = make_api_call(client_req)
         .await
         .map_err(|err| err.add_prefix("Unable to get radarr info from overseerr."))?;
+
     let resp = request_response
         .response
         .json::<Vec<RadarrInfo>>()

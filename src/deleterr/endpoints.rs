@@ -125,6 +125,13 @@ async fn get_all_settings_json() -> impl Responder {
     return process_request(settings);
 }
 
+// Overseerr services
+#[get("/overseerr/get/radarr")]
+async fn get_overseerr_radar_info() -> impl Responder {
+    let radarr_info = overseerr::services::get_overseerr_radar_info().await;
+    return process_request(radarr_info);
+}
+
 // Auth
 #[post("/auth/login")]
 async fn set_login(session: Session, web::Json(user): web::Json<User>) -> impl Responder {
@@ -197,7 +204,8 @@ pub fn config(cfg: &mut web::ServiceConfig) {
             .service(get_movie_poster)
             .service(save_settings_submit_json)
             .service(get_all_settings_json)
-            .service(update_password),
+            .service(update_password)
+            .service(get_overseerr_radar_info),
     )
     .service(set_login)
     .service(set_logout)
