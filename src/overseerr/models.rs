@@ -1,6 +1,9 @@
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
-use serde_aux::prelude::deserialize_option_number_from_string;
+use serde_aux::{
+    field_attributes::deserialize_bool_from_anything,
+    prelude::deserialize_option_number_from_string,
+};
 use std::collections::HashMap;
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -107,4 +110,15 @@ pub struct AboutServer {
     total_media_items: usize,
     tz: String,
     app_data_path: String,
+}
+
+#[derive(Deserialize, Serialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct RadarrInfo {
+    pub hostname: String,
+    #[serde(deserialize_with = "deserialize_option_number_from_string")]
+    pub port: Option<String>,
+    pub api_key: String,
+    #[serde(deserialize_with = "deserialize_bool_from_anything")]
+    pub use_ssl: bool,
 }
