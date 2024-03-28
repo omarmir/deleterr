@@ -116,8 +116,7 @@ pub struct AboutServer {
 #[serde(rename_all = "camelCase")]
 pub struct RadarrInfo {
     pub hostname: String,
-    #[serde(deserialize_with = "deserialize_option_number_from_string")]
-    pub port: Option<String>,
+    pub port: Option<usize>,
     pub api_key: String,
     #[serde(deserialize_with = "deserialize_bool_from_anything")]
     pub use_ssl: bool,
