@@ -1,4 +1,4 @@
-const colors = require('tailwindcss/colors')
+import {black, white, green, purple, orange, teal, red} from 'tailwindcss/colors'
 
 export default {
   darkMode: 'class',
@@ -21,16 +21,13 @@ export default {
     colors: {
       transparent: 'transparent',
       current: 'currentColor',
-      black: colors.black,
-      white: colors.white,
-      emerald: colors.emerald,
-      indigo: colors.indigo,
-      yellow: colors.yellow,
-      green: colors.green,
-      purple: colors.purple,
-      orange: colors.orange,
-      red: colors.red,
-      teal: colors.teal,
+      black: black,
+      white: white,
+      green: green,
+      purple: purple,
+      orange: orange,
+      red: red,
+      teal: teal,
       gray: {
         50: '#f9fafb',
         100: '#f4f5f7',
@@ -42,18 +39,6 @@ export default {
         700: '#24262d',
         800: '#1a1c23',
         900: '#121317',
-      },
-      'cool-gray': {
-        50: '#fbfdfe',
-        100: '#f1f5f9',
-        200: '#e2e8f0',
-        300: '#cfd8e3',
-        400: '#97a6ba',
-        500: '#64748b',
-        600: '#475569',
-        700: '#364152',
-        800: '#27303f',
-        900: '#1a202e',
       },
     },
   },
