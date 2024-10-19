@@ -36,7 +36,7 @@ export const useSettingsStore = defineStore('settings', () => {
         newPassword.value.newPassword = undefined
         return apiResponse
       } else {
-        publishToast('Unable update password', 'Error: ' + apiResponse.error_msg ?? 'Unknown!', 3, true)
+        publishToast('Unable update password', `Error: ${apiResponse.error_msg ?? 'Unknown!'}`, 3, true)
         return apiResponse
       }
     } catch (err: any) {
@@ -89,7 +89,7 @@ export const useSettingsStore = defineStore('settings', () => {
         publishToast('Saved', 'Settings have been saved. Try a dry run to confirm.', 3, false)
         return apiResponse
       } else {
-        publishToast('Unable save settings', 'Error: ' + apiResponse.error_msg ?? 'Unknown!', 3, true)
+        publishToast('Unable save settings', `Error: ${apiResponse.error_msg ?? 'Unknown!'}`, 3, true)
         return apiResponse
       }
     } catch (err: any) {

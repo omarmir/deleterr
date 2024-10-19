@@ -125,7 +125,7 @@ export const useRequestsStore = defineStore('requests', () => {
         mediaExemptions.value.push(mediaExemption)
         return apiResponse
       } else {
-        publishToast('Unable to add exemption', 'Error: ' + apiResponse.error_msg ?? 'Unknown!', 3, true)
+        publishToast('Unable to add exemption', `Error: ${apiResponse.error_msg ?? 'Unknown!'}`, 3, true)
         return apiResponse
       }
     } catch (err: any) {
@@ -165,7 +165,7 @@ export const useRequestsStore = defineStore('requests', () => {
         mediaExemptions.value = mediaExemptions.value.filter((exemption) => exemption != mediaExemption)
         return apiResponse
       } else {
-        publishToast('Unable to remove exemption', 'Error: ' + apiResponse.error_msg ?? 'Unknown!', 3, true)
+        publishToast('Unable to remove exemption', `Error: ${apiResponse.error_msg ?? 'Unknown!'}`, 3, true)
         return apiResponse
       }
     } catch (err: any) {
@@ -202,7 +202,7 @@ export const useRequestsStore = defineStore('requests', () => {
         getRequests() //TODO: We may wish to remove it locally instead
         return apiResponse
       } else {
-        publishToast('Unable to delete movie', 'Error: ' + apiResponse.error_msg ?? 'Unknown!', 3, true)
+        publishToast('Unable to delete movie', `Error: ${apiResponse.error_msg ?? 'Unknown!'}`, 3, true)
         return apiResponse
       }
     } catch (err: any) {
