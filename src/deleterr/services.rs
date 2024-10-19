@@ -19,7 +19,7 @@ pub async fn get_request_status_for_series(
     tau_hist: Option<Vec<UserWatchHistory>>,
 ) -> Result<RequestStatus, DeleterrError> {
     let (season_status, watched) = {
-        let tau_history = tau_hist.get_all_or_none().hashmap_seasons();
+        let tau_history = tau_hist.hashmap_seasons();
         let mut seasons_with_status = vec![];
         let series_map = Series::hashmap_seasons(&sonarr_series);
 

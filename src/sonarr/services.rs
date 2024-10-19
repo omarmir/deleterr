@@ -28,7 +28,7 @@ pub async fn get_series(tvdb_id: &Option<usize>) -> Result<Option<Series>, Delet
                 .await
                 .map_err(|err| err.add_prefix("Unable to get Sonarr show, "))?;
 
-            let resp = request_response.response.json::<Vec<Series>>().await;
+            let resp = request_response.json::<Vec<Series>>().await;
 
             match resp {
                 Ok(series) => {
@@ -61,7 +61,7 @@ pub async fn get_cover(series_id: usize) -> Result<Vec<u8>, DeleterrError> {
     let request_response = make_api_call(client_req).await;
 
     let resp = match request_response {
-        Ok(req_resp) => Ok(req_resp.response.bytes().await?),
+        Ok(req_resp) => Ok(req_resp.bytes().await?),
         Err(err) => Err(err),
     };
 

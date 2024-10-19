@@ -9,6 +9,7 @@ import {
 } from '~/@types/deleterr'
 import { useToast } from '~/composables/useToast'
 import { useRouter } from 'vue-router'
+
 interface RequestResponse {
   requests?: RequestStatus[]
   exemptions?: MediaExemptions

@@ -33,7 +33,6 @@ pub async fn get_requests() -> Result<OverseerrListResponse<MediaRequest>, Delet
         .await
         .map_err(|err| err.add_prefix("Unable to get Overseerr requests."))?;
     let resp = request_response
-        .response
         .json::<OverseerrListResponse<MediaRequest>>()
         .await?;
 
@@ -52,10 +51,7 @@ pub async fn get_requests_count() -> Result<OverseerrRequestsCount, DeleterrErro
     let request_response = make_api_call(client_req)
         .await
         .map_err(|err| err.add_prefix("Unable to get Overseerr request count."))?;
-    let resp = request_response
-        .response
-        .json::<OverseerrRequestsCount>()
-        .await?;
+    let resp = request_response.json::<OverseerrRequestsCount>().await?;
 
     Ok(resp)
 }
@@ -99,7 +95,6 @@ pub async fn get_overseerr_radar_info() -> Result<Option<ServiceInfo>, DeleterrE
         .map_err(|err| err.add_prefix("Unable to get radarr info from overseerr."))?;
 
     let resp = request_response
-        .response
         .json::<Vec<RadarrInfo>>()
         .await
         .map_err(|_err| DeleterrError::new("Unable to parse radarr info from overseerr."))?;
@@ -137,7 +132,7 @@ pub async fn get_overseerr_status(
         .map_err(|err| err.add_prefix("Unable to get Overseerr status."))?;
 
     // We need to make sure its actaully the response from Overseer and not just an OK response
-    let resp = request_response.response.json::<AboutServer>().await;
+    let resp = request_response.json::<AboutServer>().await;
 
     //This is a nested match which is a bit messy but the if let statements were harder to parse mentally
     match resp {

@@ -113,7 +113,6 @@ pub struct MovieDeletionRequest {
 pub struct QueryParms {
     pub take: Option<usize>,
     pub skip: Option<usize>,
-    pub chunk: Option<usize>,
     pub sort_by: Option<SortableProps>,
     pub is_descending: Option<bool>,
     pub search: Option<String>,
@@ -129,6 +128,8 @@ pub enum SortableProps {
     User,
 }
 
+// Last update is unimplemented thus far
+#[allow(dead_code)]
 pub struct AppData {
     pub last_update: RwLock<Option<SystemTime>>,
     pub request_cache: RwLock<Option<RequestStatusWithRecordInfo>>,
