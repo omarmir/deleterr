@@ -18,6 +18,21 @@ mod sonrad;
 mod store;
 mod tautulli;
 
+/// Creates a session middleware with specific configurations for a
+/// cookie-based session store in Rust.
+///
+/// Arguments:
+///
+/// * `secret_key`: The `secret_key` parameter is a cryptographic key used for securing and encrypting
+/// of client-side session cookie. It is essential for ensuring the integrity and confidentiality of the session
+/// information stored in the cookies. Make sure to keep this key secure and never expose it publicly.
+///
+/// Returns:
+///
+/// A `SessionMiddleware` instance configured with a
+/// `CookieSessionStore` store and the provided `secret_key`. The middleware is further customized with
+/// settings such as the cookie name, security options, session lifecycle, content security, and HTTP
+/// only flag before being built and returned.
 fn session_middleware(secret_key: Key) -> SessionMiddleware<CookieSessionStore> {
     SessionMiddleware::builder(CookieSessionStore::default(), secret_key)
         .cookie_name(String::from("deleterr"))
@@ -42,6 +57,7 @@ async fn main() -> std::io::Result<()> {
 
     let data = web::Data::new(app_state);
 
+    // We only need to generate this key once. Its the source for encryption.
     let secret_key = Key::generate();
 
     HttpServer::new(move || {
