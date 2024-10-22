@@ -6,12 +6,12 @@ pub struct Exemptions {
 impl Exemptions {
     /// Converts a vector of `usize` values to a vector of `u8` values using JSON serialization.
     ///
-    /// Arguments:
+    /// # Arguments:
     ///
     /// * `exemptions`: Reference to a vector of `usize` that is serialized into a JSON byte vector using
     /// `serde_json::to_vec` and returns the resulting byte vector.
     ///
-    /// Returns:
+    /// # Returns:
     ///
     /// Serialized JSON bytes of the input `exemptions` vector.
     pub fn to_vec_from_exemptions(exemptions: &Vec<usize>) -> Vec<u8> {
@@ -22,11 +22,11 @@ impl Exemptions {
 
     /// Deserializes a byte vector into a vector of `usize` values using serde_json.
     ///
-    /// Arguments:
+    /// # Arguments:
     ///
     /// * `bytes`: Option<Vec<u8> from the jammdb
     ///
-    /// Returns:
+    /// # Returns:
     ///
     /// A `Vec<usize>` representing the overseer request IDs
     pub fn to_exemptions_from_vec(bytes: Option<Vec<u8>>) -> Vec<usize> {

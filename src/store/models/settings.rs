@@ -71,6 +71,15 @@ impl Settings {
 }
 
 impl From<Vec<u8>> for Settings {
+    /// Deserialize a vector of bytes into Settings struct.
+    ///
+    /// # Arguments
+    ///
+    /// * `bytes` - A vector of bytes containing the serialized settings data.
+    ///
+    /// # Returns
+    ///
+    /// The deserialized JSON Settings struct using serde_json.
     fn from(bytes: Vec<u8>) -> Self {
         let settings: Settings =
             serde_json::from_slice(&bytes).expect("Failed to deserialize settings");
