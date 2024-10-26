@@ -5,12 +5,30 @@ use crate::common::services::{create_api_url, get_api_endpoint, make_api_call};
 
 use super::series::Series;
 
+/// Retrieves information about the Sonarr service and returns it as a
+/// `ServiceInfo` struct or an error if the service is not set up.
+///
+/// # Returns:
+///
+/// `Result` containing either a [crate::common::models::services::ServiceInfo] or a `DeleterrError`.
 fn build_service_info() -> Result<ServiceInfo, DeleterrError> {
     let service_info = crate::store::services::services::get_service(Services::Sonarr)?;
 
     service_info.ok_or(DeleterrError::new("Sonarr service not setup."))
 }
 
+/// Retrieves a TV series based on its TVDB ID using the Sonarr API.
+///
+/// # Arguments:
+///
+/// * `tvdb_id`: An optional `usize` used to identify the series in Sonarr
+///
+/// # Returns:
+///
+/// `Result` containing an `Option` of `Series` or a `DeleterrError`. If a `Some` value is provided for the `tvdb_id`,
+/// the function makes an API call to retrieve a list of series based on the provided TVDB ID.
+/// If successful, it returns the first series in the list as an `Option`. If `None` value is provided for the `tbdb_id`
+/// It returns a `Ok` with a `none` back
 pub async fn get_series(tvdb_id: &Option<usize>) -> Result<Option<Series>, DeleterrError> {
     match tvdb_id {
         Some(tv_id) => {
@@ -33,7 +51,7 @@ pub async fn get_series(tvdb_id: &Option<usize>) -> Result<Option<Series>, Delet
             match resp {
                 Ok(series) => {
                     if series.len() > 0 {
-                        Ok(series.get(0).cloned())
+                        Ok(series.get(0).cloned()) // TODO: Do we need to clone here?
                     } else {
                         Ok(None)
                     }
@@ -48,6 +66,17 @@ pub async fn get_series(tvdb_id: &Option<usize>) -> Result<Option<Series>, Delet
     }
 }
 
+/// Asynchronously retrieves a cover image for a given series ID using an API call.
+///
+/// # Arguments:
+///
+/// * `series_id`: Used to identify a specific series for which you want to
+/// retrieve the cover image. It is a unique identifier assigned to each series by Sonarr.
+///
+/// # Returns:
+///
+/// `Result` containing a `Vec<u8>` representing the image data if
+/// the operation is successful, or a `DeleterrError` if there was an error during the process.
 pub async fn get_cover(series_id: usize) -> Result<Vec<u8>, DeleterrError> {
     let endpoint = format!("api/v3/mediacover/{series_id}/poster.jpg");
     let service_info = build_service_info()?;
