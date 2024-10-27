@@ -5,12 +5,12 @@ use crate::deleterr::models::QueryParms;
 use crate::store::models::settings::Settings;
 use crate::{auth, deleterr, overseerr, radarr, sonarr, sonrad, store, tautulli, AppData};
 use actix_session::Session;
+use actix_web::middleware::from_fn;
 use actix_web::{
     delete, get, post,
     web::{self, Data},
     Responder,
 };
-use actix_web_lab::middleware::from_fn;
 
 #[get("/requests")]
 async fn get_all_requests_json(
