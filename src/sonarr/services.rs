@@ -10,7 +10,7 @@ use super::series::Series;
 ///
 /// # Returns:
 ///
-/// `Result` containing either a [crate::common::models::services::ServiceInfo] or a `DeleterrError`.
+/// `Result` containing either a [ServiceInfo] or a [DeleterrError].
 fn build_service_info() -> Result<ServiceInfo, DeleterrError> {
     let service_info = crate::store::services::services::get_service(Services::Sonarr)?;
 
@@ -25,7 +25,7 @@ fn build_service_info() -> Result<ServiceInfo, DeleterrError> {
 ///
 /// # Returns:
 ///
-/// `Result` containing an `Option` of `Series` or a `DeleterrError`. If a `Some` value is provided for the `tvdb_id`,
+/// `Result` containing an `Option` of [Series] or a [DeleterrError]. If a `Some` value is provided for the `tvdb_id`,
 /// the function makes an API call to retrieve a list of series based on the provided TVDB ID.
 /// If successful, it returns the first series in the list as an `Option`. If `None` value is provided for the `tbdb_id`
 /// It returns a `Ok` with a `none` back
@@ -51,7 +51,7 @@ pub async fn get_series(tvdb_id: &Option<usize>) -> Result<Option<Series>, Delet
             match resp {
                 Ok(series) => {
                     if series.len() > 0 {
-                        Ok(series.get(0).cloned()) // TODO: Do we need to clone here?
+                        Ok(series.get(0).cloned())
                     } else {
                         Ok(None)
                     }
@@ -76,7 +76,7 @@ pub async fn get_series(tvdb_id: &Option<usize>) -> Result<Option<Series>, Delet
 /// # Returns:
 ///
 /// `Result` containing a `Vec<u8>` representing the image data if
-/// the operation is successful, or a `DeleterrError` if there was an error during the process.
+/// the operation is successful, or a [DeleterrError] if there was an error during the process.
 pub async fn get_cover(series_id: usize) -> Result<Vec<u8>, DeleterrError> {
     let endpoint = format!("api/v3/mediacover/{series_id}/poster.jpg");
     let service_info = build_service_info()?;
