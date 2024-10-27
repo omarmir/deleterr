@@ -1,9 +1,9 @@
+use super::models::SeriesEpisodes;
+use super::series::Series;
 use crate::common::models::api::RequestType;
 use crate::common::models::deleterr_error::DeleterrError;
 use crate::common::models::services::{ServiceInfo, Services};
 use crate::common::services::{create_api_url, get_api_endpoint, make_api_call};
-
-use super::series::Series;
 
 /// Retrieves information about the Sonarr service and returns it as a
 /// `ServiceInfo` struct or an error if the service is not set up.
@@ -98,5 +98,49 @@ pub async fn get_cover(series_id: usize) -> Result<Vec<u8>, DeleterrError> {
         Ok(img) => Ok(img.to_vec()),
         Err(error) => Err(DeleterrError::new(error.to_string().as_str())
             .add_prefix("Unable to get sonarr image,")),
+    }
+}
+
+/// Retrieves episode files for a given series ID from a Sonarr API endpoint.
+///
+/// # Arguments:
+///
+/// * `series_id`: The `series_id` parameter is the unique identifier of a TV series in the Sonarr
+/// application. It is used to retrieve information about the episodes of that particular series from
+/// the Sonarr API.
+///
+/// # Returns:
+///
+/// `Result` containing either an `Option` of a vector of [SeriesEpisodes] or a [DeleterrError].
+pub async fn get_episode_files(
+    series_id: usize,
+) -> Result<Option<Vec<SeriesEpisodes>>, DeleterrError> {
+    let endpoint = "api/v3/episodefile".to_string();
+    let service_info = build_service_info()?;
+    let id = series_id.to_string();
+
+    let api_url = create_api_url(&endpoint, &service_info);
+    let query = vec![("seriesId", id.as_str())];
+
+    let client_req =
+        get_api_endpoint(api_url, query, Some(service_info.api_key), RequestType::Get)?;
+
+    let request_response = make_api_call(client_req)
+        .await
+        .map_err(|err| err.add_prefix("Unable to get files for Sonarr show, "))?;
+
+    let resp = request_response.json::<Vec<SeriesEpisodes>>().await;
+
+    match resp {
+        Ok(series) => {
+            if series.len() > 0 {
+                Ok(Some(series.clone()))
+            } else {
+                Ok(None)
+            }
+        }
+        Err(error) => {
+            Err(DeleterrError::from(error).add_prefix("Unable to process Sonarr response, "))
+        }
     }
 }

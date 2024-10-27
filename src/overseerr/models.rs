@@ -60,7 +60,7 @@ pub struct Media {
     pub tvdb_id: Option<usize>, // Apparently nothing uses this. Even if it says tvid in the API.
     #[serde(deserialize_with = "deserialize_option_number_from_string")]
     pub rating_key: Option<usize>,
-    pub external_service_id: Option<usize>,
+    pub external_service_id: Option<usize>, // This is the ID from Radarr/Sonarr
     pub status: u8, // Availability of the media. 1 = UNKNOWN, 2 = PENDING, 3 = PROCESSING, 4 = PARTIALLY_AVAILABLE, 5 = AVAILABLE
 }
 #[derive(Deserialize, Serialize, Debug, Clone)]
