@@ -12,5 +12,6 @@ use serde::{Deserialize, Serialize};
 pub struct SeriesEpisodes {
     pub series_id: usize,
     pub season_number: usize,
+    pub size: usize,
     pub id: usize,
 }
