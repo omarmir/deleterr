@@ -6,6 +6,7 @@ use actix_web::cookie::Key;
 use actix_web::{middleware::Logger, web, App, HttpServer};
 use actix_web_lab::web as lab_web;
 use deleterr::models::AppData;
+use sqlite::services::{apply_migrations, create_database};
 use std::sync::RwLock;
 
 mod auth;
@@ -15,6 +16,7 @@ mod overseerr;
 mod radarr;
 mod sonarr;
 mod sonrad;
+mod sqlite;
 mod store;
 mod tautulli;
 
@@ -56,6 +58,10 @@ async fn main() -> std::io::Result<()> {
     };
 
     let data = web::Data::new(app_state);
+
+    // Create Database if it doesn't exists
+    create_database().await;
+    apply_migrations().await;
 
     // We only need to generate this key once. Its the source for encryption.
     let secret_key = Key::generate();

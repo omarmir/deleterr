@@ -27,4 +27,8 @@ chrono = { version = "0.4.31", features = ["serde"] }
 actix-session = { version = "0.10.1", features = ["cookie-session"] }
 bcrypt = "0.15.0"
 jammdb = "0.11.0"
-sqlx = { version = "0.8", features = ["runtime-tokio", "tls-native-tls"] }
+sqlx = { version = "0.8", features = [
+    "runtime-tokio",
+    "tls-native-tls",
+    "sqlite",
+] }
