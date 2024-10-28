@@ -28,6 +28,10 @@ pub async fn create_database() -> () {
     }
 }
 
+/// Asynchronously applies migrations to the SQLite database using the provided DB_URL.
+///
+/// # Panics
+/// Panics if there is an error connecting to the database or applying the migrations.
 pub async fn apply_migrations() -> () {
     let db = SqlitePool::connect(DB_URL).await;
 
