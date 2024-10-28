@@ -1,5 +1,6 @@
 use sqlx::{migrate::MigrateDatabase, FromRow, Row, Sqlite, SqlitePool};
 
+//Store location
 const DB_URL: &str = "sqlite://store.db";
 /// Asynchronously creates a database if it does not already exist.
 ///
@@ -40,6 +41,8 @@ pub async fn apply_migrations() -> () {
             let migration = sqlx::migrate!().run(&pool).await;
             if let Err(error) = migration {
                 panic!("Unable to apply migrations. Error: {}", error)
+            } else {
+                println!("Migrations applied");
             }
         }
         Err(error) => panic!("Unable to connect to database. Error: {}", error),
