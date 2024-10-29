@@ -83,7 +83,7 @@ pub fn create_api_url(endpoint: &String, service_info: &ServiceInfo) -> String {
 
     if let Some(port) = &service_info.port {
         builder.push(':');
-        builder.push_str(port.clone().as_str())
+        builder.push_str(port.clone().to_string().as_str())
     }
 
     if !service_info.host.ends_with('/') {

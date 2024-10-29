@@ -6,7 +6,7 @@ use serde_aux::prelude::{deserialize_bool_from_anything, deserialize_option_numb
 pub struct ServiceInfo {
     pub host: String,
     #[serde(deserialize_with = "deserialize_option_number_from_string")]
-    pub port: Option<String>,
+    pub port: Option<u16>,
     pub api_key: String,
     #[serde(deserialize_with = "deserialize_bool_from_anything")]
     pub use_ssl: bool,
