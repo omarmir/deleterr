@@ -1,16 +1,16 @@
 <template>
   <div class="shadow-xs w-full overflow-hidden">
-    <div v-if="store.error" class="text-red-400">
-      {{ store.error.toString() }}
+    <div v-if="error" class="text-red-400">
+      {{ error.toString() }}
     </div>
-    <div v-if="!store.error" class="w-full overflow-x-auto">
+    <div v-if="!error && data?.success" class="w-full overflow-x-auto">
       <ul>
         <li
-          v-for="request in store.requests"
+          v-for="request in data.data?.requests"
           :key="request.mediaRequest.id"
           class="border-t border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-900">
           <div class="flex w-full flex-col gap-3 p-3 lg:flex-row lg:gap-2">
-            <div class="min-h-16 flex basis-full space-x-4 lg:basis-4/12" :data-id="request.mediaRequest.id">
+            <div class="flex min-h-16 basis-full space-x-4 lg:basis-4/12" :data-id="request.mediaRequest.id">
               <RequestsListItemsThumb
                 :images="request?.mediaInfo?.images"
                 :title="request?.mediaInfo?.title"
@@ -39,21 +39,23 @@
               <RequestsListItemsUser :media-request="request?.mediaRequest"></RequestsListItemsUser>
             </div>
             <div class="flex basis-full lg:basis-1/12">
+              <!--
               <Actions
                 :is-exempt="store.isMediaExempted(request?.mediaRequest?.id)"
                 :external-id="request?.mediaRequest.media.externalServiceId"
                 :deletion-callback="() => deleteMedia(request?.mediaRequest.id, request?.mediaRequest.media.mediaType)"
-                :exemption-callback="() => toggleExempt(request?.mediaRequest.id)" />
+                :exemption-callback="() => toggleExempt(request?.mediaRequest.id)" />-->
             </div>
           </div>
         </li>
       </ul>
+      <!--
       <PaginationWrapper
         :take="store.tableState.take"
         :filtered-requests="store.filteredRequests"
         :selected-page="store.currentPage"
         :page-count="store.pageCount ?? 1"
-        @change-page="store.changePage" />
+        @change-page="store.changePage" />-->
     </div>
   </div>
 </template>
@@ -69,26 +71,25 @@ import RequestsListItemsSeasons from '~/components/Requests/ListItems/Seasons.vu
 import RequestsListItemsUser from '~/components/Requests/ListItems/User.vue'
 import Actions from '~/components/Actions.vue'
 import { useRequestsStore } from '~/stores/requests.store'
-import { APIResponse, MediaType, MovieDeletionRequest } from '~/@types/deleterr'
+import { APIResponse, MediaType, MovieDeletionRequest, RequestStatusWithRecordInfo } from '~/@types/deleterr'
+import { useDebounce, useFetch } from '@vueuse/core'
+import { Ref, ref } from 'vue'
+import { useUrl } from 'vue-useurl'
 
-const store = useRequestsStore()
+const search: Ref<null | string> = ref(null)
 
-await store.getRequests()
+const { url } = useUrl({
+  path: '/api/v1/json/requests',
+  queryParams: {
+    sortBy: 'requestedDate',
+    isDescending: true,
+    take: 5,
+    skip: undefined,
+    search: useDebounce(search, 500),
+  },
+})
 
-const deleteMedia = async (
-  requestId?: number,
-  mediaType?: MediaType
-): Promise<APIResponse<MovieDeletionRequest> | undefined> => {
-  if (requestId && mediaType) {
-    if (mediaType == 'movie') {
-      return store.deleteMovieFile(requestId)
-    }
-  }
-}
-
-const toggleExempt = async (requestId: number): Promise<APIResponse<string> | undefined> => {
-  return store.toggleMediaExemption(requestId)
-}
+const { error, data } = await useFetch<APIResponse<RequestStatusWithRecordInfo>>(url, { refetch: true })
 
 const isTV = (mediaType?: MediaType): boolean => {
   return (mediaType ?? 'movie') == 'tv' ? true : false
