@@ -3,10 +3,10 @@
     <div v-if="error" class="text-red-400">
       {{ error.toString() }}
     </div>
-    <div v-if="!error && data?.success" class="w-full overflow-x-auto">
+    <div v-if="!error && requests?.success && requests.data" class="w-full overflow-x-auto">
       <ul>
         <li
-          v-for="request in data.data?.requests"
+          v-for="request in requests.data.requests"
           :key="request.mediaRequest.id"
           class="border-t border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-900">
           <div class="flex w-full flex-col gap-3 p-3 lg:flex-row lg:gap-2">
@@ -49,13 +49,12 @@
           </div>
         </li>
       </ul>
-      <!--
       <PaginationWrapper
-        :take="store.tableState.take"
-        :filtered-requests="store.filteredRequests"
-        :selected-page="store.currentPage"
-        :page-count="store.pageCount ?? 1"
-        @change-page="store.changePage" />-->
+        :take="take"
+        :filtered-requests="requests.data?.filteredRequests"
+        :selected-page="currentPage"
+        :page-count="Math.ceil(requests.data.filteredRequests / take)"
+        @change-page="changePage" />
     </div>
   </div>
 </template>
@@ -73,23 +72,39 @@ import Actions from '~/components/Actions.vue'
 import { useRequestsStore } from '~/stores/requests.store'
 import { APIResponse, MediaType, MovieDeletionRequest, RequestStatusWithRecordInfo } from '~/@types/deleterr'
 import { useDebounce, useFetch } from '@vueuse/core'
-import { Ref, ref } from 'vue'
-import { useUrl } from 'vue-useurl'
+import { useQueryURL } from '~/composables/useQueryURL'
+import { computed, inject, ref, Ref } from 'vue'
 
-const search: Ref<null | string> = ref(null)
+const search = inject<Ref<string>>('search') ?? ref(null)
+const take = ref(5)
+const sortBy = ref('requestedDate')
+const isDescending = ref(true)
+const skip = ref(0)
 
-const { url } = useUrl({
-  path: '/api/v1/json/requests',
+const currentPage = computed(() => (skip.value ?? 0) / take.value)
+
+const { url } = useQueryURL({
+  endpoint: '/api/v1/json/requests',
   queryParams: {
-    sortBy: 'requestedDate',
-    isDescending: true,
-    take: 5,
-    skip: undefined,
+    sortBy: sortBy,
+    isDescending,
+    take,
+    skip,
     search: useDebounce(search, 500),
   },
 })
 
-const { error, data } = await useFetch<APIResponse<RequestStatusWithRecordInfo>>(url, { refetch: true })
+const changePage = (page: number) => {
+  skip.value = page * take.value
+}
+
+const { error, data: requests } = await useFetch(url, {
+  refetch: true,
+  immediate: true,
+  timeout: 30000,
+})
+  .get()
+  .json<APIResponse<RequestStatusWithRecordInfo>>()
 
 const isTV = (mediaType?: MediaType): boolean => {
   return (mediaType ?? 'movie') == 'tv' ? true : false
