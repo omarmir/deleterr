@@ -39,12 +39,32 @@ pub async fn get_request_status_for_series(
 
     let media_info = MediaInfo::from_sonarr(sonarr_series.clone());
 
-    let request_status = RequestStatus {
+    let mut request_status = RequestStatus {
         media_info,
         season_status,
         media_request: media_request.clone(),
         watched,
     };
+
+    // TODO: Doing this manually for now, but it should be done via setting later right now we are setting watched seasons by latest watched/In progress season
+
+    let cloned_seasons = request_status.season_status.clone(); // Don't want to modify as I iterate, so a clone is made
+
+    for season in &mut request_status.season_status {
+        if let Some(season_number) = season.season_number {
+            let next_season = cloned_seasons
+                .iter()
+                .find(|curr_season| curr_season.season_number == Some(season_number + 1));
+
+            if let Some(sesn) = next_season {
+                if sesn.watched == WatchedStatus::InProgress
+                    || sesn.watched == WatchedStatus::Watched
+                {
+                    season.watched = WatchedStatus::Watched
+                };
+            }
+        }
+    }
 
     Ok(request_status)
 }
