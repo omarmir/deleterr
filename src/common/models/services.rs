@@ -1,5 +1,5 @@
 use serde::{Deserialize, Serialize};
-use serde_aux::prelude::deserialize_bool_from_anything;
+use serde_aux::prelude::{deserialize_bool_from_anything, deserialize_option_number_from_string};
 
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
