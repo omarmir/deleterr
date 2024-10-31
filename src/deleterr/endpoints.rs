@@ -2,6 +2,7 @@ use crate::auth::models::User;
 use crate::common::models::services::{ServiceInfo, Services};
 use crate::common::services::process_request;
 use crate::deleterr::models::QueryParms;
+use crate::deleterr::services::delete_watched_seasons_and_possibly_request;
 use crate::store::models::settings::Settings;
 use crate::{auth, deleterr, overseerr, radarr, sonarr, sonrad, store, tautulli, AppData};
 use actix_session::Session;
@@ -125,9 +126,23 @@ async fn get_movie_poster(path: web::Path<usize>) -> actix_web::HttpResponse {
 ///
 #[delete("/series/{series_id}/delete/seasons/watched")]
 async fn delete_watched_seasons(app_data: Data<AppData>, path: web::Path<usize>) -> impl Responder {
-    let delete_episodes =
-        deleterr::services::delete_watched_seasons(&app_data, path.into_inner()).await;
-    return process_request(delete_episodes);
+    let req_id = path.into_inner();
+    // Calculate the watched seasons and if the whole request is watched
+    let episodes_for_deletion =
+        deleterr::services::get_watched_seasons_episodes(&app_data, &req_id).await;
+
+    // Check if successful
+    let processed_request = match episodes_for_deletion {
+        Ok(episodes) => {
+            // Delete the watched seasons and POSSIBLY the request if all watched in request.
+            let deleted_episodes =
+                delete_watched_seasons_and_possibly_request(&app_data, &req_id, episodes).await;
+            process_request(deleted_episodes)
+        }
+        Err(err) => process_request(Err(err)),
+    };
+
+    return processed_request;
 }
 
 // Settings

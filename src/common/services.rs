@@ -8,6 +8,7 @@ use reqwest::{
     header::{HeaderMap, HeaderValue, ACCEPT},
     Error,
 };
+use serde::Serialize;
 use std::time::Duration;
 
 pub async fn make_api_call(
@@ -118,6 +119,36 @@ pub fn get_api_endpoint(
             .timeout(Duration::from_secs(15))
             .headers(headers),
     };
+
+    Ok(req_client)
+}
+
+pub fn bodied_delete_api_endpoint<T>(
+    url: String,
+    query: Vec<(&str, &str)>,
+    api_key: Option<String>,
+    body: T,
+) -> Result<reqwest::RequestBuilder, Error>
+where
+    T: Serialize,
+{
+    let mut headers = HeaderMap::new();
+
+    headers.insert(ACCEPT, HeaderValue::from_static("application/json"));
+    if let Some(set_api_key) = api_key {
+        let str = set_api_key.as_str();
+        headers.insert(
+            "X-Api-Key",
+            HeaderValue::from_str(str).unwrap_or(HeaderValue::from_static("")), // Handling the case where someone gives us a bad API Key value
+        );
+    };
+
+    let req_client = reqwest::Client::new()
+        .delete(url)
+        .query(&query)
+        .timeout(Duration::from_secs(15))
+        .headers(headers)
+        .json(&body);
 
     Ok(req_client)
 }

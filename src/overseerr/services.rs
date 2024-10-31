@@ -80,6 +80,30 @@ pub async fn delete_media(media_id: &str) -> Result<ResponseCodeBasedAction, Del
     }
 }
 
+pub async fn delete_request(request_id: &str) -> Result<ResponseCodeBasedAction, DeleterrError> {
+    let endpoint = format!("api/v1/request/{request_id}");
+    let service_info = build_service_info()?;
+
+    let api_url = create_api_url(&endpoint, &service_info);
+    let query: Vec<(&str, &str)> = Vec::with_capacity(0);
+
+    let client_req = get_api_endpoint(
+        api_url,
+        query,
+        Some(service_info.api_key),
+        RequestType::Delete,
+    )?;
+    let request_response = make_api_call(client_req).await;
+
+    match request_response {
+        Ok(_) => Ok(ResponseCodeBasedAction {
+            status: APIStatus::Success,
+            success: true,
+        }),
+        Err(error) => Err(error.add_prefix("Unable to delete request in Overseerr.")),
+    }
+}
+
 pub async fn get_overseerr_radar_info() -> Result<Option<ServiceInfo>, DeleterrError> {
     let endpoint = format!("api/v1/settings/radarr");
     let service_info = build_service_info()?;

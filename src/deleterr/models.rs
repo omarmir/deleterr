@@ -108,6 +108,22 @@ pub struct MovieDeletionRequest {
     pub cache_response: ResponseCodeBasedAction,
 }
 
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct SeriesDeletionRequest {
+    pub request_fully_watched: bool,
+    pub sonarr_response: ResponseCodeBasedAction,
+    pub cache_response: ResponseCodeBasedAction,
+    pub overseerr_response: Option<ResponseCodeBasedAction>,
+}
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct SeriesDeletionEpisodes {
+    pub episodes: Vec<usize>,
+    pub request_fully_watched: bool,
+}
+
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct QueryParms {

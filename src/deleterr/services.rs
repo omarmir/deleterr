@@ -1,5 +1,6 @@
 use super::models::{
     AppData, MediaInfo, MovieDeletionRequest, RequestStatus, RequestStatusWithRecordInfo,
+    SeriesDeletionEpisodes, SeriesDeletionRequest,
 };
 use super::requests::{delete_cached_record, get_cached_record};
 use super::watched::{SeasonWithStatus, WatchedChecker, WatchedStatus};
@@ -7,7 +8,6 @@ use crate::common::models::deleterr_error::DeleterrError;
 use crate::overseerr::models::{MediaRequest, MediaType};
 use crate::radarr::models::Movie;
 use crate::sonarr::series::Series;
-use crate::sonarr::services::get_episode_files;
 use crate::tautulli::user_watch_history::{
     ConvertToHashMapBySeason, GetFirstOrNone, UserWatchHistory,
 };
@@ -117,7 +117,7 @@ pub async fn delete_movie_from_radarr_overseerr(
     request_id: usize,
 ) -> Result<MovieDeletionRequest, DeleterrError> {
     // Get the record from the cache
-    let request = get_cached_record(app_data, request_id).ok_or(DeleterrError::new(
+    let request = get_cached_record(app_data, &request_id).ok_or(DeleterrError::new(
         "No request found! You may need to resync the APIs",
     ))?;
 
@@ -141,7 +141,7 @@ pub async fn delete_movie_from_radarr_overseerr(
         .await
         .map_err(|err| err.add_prefix("Radarr media deleted but was unable to delete Overseer request. Please delete it manually. Error: "))?;
 
-    let cache_response = delete_cached_record(app_data, request_id)
+    let cache_response = delete_cached_record(app_data, &request_id)
         .map_err(|err| err.add_prefix("Deleted in both Radarr and Overseer but was unable to remove from Cache. Manually trigger a sync to fix the issue. Error: "))?;
 
     let resp = MovieDeletionRequest {
@@ -153,9 +153,8 @@ pub async fn delete_movie_from_radarr_overseerr(
     Ok(resp)
 }
 
-/// Looks at the current App State and deletes any seasons where episodes are watched
-///
-/// <div class="warning">THIS IS DESTRUCTIVE. If its a lot of episodes, it may take a long time. CAUTION!</div>
+/// Looks at the current App State and calculates which episode files need deletion and if it the full request
+/// that has been watched.
 ///
 /// # Arguments:
 ///
@@ -164,11 +163,14 @@ pub async fn delete_movie_from_radarr_overseerr(
 ///
 /// # Returns:
 ///
+/// `Result` containing a list of episode file ids for deletion and a flag that indicates if all seasons are watched
+/// which we can use to determine if we are OK to delete the entire request.
+///
 /// `Result` containing a [ResponseCodeBasedAction] or [DeleterrError] if there was an error during the process.
-pub async fn delete_watched_seasons(
+pub async fn get_watched_seasons_episodes(
     app_data: &Data<AppData>,
-    request_id: usize,
-) -> Result<Vec<usize>, DeleterrError> {
+    request_id: &usize,
+) -> Result<SeriesDeletionEpisodes, DeleterrError> {
     // Get the record from the cache
     let request = get_cached_record(app_data, request_id).ok_or(DeleterrError::new(
         "No request found! You may need to resync the services",
@@ -191,8 +193,11 @@ pub async fn delete_watched_seasons(
         .filter_map(|season| season.season_number)
         .collect();
 
+    // We need to know if we are deleting the request all together or not - if all requested seasons watched then yes, otherwise no
+    let is_request_fully_watched = watched_seasons.len() == request.media_request.seasons.len();
+
     // Get all episodes for a series
-    let episode_files = get_episode_files(series_id)
+    let episode_files = crate::sonarr::services::get_episode_files(series_id)
         .await?
         .ok_or(DeleterrError::new(
             "No episode files found for this series in Sonarr.",
@@ -205,5 +210,38 @@ pub async fn delete_watched_seasons(
         .map(|watched_eps| watched_eps.id)
         .collect();
 
-    Ok(watched_episodes_for_seasons)
+    Ok(SeriesDeletionEpisodes {
+        episodes: watched_episodes_for_seasons,
+        request_fully_watched: is_request_fully_watched,
+    })
+}
+
+pub async fn delete_watched_seasons_and_possibly_request(
+    app_data: &Data<AppData>,
+    request_id: &usize,
+    episodes: SeriesDeletionEpisodes,
+) -> Result<SeriesDeletionRequest, DeleterrError> {
+    let sonarr_response = crate::sonarr::services::delete_episodes(episodes.episodes)
+        .await
+        .map_err(|err| err.add_prefix("Unble to delete from Sonarr. Error: "))?;
+
+    let overseerr_response = if episodes.request_fully_watched {
+        Some(crate::overseerr::services::delete_request(request_id.to_string().as_str())
+        .await
+        .map_err(|err| err.add_prefix("Sonarr media deleted but was unable to delete Overseer request. Please delete it manually. Error: "))?)
+    } else {
+        None
+    };
+
+    let cache_response = delete_cached_record(app_data, request_id)
+        .map_err(|err| err.add_prefix("Deleted in both Radarr and Overseer but was unable to remove from Cache. Manually trigger a sync to fix the issue. Error: "))?;
+
+    let resp = SeriesDeletionRequest {
+        request_fully_watched: episodes.request_fully_watched,
+        sonarr_response,
+        cache_response,
+        overseerr_response,
+    };
+
+    Ok(resp)
 }

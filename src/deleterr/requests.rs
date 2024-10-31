@@ -71,7 +71,7 @@ fn get_cached(app_data: &Data<AppData>) -> Option<RequestStatusWithRecordInfo> {
     resp
 }
 
-pub fn get_cached_record(app_data: &Data<AppData>, request_id: usize) -> Option<RequestStatus> {
+pub fn get_cached_record(app_data: &Data<AppData>, request_id: &usize) -> Option<RequestStatus> {
     let record = get_cached(app_data);
 
     let resp = match record {
@@ -84,7 +84,7 @@ pub fn get_cached_record(app_data: &Data<AppData>, request_id: usize) -> Option<
 
 pub fn delete_cached_record(
     app_data: &Data<AppData>,
-    request_id: usize,
+    request_id: &usize,
 ) -> Result<ResponseCodeBasedAction, DeleterrError> {
     let mut update_cache = app_data
         .request_cache

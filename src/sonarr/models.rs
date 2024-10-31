@@ -15,3 +15,9 @@ pub struct SeriesEpisodes {
     pub size: usize,
     pub id: usize,
 }
+
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct EpisodeFiles {
+    pub episode_file_ids: Vec<usize>,
+}

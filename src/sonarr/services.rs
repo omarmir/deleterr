@@ -1,9 +1,12 @@
 use super::models::SeriesEpisodes;
 use super::series::Series;
-use crate::common::models::api::RequestType;
+use crate::common::models::api::{APIStatus, RequestType, ResponseCodeBasedAction};
 use crate::common::models::deleterr_error::DeleterrError;
 use crate::common::models::services::{ServiceInfo, Services};
-use crate::common::services::{create_api_url, get_api_endpoint, make_api_call};
+use crate::common::services::{
+    bodied_delete_api_endpoint, create_api_url, get_api_endpoint, make_api_call,
+};
+use crate::sonarr::models::EpisodeFiles;
 
 /// Retrieves information about the Sonarr service and returns it as a
 /// `ServiceInfo` struct or an error if the service is not set up.
@@ -141,6 +144,39 @@ pub async fn get_episode_files(
         }
         Err(error) => {
             Err(DeleterrError::from(error).add_prefix("Unable to process Sonarr response, "))
+        }
+    }
+}
+
+pub async fn delete_episodes(
+    episodes: Vec<usize>,
+) -> Result<ResponseCodeBasedAction, DeleterrError> {
+    let endpoint = format!("api/v3/episodefile/bulk");
+    let service_info = build_service_info()?;
+
+    let api_url = create_api_url(&endpoint, &service_info);
+    let query = Vec::with_capacity(0);
+
+    let episodes_body = EpisodeFiles {
+        episode_file_ids: episodes,
+    };
+
+    let client_req = bodied_delete_api_endpoint(
+        api_url,
+        query,
+        Some(service_info.api_key),
+        Some(episodes_body),
+    )?;
+
+    let request_response = make_api_call(client_req).await;
+
+    match request_response {
+        Ok(_) => Ok(ResponseCodeBasedAction {
+            status: APIStatus::Success,
+            success: true,
+        }),
+        Err(error) => {
+            Err(DeleterrError::from(error).add_prefix("Unable to delete episodes in Sonarr. Some episodes may have been deleted, check manually. "))
         }
     }
 }
