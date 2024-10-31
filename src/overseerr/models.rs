@@ -1,7 +1,9 @@
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
-use serde_aux::prelude::deserialize_option_number_from_string;
-use std::collections::HashMap;
+use serde_aux::{
+    field_attributes::deserialize_bool_from_anything,
+    prelude::deserialize_option_number_from_string,
+};
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct OverseerrRequestsCount {
@@ -37,18 +39,6 @@ pub struct RequestSeason {
     pub status: u8, // Status of the request. 1 = PENDING APPROVAL, 2 = APPROVED, 3 = DECLINED
 }
 
-pub trait ConvertToHashMap<'a> {
-    fn convert_to_hash_map(&'a self) -> HashMap<usize, &'a RequestSeason>;
-}
-
-impl<'a> ConvertToHashMap<'a> for Vec<RequestSeason> {
-    fn convert_to_hash_map(&'a self) -> HashMap<usize, &'a RequestSeason> {
-        self.iter()
-            .map(|season| (season.season_number, season))
-            .collect()
-    }
-}
-
 #[derive(Deserialize, Serialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct User {
@@ -70,7 +60,7 @@ pub struct Media {
     pub tvdb_id: Option<usize>, // Apparently nothing uses this. Even if it says tvid in the API.
     #[serde(deserialize_with = "deserialize_option_number_from_string")]
     pub rating_key: Option<usize>,
-    pub external_service_id: Option<usize>,
+    pub external_service_id: Option<usize>, // This is the ID from Radarr/Sonarr
     pub status: u8, // Availability of the media. 1 = UNKNOWN, 2 = PENDING, 3 = PROCESSING, 4 = PARTIALLY_AVAILABLE, 5 = AVAILABLE
 }
 #[derive(Deserialize, Serialize, Debug, Clone)]
@@ -107,4 +97,14 @@ pub struct AboutServer {
     total_media_items: usize,
     tz: String,
     app_data_path: String,
+}
+
+#[derive(Deserialize, Serialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct RadarrInfo {
+    pub hostname: String,
+    pub port: Option<usize>,
+    pub api_key: String,
+    #[serde(deserialize_with = "deserialize_bool_from_anything")]
+    pub use_ssl: bool,
 }

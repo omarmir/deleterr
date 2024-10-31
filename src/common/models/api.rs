@@ -41,12 +41,6 @@ impl ToString for APIStatus {
     }
 }
 
-pub struct RequestResponse {
-    pub code: u16,
-    pub status: String,
-    pub response: reqwest::Response,
-}
-
 #[derive(Debug, Serialize, Deserialize)]
 pub struct APIResponse<T> {
     pub success: bool,

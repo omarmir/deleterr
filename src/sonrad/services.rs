@@ -15,7 +15,7 @@ pub async fn get_sonrad_status(
 
     let request_response = make_api_call(client_req).await?;
     // We need to make sure its actaully the response from Radarr/Sonarr and not just an OK response
-    let resp = request_response.response.json::<SonRadStatus>().await;
+    let resp = request_response.json::<SonRadStatus>().await;
 
     match resp {
         Ok(_) => Ok(APIServiceStatus {

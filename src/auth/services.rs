@@ -5,12 +5,12 @@ use crate::{
     store::services::users::{get_user_by_username, update_user_in_store},
 };
 use actix_session::Session;
+use actix_web::middleware::Next;
 use actix_web::{
     body::MessageBody,
     dev::{ServiceRequest, ServiceResponse},
     FromRequest, HttpResponse,
 };
-use actix_web_lab::middleware::Next;
 
 pub fn login_user(session: Session, user: User) -> Result<String, DeleterrError> {
     let username = user.username.clone();

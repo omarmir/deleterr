@@ -2,11 +2,12 @@ use super::models::{
     AppData, MediaInfo, MovieDeletionRequest, RequestStatus, RequestStatusWithRecordInfo,
 };
 use super::requests::{delete_cached_record, get_cached_record};
-use super::watched::{SeasonWithStatus, WatchedChecker};
+use super::watched::{SeasonWithStatus, WatchedChecker, WatchedStatus};
 use crate::common::models::deleterr_error::DeleterrError;
 use crate::overseerr::models::{MediaRequest, MediaType};
 use crate::radarr::models::Movie;
 use crate::sonarr::series::Series;
+use crate::sonarr::services::get_episode_files;
 use crate::tautulli::user_watch_history::{
     ConvertToHashMapBySeason, GetFirstOrNone, UserWatchHistory,
 };
@@ -19,7 +20,7 @@ pub async fn get_request_status_for_series(
     tau_hist: Option<Vec<UserWatchHistory>>,
 ) -> Result<RequestStatus, DeleterrError> {
     let (season_status, watched) = {
-        let tau_history = tau_hist.get_all_or_none().hashmap_seasons();
+        let tau_history = tau_hist.hashmap_seasons();
         let mut seasons_with_status = vec![];
         let series_map = Series::hashmap_seasons(&sonarr_series);
 
@@ -150,4 +151,59 @@ pub async fn delete_movie_from_radarr_overseerr(
     };
 
     Ok(resp)
+}
+
+/// Looks at the current App State and deletes any seasons where episodes are watched
+///
+/// <div class="warning">THIS IS DESTRUCTIVE. If its a lot of episodes, it may take a long time. CAUTION!</div>
+///
+/// # Arguments:
+///
+/// * `request_id`: Used to identify a specific request for which we need to figure out watched seasons.
+/// * `app_data`: The app state of type [AppData]
+///
+/// # Returns:
+///
+/// `Result` containing a [ResponseCodeBasedAction] or [DeleterrError] if there was an error during the process.
+pub async fn delete_watched_seasons(
+    app_data: &Data<AppData>,
+    request_id: usize,
+) -> Result<Vec<usize>, DeleterrError> {
+    // Get the record from the cache
+    let request = get_cached_record(app_data, request_id).ok_or(DeleterrError::new(
+        "No request found! You may need to resync the services",
+    ))?;
+
+    // Make sure we have the series ID in the request cache
+    let series_id = request
+        .media_request
+        .media
+        .external_service_id
+        .ok_or(DeleterrError::new(
+            "No ID found in Sonarr. Manual deletion required.",
+        ))?;
+
+    // Get a vec of watched season numbers
+    let watched_seasons: Vec<usize> = request
+        .season_status
+        .iter()
+        .filter(|season| season.watched == WatchedStatus::Watched)
+        .filter_map(|season| season.season_number)
+        .collect();
+
+    // Get all episodes for a series
+    let episode_files = get_episode_files(series_id)
+        .await?
+        .ok_or(DeleterrError::new(
+            "No episode files found for this series in Sonarr.",
+        ))?;
+
+    // Get a vec of file ids for all episodes inside the watched season
+    let watched_episodes_for_seasons: Vec<usize> = episode_files
+        .iter()
+        .filter(|file| watched_seasons.contains(&file.season_number))
+        .map(|watched_eps| watched_eps.id)
+        .collect();
+
+    Ok(watched_episodes_for_seasons)
 }

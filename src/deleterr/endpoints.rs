@@ -5,12 +5,12 @@ use crate::deleterr::models::QueryParms;
 use crate::store::models::settings::Settings;
 use crate::{auth, deleterr, overseerr, radarr, sonarr, sonrad, store, tautulli, AppData};
 use actix_session::Session;
+use actix_web::middleware::from_fn;
 use actix_web::{
     delete, get, post,
     web::{self, Data},
     Responder,
 };
-use actix_web_lab::middleware::from_fn;
 
 #[get("/requests")]
 async fn get_all_requests_json(
@@ -112,6 +112,24 @@ async fn get_movie_poster(path: web::Path<usize>) -> actix_web::HttpResponse {
         .body(img)
 }
 
+/// Deletes watched seasons of a series based on the provided series ID.
+///
+/// # Arguments:
+///
+/// * `app_data`: The `app_data` parameter is of type [Data]<[AppData]>, which contains shared
+/// application data - the cache for the synced APIs. You don't need to provide this, Actix will handle this.
+/// * `path`: The `path` parameter in the function is the `series_id` of the TV series for which the watched seasons are being deleted.
+/// It is extracted from the URL path as a `usize` type.
+///
+/// <div class="warning">Please use caution this can delete multiple files and may take a while!</div>
+///
+#[delete("/series/{series_id}/delete/seasons/watched")]
+async fn delete_watched_seasons(app_data: Data<AppData>, path: web::Path<usize>) -> impl Responder {
+    let delete_episodes =
+        deleterr::services::delete_watched_seasons(&app_data, path.into_inner()).await;
+    return process_request(delete_episodes);
+}
+
 // Settings
 #[post("/settings/save")]
 async fn save_settings_submit_json(web::Json(settings): web::Json<Settings>) -> impl Responder {
@@ -123,6 +141,13 @@ async fn save_settings_submit_json(web::Json(settings): web::Json<Settings>) -> 
 async fn get_all_settings_json() -> impl Responder {
     let settings = store::services::settings::get_all_settings();
     return process_request(settings);
+}
+
+// Overseerr services
+#[get("/overseerr/get/radarr")]
+async fn get_overseerr_radar_info() -> impl Responder {
+    let radarr_info = overseerr::services::get_overseerr_radar_info().await;
+    return process_request(radarr_info);
 }
 
 // Auth
@@ -197,7 +222,9 @@ pub fn config(cfg: &mut web::ServiceConfig) {
             .service(get_movie_poster)
             .service(save_settings_submit_json)
             .service(get_all_settings_json)
-            .service(update_password),
+            .service(update_password)
+            .service(get_overseerr_radar_info)
+            .service(delete_watched_seasons),
     )
     .service(set_login)
     .service(set_logout)

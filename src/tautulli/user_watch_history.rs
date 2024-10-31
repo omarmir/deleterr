@@ -1,4 +1,3 @@
-use super::models::ResponseData;
 use serde::{Deserialize, Serialize};
 use serde_aux::prelude::deserialize_option_number_from_string;
 use std::{cmp::Ordering, collections::HashMap};
@@ -25,13 +24,9 @@ pub struct UserWatchHistory {
 }
 
 pub trait ConvertToHashMapBySeason {
-    fn get_all_or_none(self) -> Option<Vec<UserWatchHistory>>;
     fn hashmap_seasons(self) -> HashMap<usize, Vec<UserWatchHistory>>;
 }
 impl ConvertToHashMapBySeason for Option<Vec<UserWatchHistory>> {
-    fn get_all_or_none(self) -> Option<Vec<UserWatchHistory>> {
-        self
-    }
     fn hashmap_seasons(self) -> HashMap<usize, Vec<UserWatchHistory>> {
         let mut episode_map: HashMap<(usize, usize), UserWatchHistory> = HashMap::new();
         let mut season_map: HashMap<usize, Vec<UserWatchHistory>> = HashMap::new();
@@ -66,10 +61,6 @@ pub trait GetFirstOrNone {
     fn get_first_or_none(self) -> Option<UserWatchHistory>;
 }
 
-pub trait GetAllOrNone {
-    fn get_all_or_none(self) -> Option<Vec<UserWatchHistory>>;
-}
-
 impl GetFirstOrNone for Option<Vec<UserWatchHistory>> {
     fn get_first_or_none(self) -> Option<UserWatchHistory> {
         match self {
@@ -84,15 +75,6 @@ impl GetFirstOrNone for Option<Vec<UserWatchHistory>> {
 
                 max_watched.cloned()
             }
-        }
-    }
-}
-
-impl GetAllOrNone for Option<ResponseData> {
-    fn get_all_or_none(self) -> Option<Vec<UserWatchHistory>> {
-        match self {
-            None => None,
-            Some(resp_data) => resp_data.data,
         }
     }
 }

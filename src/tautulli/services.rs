@@ -43,7 +43,7 @@ pub async fn get_item_history(
             let request_response = make_api_call(client_req)
                 .await
                 .map_err(|err| err.add_prefix("Unable to get Tautulli item history, "))?;
-            let resp = request_response.response.json::<TautulliResponse>().await?;
+            let resp = request_response.json::<TautulliResponse>().await?;
             Ok(resp.response.data.data)
         }
         _ => Ok(None),
@@ -60,7 +60,7 @@ pub async fn get_tautulli_status(
     let request_response = make_api_call(client_req)
         .await
         .map_err(|err| err.add_prefix("Unable to get Tautulli status, "))?;
-    let resp = request_response.response.json::<TautulliResponse>().await?;
+    let resp = request_response.json::<TautulliResponse>().await?;
 
     //This is a nested match which is a bit messy but the if let statements were harder to parse mentally
     let service_status = match resp.response.result {
