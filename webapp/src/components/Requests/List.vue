@@ -54,10 +54,10 @@
         </li>
       </ul>
       <PaginationWrapper
-        :take="take"
+        :take="query.take"
         :filtered-requests="requests.data?.filteredRequests"
         :selected-page="currentPage"
-        :page-count="Math.ceil(requests.data.filteredRequests / take)"
+        :page-count="Math.ceil(requests.data.filteredRequests / query.take)"
         @change-page="changePage" />
     </div>
   </div>
@@ -75,32 +75,13 @@ import RequestsListItemsUser from '~/components/Requests/ListItems/User.vue'
 import ActionsDelete from '~/components/Actions/Delete.vue'
 import ActionsExemption from '~/components/Actions/Exemption.vue'
 import { APIResponse, MediaExemptions, MediaType, RequestStatusWithRecordInfo } from '~/@types/deleterr'
-import { useDebounce, useFetch } from '@vueuse/core'
-import { useQueryURL } from '~/composables/useQueryURL'
-import { computed, inject, ref, Ref } from 'vue'
+import { useFetch } from '@vueuse/core'
+import { useListQuery } from '~/composables/useListQuery'
+import { inject, ref, Ref } from 'vue'
 
 const search = inject<Ref<string>>('search') ?? ref(null)
-const take = ref(5)
-const sortBy = ref('requestedDate')
-const isDescending = ref(true)
-const skip = ref(0)
 
-const currentPage = computed(() => (skip.value ?? 0) / take.value)
-
-const { url } = useQueryURL({
-  endpoint: '/api/v1/json/requests',
-  queryParams: {
-    sortBy: sortBy,
-    isDescending,
-    take,
-    skip,
-    search: useDebounce(search, 500),
-  },
-})
-
-const changePage = (page: number) => {
-  skip.value = page * take.value
-}
+const { url, query, currentPage, changePage } = useListQuery({ search, take: 5 })
 
 const {
   error,
