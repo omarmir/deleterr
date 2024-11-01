@@ -1,8 +1,5 @@
 <template>
   <div class="shadow-xs w-full overflow-hidden">
-    <div v-if="error" class="text-red-400">
-      {{ error.toString() }}
-    </div>
     <div v-if="!error && requests?.success && requests.data" class="w-full overflow-x-auto">
       <ul>
         <li
@@ -60,6 +57,7 @@
         :page-count="Math.ceil(requests.data.filteredRequests / query.take)"
         @change-page="changePage" />
     </div>
+    <Error :error :api-result="requests"></Error>
   </div>
 </template>
 <script lang="ts" setup>
@@ -74,6 +72,7 @@ import RequestsListItemsSeasons from '~/components/Requests/ListItems/Seasons.vu
 import RequestsListItemsUser from '~/components/Requests/ListItems/User.vue'
 import ActionsDelete from '~/components/Actions/Delete.vue'
 import ActionsExemption from '~/components/Actions/Exemption.vue'
+import Error from '~/components/Error.vue'
 import { APIResponse, MediaExemptions, MediaType, RequestStatusWithRecordInfo } from '~/@types/deleterr'
 import { useFetch } from '@vueuse/core'
 import { useListQuery } from '~/composables/useListQuery'
