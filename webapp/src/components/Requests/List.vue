@@ -39,12 +39,16 @@
               <RequestsListItemsUser :media-request="request?.mediaRequest"></RequestsListItemsUser>
             </div>
             <div class="flex basis-full lg:basis-1/12">
-              <!--
-              <Actions
-                :is-exempt="store.isMediaExempted(request?.mediaRequest?.id)"
+              <ActionsDelete
+                @delete="execute()"
                 :external-id="request?.mediaRequest.media.externalServiceId"
-                :deletion-callback="() => deleteMedia(request?.mediaRequest.id, request?.mediaRequest.media.mediaType)"
-                :exemption-callback="() => toggleExempt(request?.mediaRequest.id)" />-->
+                :request-id="request.mediaRequest.id"></ActionsDelete>
+              <ActionsExemption
+                v-if="!exemptionError && exemptions?.success"
+                @exemption-added="addExemption"
+                @exemption-removed="removeExemption"
+                :exemptions="exemptions.data ?? []"
+                :request-id="request.mediaRequest.id"></ActionsExemption>
             </div>
           </div>
         </li>
@@ -68,9 +72,9 @@ import RequestsListTVIcon from '~/components/Requests/ListItems/TVIcon.vue'
 import RequestsListMovieIcon from '~/components/Requests/ListItems/MovieIcon.vue'
 import RequestsListItemsSeasons from '~/components/Requests/ListItems/Seasons.vue'
 import RequestsListItemsUser from '~/components/Requests/ListItems/User.vue'
-import Actions from '~/components/Actions.vue'
-import { useRequestsStore } from '~/stores/requests.store'
-import { APIResponse, MediaType, MovieDeletionRequest, RequestStatusWithRecordInfo } from '~/@types/deleterr'
+import ActionsDelete from '~/components/Actions/Delete.vue'
+import ActionsExemption from '~/components/Actions/Exemption.vue'
+import { APIResponse, MediaExemptions, MediaType, RequestStatusWithRecordInfo } from '~/@types/deleterr'
 import { useDebounce, useFetch } from '@vueuse/core'
 import { useQueryURL } from '~/composables/useQueryURL'
 import { computed, inject, ref, Ref } from 'vue'
@@ -98,13 +102,31 @@ const changePage = (page: number) => {
   skip.value = page * take.value
 }
 
-const { error, data: requests } = await useFetch(url, {
+const {
+  error,
+  data: requests,
+  execute,
+} = await useFetch(url, {
   refetch: true,
   immediate: true,
   timeout: 30000,
 })
   .get()
   .json<APIResponse<RequestStatusWithRecordInfo>>()
+
+const { error: exemptionError, data: exemptions } = await useFetch('/api/v1/json/request/exemptions/get', {
+  immediate: true,
+})
+  .get()
+  .json<APIResponse<MediaExemptions>>()
+
+const removeExemption = (id: number) => {
+  if (exemptions.value?.success) exemptions.value.data = exemptions.value.data?.filter((exemp) => exemp !== id)
+}
+
+const addExemption = (id: number) => {
+  if (exemptions.value?.success) exemptions.value.data?.push(id)
+}
 
 const isTV = (mediaType?: MediaType): boolean => {
   return (mediaType ?? 'movie') == 'tv' ? true : false
