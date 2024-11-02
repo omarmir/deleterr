@@ -15,7 +15,7 @@
         type="password"
         label="Password"
         placeholder="Password" />
-      <ButtonsStatus :provided-operation-state="setupState" :is-outlined="false" :is-submit="true">
+      <ButtonsStatus :provided-operation-state="setupState" :is-outlined="false" :is-submit="true" @click="submitForm">
         Add User
       </ButtonsStatus>
     </form>

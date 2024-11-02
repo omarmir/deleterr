@@ -1,7 +1,7 @@
 <template>
   <BlankPage>
     <h1 class="mb-4 text-xl font-semibold text-gray-700 dark:text-gray-200">Login</h1>
-    <form class="space-y-4" @submit.prevent>
+    <form class="space-y-4" @submit="submitForm">
       <InputsInput
         v-model="authUser.username"
         type="text"
@@ -15,7 +15,9 @@
         type="password"
         label="Password"
         placeholder="Password" />
-      <ButtonsStatus :provided-operation-state="loginState" :is-outlined="false">Login</ButtonsStatus>
+      <ButtonsStatus @click="submitForm" :provided-operation-state="loginState" :is-outlined="false">
+        Login
+      </ButtonsStatus>
     </form>
   </BlankPage>
 </template>
