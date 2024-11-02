@@ -8,12 +8,14 @@
         name="username"
         :required="true"
         label="Username"
+        v-on-key-stroke:Enter,v="submitForm"
         placeholder="Username" />
       <InputsInput
         v-model="authUser.password"
         name="password"
         type="password"
         label="Password"
+        v-on-key-stroke:Enter,v="submitForm"
         placeholder="Password" />
       <ButtonsStatus @click="submitForm" :provided-operation-state="loginState" :is-outlined="false">
         Login
@@ -32,6 +34,7 @@ import { required } from '@vuelidate/validators'
 import { useAuthStore } from '~/stores/auth.store'
 import { useRouter } from 'vue-router'
 import { OperationState } from '~/@types/common'
+import { vOnKeyStroke } from '@vueuse/components'
 
 const store = useAuthStore()
 const router = useRouter()
@@ -63,6 +66,8 @@ const submitForm = async (): Promise<APIResponse<String> | undefined> => {
       loginState.value = OperationState.failure
     }
     return result
+  } else {
+    loginState.value = OperationState.failure
   }
 }
 </script>

@@ -42,8 +42,8 @@ const v$ = useVuelidate(rules, newPassword)
 const savePasswordState = ref(OperationState.hidden)
 
 const updatePassword = async () => {
-  savePasswordState.value = OperationState.loading
   const validation = await v$.value.$validate()
+  savePasswordState.value = OperationState.loading
   if (validation && newPassword.value.newPassword) {
     const updateResp = await store.updatePassword(newPassword.value.newPassword)
     if (updateResp?.success) {
@@ -54,6 +54,8 @@ const updatePassword = async () => {
     } else {
       savePasswordState.value = OperationState.failure
     }
+  } else {
+    savePasswordState.value = OperationState.failure
   }
 }
 </script>
