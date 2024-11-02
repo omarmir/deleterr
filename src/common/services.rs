@@ -146,7 +146,6 @@ where
     let req_client = reqwest::Client::new()
         .delete(url)
         .query(&query)
-        .timeout(Duration::from_secs(15))
         .headers(headers)
         .json(&body);
 

@@ -71,10 +71,12 @@ const {
   providedOperationState,
   isSubmit = false,
   isOutlined = true,
+  autoIconShift = true,
 } = defineProps<{
   providedOperationState: OperationState
   isSubmit?: boolean
   isOutlined?: boolean
+  autoIconShift?: boolean
 }>()
 
 const operationState = ref(providedOperationState)
@@ -83,9 +85,11 @@ watch(
   () => providedOperationState,
   () => {
     operationState.value = providedOperationState
-    setTimeout(() => {
-      operationState.value = OperationState.hidden
-    }, 5000)
+    if (autoIconShift) {
+      setTimeout(() => {
+        operationState.value = OperationState.hidden
+      }, 5000)
+    }
   }
 )
 </script>

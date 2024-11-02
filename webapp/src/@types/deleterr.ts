@@ -78,6 +78,12 @@ export interface MovieDeletionRequest {
   overseerrResponse?: ResponseCodeBasedAction
 }
 
+export interface SeriesDeletionRequest {
+  requestFullyWatched: boolean,
+  sonarrResponse?: ResponseCodeBasedAction,
+  cacheResponse: ResponseCodeBasedAction,
+  overseerrResponse?: ResponseCodeBasedAction
+}
 export interface User {
   id: number
   username?: string

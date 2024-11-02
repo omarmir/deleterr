@@ -56,7 +56,7 @@ export function useService(serviceType: Services, serviceInfo?: ServiceInfo) {
 
     watch([saveError, saveData], () => {
         if (saveError.value) {
-            publishToast('Unable to save service', 'Error: ' + (saveError as any).toString(), 10, true)
+            publishToast('Unable to save service', 'Error: ' + (saveError.value as any).toString(), 10, true)
         } else if (!saveData.value?.success) {
             publishToast('Unable to save service', 'Error: ' + saveData.value?.error_msg, 10, true)
         }
@@ -64,7 +64,7 @@ export function useService(serviceType: Services, serviceInfo?: ServiceInfo) {
 
     watch([testError, testData], () => {
         if (testError.value) {
-            publishToast('Unable to save service', 'Error: ' + (testError as any).toString(), 10, true)
+            publishToast('Unable to save service', 'Error: ' + (testError.value as any).toString(), 10, true)
         } else if (!testData.value?.success) {
             publishToast('Unable to save service', 'Error: ' + testData.value?.error_msg, 10, true)
         }

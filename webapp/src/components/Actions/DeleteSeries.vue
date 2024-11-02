@@ -32,7 +32,11 @@
         class="-mx-6 -mb-4 flex flex-col items-center justify-between bg-gray-50 px-6 py-3 dark:bg-gray-800 sm:flex-row sm:space-x-6 sm:space-y-0">
         <ButtonsBase class="rounded-lg" :is-outlined="true" @click="closeModal">Cancel</ButtonsBase>
         <div class="flex flex-row space-x-4">
-          <ButtonsStatus :is-outlined="false">
+          <ButtonsStatus
+            :is-outlined="false"
+            :provided-operation-state="deletingWatchedState"
+            @click="deleteWatched()"
+            :auto-icon-shift="false">
             <template #icon>
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -50,17 +54,6 @@
             </template>
             <span>Delete watched</span>
           </ButtonsStatus>
-          <ButtonsStatus class="border-transparent bg-red-600 text-white hover:bg-red-700 active:bg-red-600">
-            <template #icon>
-              <svg class="size-5" aria-hidden="true" fill="currentColor" viewBox="0 0 20 20">
-                <path
-                  fill-rule="evenodd"
-                  d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z"
-                  clip-rule="evenodd"></path>
-              </svg>
-            </template>
-            <span>Delete all</span>
-          </ButtonsStatus>
         </div>
       </footer>
     </div>
@@ -71,7 +64,9 @@
 import ButtonsStatus from '~/components/Buttons/Status.vue'
 import ButtonsBase from '~/components/Buttons/Base.vue'
 
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
+import { useDeleteSeries } from '~/composables/useDeleteSeries'
+import { OperationState } from '~/@types/common'
 const { requestId } = defineProps<{ requestId: number }>()
 
 const isOpen = ref(false)
@@ -82,4 +77,12 @@ function closeModal() {
 function openModal() {
   isOpen.value = true
 }
+
+const { deleteWatched, deletingWatchedState } = useDeleteSeries(requestId)
+
+const emits = defineEmits(['deleted'])
+
+watch(deletingWatchedState, () => {
+  if (deletingWatchedState.value === OperationState.success) emits('deleted')
+})
 </script>
