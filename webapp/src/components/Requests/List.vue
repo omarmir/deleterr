@@ -36,7 +36,9 @@
               <RequestsListItemsUser :media-request="request?.mediaRequest"></RequestsListItemsUser>
             </div>
             <div class="flex basis-full lg:basis-1/12">
+              <DeleteSeries v-if="isTV(request?.mediaRequest.media.mediaType)"></DeleteSeries>
               <ActionsDelete
+                v-else
                 @delete="execute()"
                 :external-id="request?.mediaRequest.media.externalServiceId"
                 :request-id="request.mediaRequest.id"></ActionsDelete>
@@ -58,6 +60,7 @@
         @change-page="changePage" />
     </div>
     <Error :error :api-result="requests"></Error>
+    <Modal :open="false"></Modal>
   </div>
 </template>
 <script lang="ts" setup>
@@ -73,6 +76,7 @@ import RequestsListItemsUser from '~/components/Requests/ListItems/User.vue'
 import ActionsDelete from '~/components/Actions/Delete.vue'
 import ActionsExemption from '~/components/Actions/Exemption.vue'
 import Error from '~/components/Error.vue'
+import DeleteSeries from '../Actions/DeleteSeries.vue'
 import { APIResponse, MediaExemptions, MediaType, RequestStatusWithRecordInfo } from '~/@types/deleterr'
 import { useFetch } from '@vueuse/core'
 import { useListQuery } from '~/composables/useListQuery'

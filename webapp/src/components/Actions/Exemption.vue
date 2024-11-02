@@ -36,8 +36,6 @@ const isExempt = ref(exemptions.includes(requestId) ?? false)
 
 const url = isExempt.value ? '/api/v1/json/request/exemptions/remove' : '/api/v1/json/request/exemptions/save'
 
-console.log(isExempt.value)
-
 const {
   error,
   data,

@@ -56,7 +56,10 @@
         </svg>
       </span>
     </template>
-    <slot />
+    <div class="flex flex-row items-center space-x-2">
+      <span><slot name="icon"></slot></span>
+      <slot />
+    </div>
   </ButtonsBase>
 </template>
 <script lang="ts" setup>
