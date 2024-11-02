@@ -7,44 +7,37 @@
       :placeholder="placeholder"
       :type="type"
       :name="name" />
-    <button
+    <ButtonsStatus
       @click="$emit('click')"
       :is-outlined="false"
+      :is-submit
+      :provided-operation-state
       class="absolute inset-y-0 right-0 rounded-l-none rounded-r-md border border-transparent bg-purple-600 px-4 text-sm font-medium leading-5 text-white transition-colors duration-150 hover:bg-purple-700 focus:shadow-outline-purple focus:outline-none active:bg-purple-600">
       {{ buttonLabel }}
-    </button>
+    </ButtonsStatus>
   </div>
 </template>
 <script lang="ts" setup>
-import { PropType } from 'vue'
-import { InputType } from '~/@types/common'
+import { InputType, OperationState } from '~/@types/common'
 import ButtonsStatus from '~/components/Buttons/Status.vue'
 
-defineProps({
-  label: {
-    type: String,
-    required: true,
-  },
-  name: {
-    type: String,
-    required: true,
-  },
-  buttonLabel: {
-    type: String,
-    required: true,
-  },
-  placeholder: String,
-  required: {
-    type: Boolean,
-    required: false,
-    default: false,
-  },
-  type: {
-    type: String as PropType<InputType>,
-    required: false,
-    default: 'text',
-  },
-})
+const {
+  providedOperationState,
+  isSubmit = false,
+  name,
+  buttonLabel,
+  placeholder,
+  type,
+} = defineProps<{
+  providedOperationState: OperationState
+  isSubmit?: boolean
+  label: string
+  name: string
+  buttonLabel: string
+  placeholder: string
+  required: boolean
+  type: InputType
+}>()
 
 defineEmits(['click'])
 

@@ -7,6 +7,7 @@
           <InputsInputRightButton
             @click="updatePassword"
             v-model="newPassword.newPassword"
+            :provided-operation-state="savePasswordState"
             name="newPassword"
             type="password"
             :required="true"
@@ -26,6 +27,7 @@ import { required } from '@vuelidate/validators'
 import useVuelidate from '@vuelidate/core'
 import { nextTick, ref, Ref } from 'vue'
 import { useAuthStore } from '~/stores/auth.store'
+import { OperationState } from '~/@types/common'
 
 const store = useAuthStore()
 
@@ -37,7 +39,10 @@ const rules = {
 
 const v$ = useVuelidate(rules, newPassword)
 
+const savePasswordState = ref(OperationState.hidden)
+
 const updatePassword = async () => {
+  savePasswordState.value = OperationState.loading
   const validation = await v$.value.$validate()
   if (validation && newPassword.value.newPassword) {
     const updateResp = await store.updatePassword(newPassword.value.newPassword)
@@ -45,6 +50,9 @@ const updatePassword = async () => {
       newPassword.value.newPassword = ''
       await nextTick()
       v$.value.$reset()
+      savePasswordState.value = OperationState.success
+    } else {
+      savePasswordState.value = OperationState.failure
     }
   }
 }
