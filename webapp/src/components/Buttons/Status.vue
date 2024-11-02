@@ -1,5 +1,5 @@
 <template>
-  <ButtonsBase :is-outlined="true" class="rounded-lg" :is-submit>
+  <ButtonsBase :is-outlined class="rounded-lg" :is-submit>
     <template #icons>
       <span v-if="operationState !== OperationState.hidden" class="pr-2">
         <svg
@@ -64,9 +64,14 @@ import { defineProps, ref, watch } from 'vue'
 import { OperationState } from '~/@types/common'
 import ButtonsBase from '~/components/Buttons/Base.vue'
 
-const { providedOperationState, isSubmit = false } = defineProps<{
+const {
+  providedOperationState,
+  isSubmit = false,
+  isOutlined = true,
+} = defineProps<{
   providedOperationState: OperationState
   isSubmit?: boolean
+  isOutlined?: boolean
 }>()
 
 const operationState = ref(providedOperationState)

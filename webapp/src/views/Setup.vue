@@ -15,22 +15,23 @@
         type="password"
         label="Password"
         placeholder="Password" />
-      <ButtonsStatused :callback="submitForm" :is-outlined="false" class="rounded-lg" :is-submit="true">
+      <ButtonsStatus :provided-operation-state="setupState" :is-outlined="false" :is-submit="true">
         Add User
-      </ButtonsStatused>
+      </ButtonsStatus>
     </form>
   </BlankPage>
 </template>
 <script setup lang="ts">
 import InputsInput from '~/components/Inputs/Input.vue'
-import ButtonsStatused from '~/components/Buttons/Statused.vue'
+import ButtonsStatus from '~/components/Buttons/Status.vue'
 import BlankPage from '~/components/BlankPage.vue'
 import { APIResponse, AuthenticationUser } from '~/@types/deleterr'
-import { reactive } from 'vue'
+import { reactive, ref } from 'vue'
 import { useVuelidate } from '@vuelidate/core'
 import { required } from '@vuelidate/validators'
 import { useAuthStore } from '~/stores/auth.store'
 import { useRouter } from 'vue-router'
+import { OperationState } from '~/@types/common'
 
 const store = useAuthStore()
 const router = useRouter()
@@ -47,13 +48,20 @@ const rules = {
 
 const v$ = useVuelidate(rules, authUser as any)
 
+const setupState = ref(OperationState.hidden)
+
 const submitForm = async (): Promise<APIResponse<boolean | undefined> | undefined> => {
+  setupState.value = OperationState.loading
+
   const result = await v$.value.$validate()
 
   if (result) {
     const result = await store.addInitialUser(authUser)
     if (result.success) {
       router.push(router.currentRoute.value.redirectedFrom?.fullPath ?? '/login')
+      setupState.value = OperationState.success
+    } else {
+      setupState.value = OperationState.failure
     }
     return result
   }
