@@ -2,21 +2,25 @@
   <BlankPage>
     <h1 class="mb-4 text-xl font-semibold text-gray-700 dark:text-gray-200">Login</h1>
     <form class="space-y-4" @submit="submitForm">
-      <InputsInput
-        v-model="authUser.username"
-        type="text"
-        name="username"
-        :required="true"
-        label="Username"
-        v-on-key-stroke:Enter,v="submitForm"
-        placeholder="Username" />
-      <InputsInput
-        v-model="authUser.password"
-        name="password"
-        type="password"
-        label="Password"
-        v-on-key-stroke:Enter,v="submitForm"
-        placeholder="Password" />
+      <InputsServiceGroup :required="true" name="username" label="Username" :errors="v$.username.$errors">
+        <InputsInput
+          v-model="authUser.username"
+          type="text"
+          name="username"
+          :required="true"
+          label="Username"
+          v-on-key-stroke:Enter,v="submitForm"
+          placeholder="Username" />
+      </InputsServiceGroup>
+      <InputsServiceGroup :required="true" name="password" label="password" :errors="v$.password.$errors">
+        <InputsInput
+          v-model="authUser.password"
+          name="password"
+          type="password"
+          label="Password"
+          v-on-key-stroke:Enter,v="submitForm"
+          placeholder="Password" />
+      </InputsServiceGroup>
       <ButtonsStatus @click="submitForm" :provided-operation-state="loginState" :is-outlined="false">
         Login
       </ButtonsStatus>
@@ -27,6 +31,7 @@
 import InputsInput from '~/components/Inputs/Input.vue'
 import ButtonsStatus from '~/components/Buttons/Status.vue'
 import BlankPage from '~/components/BlankPage.vue'
+import InputsServiceGroup from '~/components/Inputs/ServiceGroup.vue'
 import { APIResponse, AuthenticationUser } from '~/@types/deleterr'
 import { reactive, ref } from 'vue'
 import { useVuelidate } from '@vuelidate/core'

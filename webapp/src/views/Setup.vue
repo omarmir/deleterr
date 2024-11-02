@@ -2,19 +2,23 @@
   <BlankPage>
     <h1 class="mb-4 text-xl font-semibold text-gray-700 dark:text-gray-200">Add Credentials</h1>
     <form class="space-y-4" @submit.prevent>
-      <InputsInput
-        v-model="authUser.username"
-        type="text"
-        name="username"
-        :required="true"
-        label="Username"
-        placeholder="Username" />
-      <InputsInput
-        v-model="authUser.password"
-        name="password"
-        type="password"
-        label="Password"
-        placeholder="Password" />
+      <InputsServiceGroup :required="true" name="username" label="Username" :errors="v$.username.$errors">
+        <InputsInput
+          v-model="authUser.username"
+          type="text"
+          name="username"
+          :required="true"
+          label="Username"
+          placeholder="Username" />
+      </InputsServiceGroup>
+      <InputsServiceGroup :required="true" name="password" label="password" :errors="v$.password.$errors">
+        <InputsInput
+          v-model="authUser.password"
+          name="password"
+          type="password"
+          label="Password"
+          placeholder="Password" />
+      </InputsServiceGroup>
       <ButtonsStatus :provided-operation-state="setupState" :is-outlined="false" :is-submit="true" @click="submitForm">
         Add User
       </ButtonsStatus>
@@ -25,6 +29,7 @@
 import InputsInput from '~/components/Inputs/Input.vue'
 import ButtonsStatus from '~/components/Buttons/Status.vue'
 import BlankPage from '~/components/BlankPage.vue'
+import InputsServiceGroup from '~/components/Inputs/ServiceGroup.vue'
 import { APIResponse, AuthenticationUser } from '~/@types/deleterr'
 import { reactive, ref } from 'vue'
 import { useVuelidate } from '@vuelidate/core'
