@@ -1,5 +1,6 @@
 <template>
-  <div class="text-outlinetext fixed bottom-0 end-4 z-[55] flex w-full flex-col justify-end px-4 pt-6 sm:w-96 sm:px-6">
+  <div
+    class="text-outlinetext fixed bottom-0 start-1 z-[55] flex w-full flex-col justify-end px-4 pt-6 sm:w-96 sm:px-6">
     <ToastBody v-for="toast in currentToasts" :key="toast.id" :toast="toast" />
   </div>
 </template>
