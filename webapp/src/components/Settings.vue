@@ -2,7 +2,7 @@
   <div>
     <h4 class="mb-4 text-lg font-semibold text-gray-600 dark:text-gray-300">Deletion Rules</h4>
     <ContentCard>
-      <form class="flex flex-col space-y-4" @submit.prevent>
+      <form class="flex flex-col space-y-4" @submit.prevent v-if="!error && data?.success">
         <h5 class="text-md font-semibold text-gray-600 dark:text-gray-300">TV Series</h5>
         <div class="flex max-w-3xl flex-col gap-4">
           <SettingsServiceGroup
@@ -11,7 +11,7 @@
             name="tvPurgeMarker"
             label="Purge marker">
             <InputsSelect
-              v-model="store.settings.tvPurgeMarker"
+              v-model="settings.tvPurgeMarker"
               label="Purge marker"
               :required="true"
               name="tvPurgeMarker"
@@ -26,13 +26,13 @@
             </template>
           </SettingsServiceGroup>
           <SettingsServiceGroup
-            v-if="store.settings.tvPurgeMarker !== 'time'"
+            v-if="settings.tvPurgeMarker !== 'time'"
             :errors="v$.tvWatchedMarker.$errors"
             :required="true"
             name="watchedMarker"
             label="Watched marker">
             <InputsSelect
-              v-model="store.settings.tvWatchedMarker"
+              v-model="settings.tvWatchedMarker"
               label="Watched marker"
               name="watchedMarker"
               :required="true"
@@ -45,13 +45,13 @@
             </template>
           </SettingsServiceGroup>
           <SettingsServiceGroup
-            v-if="store.settings.tvPurgeMarker !== 'watched'"
+            v-if="settings.tvPurgeMarker !== 'watched'"
             :required="true"
             name="tvPurgeDelay"
             :errors="v$.tvPurgeDelay.$errors"
             label="Purge delay">
             <InputsInput
-              v-model="store.settings.tvPurgeDelay"
+              v-model="settings.tvPurgeDelay"
               name="tvPurgeDelay"
               type="number"
               :required="true"
@@ -66,7 +66,7 @@
             name="tvPurgeStrategy"
             label="Purge strategy">
             <InputsSelect
-              v-model="store.settings.tvPurgeStrategy"
+              v-model="settings.tvPurgeStrategy"
               label="Purge strategy"
               name="tvPurgeStrategy"
               :required="true"
@@ -83,7 +83,7 @@
             name="moviePurgeMarker"
             label="Purge marker">
             <InputsSelect
-              v-model="store.settings.moviePurgeMarker"
+              v-model="settings.moviePurgeMarker"
               label="Purge marker"
               :required="true"
               name="moviePurgeMarker"
@@ -98,13 +98,13 @@
             </template>
           </SettingsServiceGroup>
           <SettingsServiceGroup
-            v-if="store.settings.moviePurgeMarker !== 'watched'"
+            v-if="settings.moviePurgeMarker !== 'watched'"
             :required="true"
             :errors="v$.moviePurgeDelay.$errors"
             name="moviePurgeDelay"
             label="Purge delay">
             <InputsInput
-              v-model="store.settings.moviePurgeDelay"
+              v-model="settings.moviePurgeDelay"
               name="moviePurgeDelay"
               type="number"
               :required="true"
@@ -114,12 +114,13 @@
             </template>
           </SettingsServiceGroup>
           <div class="flex justify-end">
-            <ButtonsStatused :callback="saveSettings" :is-submit="true" :is-outlined="false" class="rounded-lg">
-              Save changes
-            </ButtonsStatused>
+            <ButtonsStatus @click="saveSettings" :is-outlined="false" :provided-operation-state="savingState">
+              Save Changes
+            </ButtonsStatus>
           </div>
         </div>
       </form>
+      <Error :error="error" :api-result="data"></Error>
     </ContentCard>
   </div>
 </template>
@@ -127,43 +128,47 @@
 import InputsSelect from '~/components/Inputs/Select.vue'
 import InputsInput from '~/components/Inputs/Input.vue'
 import SettingsServiceGroup from '~/components/Inputs/SettingsGroup.vue'
-import ButtonsStatused from '~/components/Buttons/Statused.vue'
 import ContentCard from '~/components/ContentCard.vue'
 import useVuelidate from '@vuelidate/core'
+import Error from '~/components/Error.vue'
+import ButtonsStatus from '~/components/Buttons/Status.vue'
 import { required, numeric, minValue, requiredIf } from '@vuelidate/validators'
 import { Settings } from '~/@types/deleterr'
 import { APIResponse } from '~/@types/deleterr'
-import { useSettingsStore } from '~/stores/settings.store'
+import { useFetch } from '@vueuse/core'
+import { useSettings } from '~/composables/useSettings'
 
-const store = useSettingsStore()
+const { error, data } = await useFetch('/api/v1/json/settings/get', {
+  immediate: true,
+})
+  .get()
+  .json<APIResponse<Settings>>()
 
-await store.getSettings()
+const { save, settings, savingState } = useSettings(data.value?.data)
 
 const rules = {
   tvPurgeMarker: { required },
   tvWatchedMarker: {
-    requiredIf: requiredIf(() => store.settings.tvPurgeMarker !== 'time'),
+    requiredIf: requiredIf(() => settings.tvPurgeMarker !== 'time'),
   },
   tvPurgeDelay: {
-    requiredIf: requiredIf(() => store.settings.tvPurgeMarker !== 'watched'),
+    requiredIf: requiredIf(() => settings.tvPurgeMarker !== 'watched'),
     minValue: minValue(1),
     numeric: numeric,
   },
   tvPurgeStrategy: { required },
   moviePurgeMarker: { required },
   moviePurgeDelay: {
-    requiredIf: requiredIf(() => store.settings.moviePurgeMarker !== 'watched'),
+    requiredIf: requiredIf(() => settings.moviePurgeMarker !== 'watched'),
     minValue: minValue(1),
     numeric: numeric,
   },
 }
 
-const v$ = useVuelidate(rules, store.settings as any)
+const v$ = useVuelidate(rules, settings)
 
-const saveSettings = async (): Promise<APIResponse<Settings> | undefined> => {
+const saveSettings = async () => {
   const validation = await v$.value.$validate()
-  if (validation) {
-    return store.saveSettings()
-  }
+  if (validation) save()
 }
 </script>

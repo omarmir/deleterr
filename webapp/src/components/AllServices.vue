@@ -13,6 +13,7 @@
 import { useFetch } from '@vueuse/core'
 import { APIResponse, ServiceInfo, Services } from '~/@types/deleterr'
 import Service from '~/components/Service.vue'
+import Error from '~/components/Error.vue'
 
 const { error, data } = await useFetch('/api/v1/json/service/get', {
   immediate: true,

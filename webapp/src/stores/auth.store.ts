@@ -141,5 +141,41 @@ export const useAuthStore = defineStore('auth', () => {
       return apiResponse
     }
   }
-  return { validateSession, username, login, logout, isLoggedIn, checkUsersSetup, addInitialUser }
+
+  const updatePassword = async (newPassword: string): Promise<APIResponse<boolean> | undefined> => {
+    const saveSettingsEndpoint = '/api/v1/json/auth/user/password'
+
+    const requestOptions: RequestInit = {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(newPassword),
+      credentials: 'include',
+    }
+
+    try {
+      const response = await fetch(saveSettingsEndpoint, requestOptions)
+      let apiResponse: APIResponse<boolean> = await response.json()
+
+      if (apiResponse.success) {
+        publishToast('Updated', 'Password updated.', 3, false)
+        return apiResponse
+      } else {
+        publishToast('Unable update password', `Error: ${apiResponse.error_msg ?? 'Unknown!'}`, 3, true)
+        return apiResponse
+      }
+    } catch (err: any) {
+      const apiResponse: APIResponse<boolean> = {
+        success: false,
+        data: false,
+        error_msg: err,
+      }
+      publishToast('Unable update password', 'Error: ' + err.toString(), 10, true)
+      return apiResponse
+    }
+
+    // Simulate delay
+    // await new Promise((resolve) => setTimeout(resolve, 2000))
+  }
+
+  return { updatePassword, validateSession, username, login, logout, isLoggedIn, checkUsersSetup, addInitialUser }
 })

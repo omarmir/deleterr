@@ -1,5 +1,5 @@
 <template>
-  <div v-if="!apiResult?.success" class="text-red-400">
+  <div v-if="apiResult?.success === false" class="text-red-400">
     {{ apiResult?.error_msg }}
   </div>
   <div v-else-if="error" class="text-red-400">

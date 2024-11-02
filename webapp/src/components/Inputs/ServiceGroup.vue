@@ -9,9 +9,7 @@
     <div class="flex grow flex-row place-items-center">
       <slot></slot>
     </div>
-    <p v-for="error in errors" :key="error.$uid" class="text-xs text-red-600">
-      {{ error.$message }}
-    </p>
+    <p v-for="error in errors" :key="error.$uid" class="text-xs text-red-600">{{ error.$message }}</p>
   </div>
 </template>
 <script lang="ts" setup>

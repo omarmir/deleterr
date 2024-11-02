@@ -7,20 +7,18 @@
       :placeholder="placeholder"
       :type="type"
       :name="name" />
-    <ButtonsStatused
-      :callback="callback"
+    <button
+      @click="$emit('click')"
       :is-outlined="false"
-      class="absolute inset-y-0 right-0 rounded-r-md border border-transparent bg-purple-600 px-4 text-sm font-medium leading-5 text-white transition-colors duration-150 hover:bg-purple-700 focus:shadow-outline-purple focus:outline-none active:bg-purple-600"
-      :is-submit="true">
+      class="absolute inset-y-0 right-0 rounded-l-none rounded-r-md border border-transparent bg-purple-600 px-4 text-sm font-medium leading-5 text-white transition-colors duration-150 hover:bg-purple-700 focus:shadow-outline-purple focus:outline-none active:bg-purple-600">
       {{ buttonLabel }}
-    </ButtonsStatused>
+    </button>
   </div>
 </template>
 <script lang="ts" setup>
 import { PropType } from 'vue'
 import { InputType } from '~/@types/common'
-import { APIResponse } from '~/@types/deleterr'
-import ButtonsStatused from '~/components/Buttons/Statused.vue'
+import ButtonsStatus from '~/components/Buttons/Status.vue'
 
 defineProps({
   label: {
@@ -46,11 +44,9 @@ defineProps({
     required: false,
     default: 'text',
   },
-  callback: {
-    type: Function as PropType<() => Promise<APIResponse<any> | undefined>>,
-    required: true,
-  },
 })
 
-const model = defineModel({ type: String })
+defineEmits(['click'])
+
+const model = defineModel({ required: false, type: String })
 </script>
