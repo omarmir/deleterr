@@ -28,3 +28,10 @@ actix-session = { version = "0.10.1", features = ["cookie-session"] }
 bcrypt = "0.15.0"
 jammdb = "0.11.0"
 sqlx = { version = "0.8", features = ["runtime-tokio", "tls-native-tls"] }
+futures = "0.3.31"
+async-stream = "0.3.6"
+futures-util = "0.3.31"
+tokio-stream = "0.1.16"
+parking_lot = "0.12.3"
+actix-rt = "2.10.0"
+uuid = { version = "1.11.0", features = ["v4"] }

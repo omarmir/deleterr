@@ -1,4 +1,5 @@
 use super::watched::{SeasonWithStatus, WatchedStatus};
+use crate::common::broadcast::Broadcaster;
 use crate::common::models::api::ResponseCodeBasedAction;
 use crate::overseerr::models::MediaRequest;
 use crate::radarr::models::Movie;
@@ -8,7 +9,7 @@ use serde::{Deserialize, Serialize};
 use serde_map_to_array::{DefaultLabels, HashMapToArray};
 use std::cmp;
 use std::collections::HashMap;
-use std::sync::RwLock;
+use std::sync::{Arc, RwLock};
 use std::time::SystemTime;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -149,4 +150,5 @@ pub enum SortableProps {
 pub struct AppData {
     pub last_update: RwLock<Option<SystemTime>>,
     pub request_cache: RwLock<Option<RequestStatusWithRecordInfo>>,
+    pub broadcaster: Arc<Broadcaster>,
 }

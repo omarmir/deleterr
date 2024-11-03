@@ -1,17 +1,20 @@
 use crate::auth::models::User;
 use crate::common::models::services::{ServiceInfo, Services};
-use crate::common::services::process_request;
+use crate::common::services::{process_request, process_request_stream};
 use crate::deleterr::models::QueryParms;
 use crate::deleterr::services::delete_watched_seasons_and_possibly_request;
 use crate::store::models::settings::Settings;
 use crate::{auth, deleterr, overseerr, radarr, sonarr, sonrad, store, tautulli, AppData};
 use actix_session::Session;
 use actix_web::middleware::from_fn;
+use actix_web::HttpResponse;
 use actix_web::{
     delete, get, post,
     web::{self, Data},
     Responder,
 };
+use std::time::Duration;
+use uuid::Uuid;
 
 #[get("/requests")]
 async fn get_all_requests_json(
@@ -21,6 +24,55 @@ async fn get_all_requests_json(
     let matched_results =
         deleterr::requests::get_requests_and_update_cache(app_data, info.into_inner()).await;
     return process_request(matched_results);
+}
+
+async fn get_stream_requests(
+    app_data: Data<AppData>,
+    query: QueryParms,
+    client_id: Uuid,
+) -> impl Responder {
+    let broadcaster = app_data.broadcaster.clone();
+
+    let matched_results = deleterr::requests::get_requests_and_update_cache(app_data, query);
+
+    tokio::pin!(matched_results); // Pin the future so we can poll it
+
+    let mut interval = tokio::time::interval(Duration::from_secs(5));
+
+    loop {
+        tokio::select! {
+            result = &mut matched_results => {
+                println!("done");
+                let resp = process_request_stream(result);
+                let msg = serde_json::json!(resp).to_string();
+                broadcaster.broadcast(msg.as_str()).await;
+                break;
+            }
+            _ = interval.tick() => {
+                println!("tick");
+                let message = serde_json::json!({ "status": "waiting" }).to_string();
+                broadcaster.broadcast(message.as_str()).await;
+            }
+        }
+    }
+
+    broadcaster.close_client(client_id);
+
+    HttpResponse::Ok().finish()
+}
+
+#[get("/requests/register")]
+async fn get_register_requests(
+    app_data: Data<AppData>,
+    query: web::Query<QueryParms>,
+) -> impl Responder {
+    let broadcaster = app_data.broadcaster.clone();
+    let id = Uuid::new_v4();
+    let add_client = broadcaster.new_client(id).await;
+
+    let _handle = actix_rt::spawn(get_stream_requests(app_data, query.into_inner(), id));
+
+    return add_client;
 }
 
 #[get("/requests/count")]
@@ -244,5 +296,6 @@ pub fn config(cfg: &mut web::ServiceConfig) {
     .service(set_login)
     .service(set_logout)
     .service(get_setup_status)
-    .service(initialize_user);
+    .service(initialize_user)
+    .service(get_register_requests);
 }

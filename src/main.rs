@@ -53,6 +53,7 @@ async fn main() -> std::io::Result<()> {
     let app_state = AppData {
         last_update: RwLock::new(None),
         request_cache: RwLock::new(None),
+        broadcaster: common::broadcast::Broadcaster::create(),
     };
 
     let data = web::Data::new(app_state);

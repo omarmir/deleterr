@@ -29,6 +29,30 @@ pub async fn make_api_call(
     }
 }
 
+pub fn process_request_stream<T>(response: Result<T, DeleterrError>) -> APIResponse<T>
+where
+    T: serde::Serialize,
+{
+    return match response {
+        Ok(response_ok) => {
+            let api_response = APIResponse {
+                success: true,
+                data: Some(response_ok),
+                error_msg: None,
+            };
+            api_response
+        }
+        Err(error) => {
+            let err_response: APIResponse<T> = APIResponse {
+                success: false,
+                data: None,
+                error_msg: Some(error.to_string()),
+            };
+            err_response
+        }
+    };
+}
+
 pub fn process_request<T>(response: Result<T, DeleterrError>) -> impl Responder
 where
     T: serde::Serialize,
