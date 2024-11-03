@@ -26,5 +26,8 @@
     <small class="text-center">
       <slot name="subtitle"></slot>
     </small>
+    <div class="mt-4 w-full">
+      <slot name="progress"></slot>
+    </div>
   </div>
 </template>

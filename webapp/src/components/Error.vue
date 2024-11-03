@@ -9,5 +9,5 @@
 <script setup lang="ts">
 import { APIResponse } from '~/@types/deleterr'
 
-const { error, apiResult } = defineProps<{ error: any; apiResult: APIResponse<any> | null }>()
+const { error, apiResult } = defineProps<{ error: any; apiResult?: APIResponse<any> | null }>()
 </script>
