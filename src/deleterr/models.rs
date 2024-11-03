@@ -135,6 +135,18 @@ pub struct QueryParms {
     pub search: Option<String>,
 }
 
+impl QueryParms {
+    pub fn default() -> Self {
+        QueryParms {
+            take: None,
+            skip: None,
+            sort_by: None,
+            is_descending: None,
+            search: None,
+        }
+    }
+}
+
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub enum SortableProps {

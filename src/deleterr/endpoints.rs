@@ -1,13 +1,14 @@
 use crate::auth::models::User;
 use crate::common::models::services::{ServiceInfo, Services};
-use crate::common::services::{process_request, process_request_stream};
+use crate::common::services::process_request;
 use crate::deleterr::models::QueryParms;
-use crate::deleterr::services::delete_watched_seasons_and_possibly_request;
+use crate::deleterr::services::{
+    broadcast_stream_requests, delete_watched_seasons_and_possibly_request,
+};
 use crate::store::models::settings::Settings;
 use crate::{auth, deleterr, overseerr, radarr, sonarr, sonrad, store, tautulli, AppData};
 use actix_session::Session;
 use actix_web::middleware::from_fn;
-use actix_web::HttpResponse;
 use actix_web::{
     delete, get, post,
     web::{self, Data},
@@ -25,36 +26,13 @@ async fn get_all_requests_json(
     return process_request(matched_results);
 }
 
-async fn get_stream_requests(
-    app_data: Data<AppData>,
-    query: QueryParms,
-    client_id: Uuid,
-) -> impl Responder {
-    let broadcaster = app_data.broadcaster.clone();
-
-    let matched_results = deleterr::requests::get_requests_and_update_cache(app_data, query).await;
-
-    let resp = process_request_stream(matched_results);
-
-    let msg = serde_json::json!(resp).to_string();
-
-    broadcaster.broadcast(msg.as_str()).await;
-
-    broadcaster.close_client(client_id);
-
-    HttpResponse::Ok().finish()
-}
-
-#[get("/requests/register")]
-async fn get_register_requests(
-    app_data: Data<AppData>,
-    query: web::Query<QueryParms>,
-) -> impl Responder {
+#[get("/requests/sse")]
+async fn get_register_requests(app_data: Data<AppData>) -> impl Responder {
     let broadcaster = app_data.broadcaster.clone();
     let id = Uuid::new_v4();
     let add_client = broadcaster.new_client(id).await;
 
-    let _handle = actix_rt::spawn(get_stream_requests(app_data, query.into_inner(), id));
+    let _handle = actix_rt::spawn(broadcast_stream_requests(app_data, id));
 
     return add_client;
 }

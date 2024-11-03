@@ -1,10 +1,10 @@
 use super::models::{
-    AppData, MediaInfo, MovieDeletionRequest, RequestStatus, RequestStatusWithRecordInfo,
-    SeriesDeletionEpisodes, SeriesDeletionRequest,
+    AppData, MediaInfo, MovieDeletionRequest, QueryParms, RequestStatus,
+    RequestStatusWithRecordInfo, SeriesDeletionEpisodes, SeriesDeletionRequest,
 };
-use super::requests::{delete_cached_record, get_cached_record};
+use super::requests::{delete_cached_record, get_cached_record, get_requests_and_update_cache};
 use super::watched::{SeasonWithStatus, WatchedChecker, WatchedStatus};
-use crate::common::broadcast::Broadcaster;
+use crate::common::broadcast::{Broadcaster, MessageType};
 use crate::common::models::deleterr_error::DeleterrError;
 use crate::overseerr::models::{MediaRequest, MediaType};
 use crate::radarr::models::Movie;
@@ -15,6 +15,7 @@ use crate::tautulli::user_watch_history::{
 use actix_web::web::Data;
 use std::collections::HashMap;
 use std::sync::Arc;
+use uuid::Uuid;
 
 pub async fn get_request_status_for_series(
     media_request: &MediaRequest,
@@ -95,17 +96,11 @@ pub async fn match_requests_to_watched(
 ) -> Result<RequestStatusWithRecordInfo, DeleterrError> {
     let (os_requests, page_info) = crate::overseerr::services::get_os_requests().await?;
 
-    broadcaster
-        .broadcast(
-            serde_json::json!({"total": os_requests.len()})
-                .to_string()
-                .as_str(),
-        )
-        .await;
+    let total_len = os_requests.len();
 
     let mut matched_requests = HashMap::with_capacity(page_info.results);
 
-    for i in 0..os_requests.len() {
+    for i in 0..total_len {
         let media_request = &os_requests[i];
         let (media_type, tmdb_id, rating_key, user_id, tvdb_id) = (
             &media_request.media.media_type,
@@ -137,7 +132,7 @@ pub async fn match_requests_to_watched(
         matched_requests.insert(request_status.media_request.id, request_status);
 
         broadcaster
-            .broadcast(serde_json::json!({"progress": i}).to_string().as_str())
+            .broadcast(MessageType::Progress((i + 1, total_len)))
             .await;
     }
 
@@ -281,4 +276,29 @@ pub async fn delete_watched_seasons_and_possibly_request(
     };
 
     Ok(resp)
+}
+
+/// Broadcasts stream requests and handles completion or error messages. This will clone the completion once
+/// the requests matching is done.
+///
+/// # Parameters
+/// * `app_data`: The app state of type [AppData]
+/// - `query`: Query parameters for the request.
+/// - `client_id`: Unique identifier for the client.
+pub async fn broadcast_stream_requests(app_data: Data<AppData>, client_id: Uuid) {
+    let broadcaster = app_data.broadcaster.clone();
+    let resp = get_requests_and_update_cache(app_data, QueryParms::default()).await;
+
+    match resp {
+        Ok(_) => {
+            broadcaster.broadcast(MessageType::Completion).await;
+        }
+        Err(err) => {
+            broadcaster
+                .broadcast(MessageType::Error(err.to_string()))
+                .await;
+        }
+    }
+
+    broadcaster.close_client(client_id);
 }

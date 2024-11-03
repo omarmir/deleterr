@@ -20,6 +20,13 @@ struct BroadcasterInner {
     clients: Vec<(Uuid, mpsc::Sender<sse::Event>)>,
 }
 
+pub enum MessageType {
+    Progress((usize, usize)),
+    Waiting,
+    Completion,
+    Error(String),
+}
+
 impl Broadcaster {
     /// Constructs new broadcaster and spawns ping loop.
     pub fn create() -> Arc<Self> {
@@ -86,12 +93,29 @@ impl Broadcaster {
     }
 
     /// Broadcasts `msg` to all clients.
-    pub async fn broadcast(&self, msg: &str) {
+    pub async fn broadcast(&self, message_type: MessageType) {
         let clients = self.inner.lock().clients.clone();
 
-        let send_futures = clients
-            .iter()
-            .map(|client| client.1.send(sse::Data::new(msg).into()));
+        let send_futures = clients.iter().map(|client| match &message_type {
+            MessageType::Progress(prog) => client.1.send(
+                sse::Data::new(
+                    serde_json::json!({"progress": prog.0, "total": prog.1})
+                        .to_string()
+                        .as_str(),
+                )
+                .event("progress")
+                .into(),
+            ),
+            MessageType::Error(err) => client
+                .1
+                .send(sse::Data::new(err.as_str()).event("error").into()),
+            MessageType::Waiting => client
+                .1
+                .send(sse::Data::new("waiting").event("waiting").into()),
+            MessageType::Completion => client
+                .1
+                .send(sse::Data::new("complete").event("completion").into()),
+        });
 
         // try to send to all clients, ignoring failures
         // disconnected clients will get swept up by `remove_stale_clients`
