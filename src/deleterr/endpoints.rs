@@ -13,7 +13,6 @@ use actix_web::{
     web::{self, Data},
     Responder,
 };
-use std::time::Duration;
 use uuid::Uuid;
 
 #[get("/requests")]
