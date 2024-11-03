@@ -17,7 +17,13 @@ pub struct Broadcaster {
 
 #[derive(Debug, Clone, Default)]
 struct BroadcasterInner {
-    clients: Vec<(Uuid, mpsc::Sender<sse::Event>)>,
+    clients: Vec<(Uuid, SSEType, mpsc::Sender<sse::Event>)>,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub enum SSEType {
+    Requests,
+    SeriesDeletion,
 }
 
 pub enum MessageType {
@@ -60,7 +66,7 @@ impl Broadcaster {
 
         for client in clients {
             if client
-                .1
+                .2
                 .send(sse::Event::Comment("ping".into()))
                 .await
                 .is_ok()
@@ -76,6 +82,7 @@ impl Broadcaster {
     pub async fn new_client(
         &self,
         uuid: Uuid,
+        sse_type: SSEType,
     ) -> Sse<InfallibleStream<ReceiverStream<sse::Event>>> {
         let (tx, rx) = mpsc::channel(10);
 
@@ -83,13 +90,23 @@ impl Broadcaster {
             .await
             .unwrap();
 
-        self.inner.lock().clients.push((uuid, tx));
+        self.inner.lock().clients.push((uuid, sse_type, tx));
 
         Sse::from_infallible_receiver(rx)
     }
 
     pub fn close_client(&self, client_id: Uuid) {
-        self.inner.lock().clients.retain(|(id, _)| *id != client_id);
+        self.inner
+            .lock()
+            .clients
+            .retain(|(id, _, _)| *id != client_id);
+    }
+
+    pub fn close_clients_of_type(&self, remove_type: SSEType) {
+        self.inner
+            .lock()
+            .clients
+            .retain(|(_, sse_type, _)| *sse_type != remove_type);
     }
 
     /// Broadcasts `msg` to all clients.
@@ -97,7 +114,7 @@ impl Broadcaster {
         let clients = self.inner.lock().clients.clone();
 
         let send_futures = clients.iter().map(|client| match &message_type {
-            MessageType::Progress(prog) => client.1.send(
+            MessageType::Progress(prog) => client.2.send(
                 sse::Data::new(
                     serde_json::json!({"progress": prog.0, "total": prog.1})
                         .to_string()
@@ -107,13 +124,13 @@ impl Broadcaster {
                 .into(),
             ),
             MessageType::Error(err) => client
-                .1
+                .2
                 .send(sse::Data::new(err.as_str()).event("error").into()),
             MessageType::Waiting => client
-                .1
+                .2
                 .send(sse::Data::new("waiting").event("waiting").into()),
             MessageType::Completion => client
-                .1
+                .2
                 .send(sse::Data::new("complete").event("completion").into()),
         });
 

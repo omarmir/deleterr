@@ -1,4 +1,5 @@
 use crate::auth::models::User;
+use crate::common::broadcast::SSEType;
 use crate::common::models::services::{ServiceInfo, Services};
 use crate::common::services::process_request;
 use crate::deleterr::models::QueryParms;
@@ -26,11 +27,26 @@ async fn get_all_requests_json(
     return process_request(matched_results);
 }
 
+/// Registers the client for SSE providing status updates. This bit is a bit complex:
+/// * We first give the client a UUID and store this UUID along with the type of request this is
+/// * We then add this client to the broadcaster inside the AppData so it gets updates
+/// * We then spawn the `broadcast_stream_requests` function
+/// ! There may be a race condition here but I haven't seen it play out where we may transmit messages
+/// ! before the return has occured and thus the client may miss the updates
+///
+/// # Arguments:
+///
+/// * `app_data`: The `app_data` parameter is of type [Data]<[AppData]>, which contains shared
+/// application data - the cache for the synced APIs. You don't need to provide this, Actix will handle this.
+///
+/// # Returns
+/// Added client so the browser knows its an SSE
+///
 #[get("/requests/sse")]
 async fn get_register_requests(app_data: Data<AppData>) -> impl Responder {
     let broadcaster = app_data.broadcaster.clone();
     let id = Uuid::new_v4();
-    let add_client = broadcaster.new_client(id).await;
+    let add_client = broadcaster.new_client(id, SSEType::Requests).await;
 
     let _handle = actix_rt::spawn(broadcast_stream_requests(app_data, id));
 

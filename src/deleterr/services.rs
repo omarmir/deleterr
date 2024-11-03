@@ -1,10 +1,10 @@
 use super::models::{
-    AppData, MediaInfo, MovieDeletionRequest, QueryParms, RequestStatus,
+    AppData, CacheStatus, MediaInfo, MovieDeletionRequest, QueryParms, RequestStatus,
     RequestStatusWithRecordInfo, SeriesDeletionEpisodes, SeriesDeletionRequest,
 };
 use super::requests::{delete_cached_record, get_cached_record, get_requests_and_update_cache};
 use super::watched::{SeasonWithStatus, WatchedChecker, WatchedStatus};
-use crate::common::broadcast::{Broadcaster, MessageType};
+use crate::common::broadcast::{Broadcaster, MessageType, SSEType};
 use crate::common::models::deleterr_error::DeleterrError;
 use crate::overseerr::models::{MediaRequest, MediaType};
 use crate::radarr::models::Movie;
@@ -49,6 +49,7 @@ pub async fn get_request_status_for_series(
         watched,
     };
 
+    // We can make this a lot more efficient - fine for now
     // TODO: Doing this manually for now, but it should be done via setting later right now we are setting watched seasons by latest watched/In progress season
 
     let cloned_seasons = request_status.season_status.clone(); // Don't want to modify as I iterate, so a clone is made
@@ -68,6 +69,10 @@ pub async fn get_request_status_for_series(
             }
         }
     }
+
+    request_status.watched = request_status
+        .season_status
+        .is_watched(*&media_request.seasons.len());
 
     Ok(request_status)
 }
@@ -280,25 +285,44 @@ pub async fn delete_watched_seasons_and_possibly_request(
 
 /// Broadcasts stream requests and handles completion or error messages. This will clone the completion once
 /// the requests matching is done.
+/// * This function checks first if the cache is built
+/// * If built, it broadcasts the complete event and removes the client ending the SSE session
+/// * If building, it doesn't do anything
+/// * if uninitialized (not building/built) then it starts the build process
+///     * When the build process is complete it removes all clients that may have subscribed to the requests event
 ///
 /// # Parameters
 /// * `app_data`: The app state of type [AppData]
-/// - `query`: Query parameters for the request.
-/// - `client_id`: Unique identifier for the client.
+/// * `client_id`: Unique identifier for the client.
 pub async fn broadcast_stream_requests(app_data: Data<AppData>, client_id: Uuid) {
     let broadcaster = app_data.broadcaster.clone();
-    let resp = get_requests_and_update_cache(app_data, QueryParms::default()).await;
 
-    match resp {
-        Ok(_) => {
+    let cache_status = &app_data.cache_status();
+
+    match cache_status {
+        CacheStatus::Built => {
             broadcaster.broadcast(MessageType::Completion).await;
+            broadcaster.close_client(client_id);
         }
-        Err(err) => {
-            broadcaster
-                .broadcast(MessageType::Error(err.to_string()))
-                .await;
-        }
-    }
+        CacheStatus::Uninitialized => {
+            println!("Building cache");
+            app_data.set_cache_is_building();
+            let resp = get_requests_and_update_cache(app_data.clone(), QueryParms::default()).await;
 
-    broadcaster.close_client(client_id);
+            match resp {
+                Ok(_) => {
+                    broadcaster.broadcast(MessageType::Completion).await;
+                    app_data.set_cache_is_built();
+                }
+                Err(err) => {
+                    broadcaster
+                        .broadcast(MessageType::Error(err.to_string()))
+                        .await;
+                }
+            };
+
+            broadcaster.close_clients_of_type(SSEType::Requests);
+        }
+        CacheStatus::Building => (),
+    }
 }

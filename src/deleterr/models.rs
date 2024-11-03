@@ -157,10 +157,46 @@ pub enum SortableProps {
     User,
 }
 
+#[derive(Clone, Copy)]
+pub enum CacheStatus {
+    Uninitialized,
+    Building,
+    Built,
+}
+
 // Last update is unimplemented thus far
 #[allow(dead_code)]
 pub struct AppData {
     pub last_update: RwLock<Option<SystemTime>>,
     pub request_cache: RwLock<Option<RequestStatusWithRecordInfo>>,
     pub broadcaster: Arc<Broadcaster>,
+    pub is_cache_building_or_built: RwLock<CacheStatus>,
+}
+
+impl AppData {
+    pub fn set_cache_is_building(&self) {
+        let mut update_cache = self
+            .is_cache_building_or_built
+            .write() // ! This could leave the app timed out waiting for a write lock - I can't think when/why this would happen
+            .expect("Unable to access cache");
+
+        *update_cache = CacheStatus::Building
+    }
+
+    pub fn set_cache_is_built(&self) {
+        let mut update_cache = self
+            .is_cache_building_or_built
+            .write() // ! This could leave the app timed out waiting for a write lock - I can't think when/why this would happen
+            .expect("Unable to access cache");
+
+        *update_cache = CacheStatus::Built
+    }
+
+    pub fn cache_status(&self) -> CacheStatus {
+        let cache = self
+            .is_cache_building_or_built
+            .read()
+            .expect("Unable to access cache");
+        return *cache;
+    }
 }

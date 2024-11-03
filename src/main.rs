@@ -5,7 +5,7 @@ use actix_session::SessionMiddleware;
 use actix_web::cookie::Key;
 use actix_web::{middleware::Logger, web, App, HttpServer};
 use actix_web_lab::web as lab_web;
-use deleterr::models::AppData;
+use deleterr::models::{AppData, CacheStatus};
 use std::sync::RwLock;
 
 mod auth;
@@ -54,6 +54,7 @@ async fn main() -> std::io::Result<()> {
         last_update: RwLock::new(None),
         request_cache: RwLock::new(None),
         broadcaster: common::broadcast::Broadcaster::create(),
+        is_cache_building_or_built: RwLock::new(CacheStatus::Uninitialized),
     };
 
     let data = web::Data::new(app_state);

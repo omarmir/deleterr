@@ -38,6 +38,7 @@ const errorStr: Ref<string | null> = ref(null)
 const { event, data, close } = useEventSource('/api/v1/json/requests/sse', EventsSSE)
 
 watch(data, () => {
+  console.log(data)
   if (event.value === 'progress') {
     currProg.value = JSON.parse(data.value ?? '') as Progress
     progress.value = (currProg.value.progress / currProg.value.total) * 100

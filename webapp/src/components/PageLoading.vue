@@ -26,7 +26,7 @@
     <small class="text-center">
       <slot name="subtitle"></slot>
     </small>
-    <div class="mt-4 w-full">
+    <div class="mt-4 h-3 w-[400px]">
       <slot name="progress"></slot>
     </div>
   </div>
