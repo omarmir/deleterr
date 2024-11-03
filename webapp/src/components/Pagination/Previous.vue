@@ -2,6 +2,7 @@
   <li>
     <button
       class="rounded-md rounded-l-lg px-3 py-1 focus:shadow-outline-purple focus:outline-none"
+      @click="onClick"
       aria-label="Previous">
       <svg aria-hidden="true" class="h-4 w-4 fill-current" viewBox="0 0 20 20">
         <path
@@ -12,3 +13,8 @@
     </button>
   </li>
 </template>
+<script setup lang="ts">
+const emits = defineEmits(['click'])
+
+const onClick = () => emits('click')
+</script>

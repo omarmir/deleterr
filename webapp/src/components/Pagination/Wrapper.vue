@@ -7,7 +7,7 @@
     <span class="col-span-4 mt-2 flex sm:mt-auto sm:justify-end">
       <nav aria-label="Table navigation">
         <ul v-if="pageCount > 10" class="inline-flex items-center">
-          <PaginationPrevious />
+          <PaginationPrevious @click="$emit('decrement')" />
           <li v-for="item in 3" :key="item">
             <PaginationItem :item="item" :selected-page="selectedPage + 1" @set-page="setPage(item - 1)">
               {{ item }}
@@ -28,7 +28,7 @@
               {{ pageCount - (3 - item) }}
             </PaginationItem>
           </li>
-          <PaginationNext />
+          <PaginationNext @click="$emit('increment')" />
         </ul>
         <ul v-else class="inline-flex items-center">
           <li v-for="item in pageCount" :key="item">
@@ -59,6 +59,8 @@ const props = defineProps({
 
 const emit = defineEmits<{
   (e: 'changePage', page: number): void
+  (e: 'increment'): void
+  (e: 'decrement'): void
 }>()
 
 const isHidden = (item: number): boolean => {

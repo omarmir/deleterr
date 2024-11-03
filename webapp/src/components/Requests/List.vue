@@ -56,6 +56,8 @@
         </li>
       </ul>
       <PaginationWrapper
+        @increment="increment()"
+        @decrement="decrement()"
         :take="query.take"
         :filtered-requests="requests.data?.filteredRequests"
         :selected-page="currentPage"
@@ -87,7 +89,7 @@ import { inject, ref, Ref } from 'vue'
 
 const search = inject<Ref<string>>('search') ?? ref(null)
 
-const { url, query, currentPage, changePage } = useListQuery({ search, take: 5 })
+const { url, query, currentPage, changePage, increment, decrement } = useListQuery({ search, take: 5 })
 
 const {
   error,

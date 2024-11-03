@@ -38,10 +38,17 @@ export function useListQuery(params: { search: Ref<string | null>, take: number 
 
     const changePage = (page: number) => (query.value.skip = page * query.value.take)
 
+    const increment = () => changePage(currentPage.value + 1)
+
+    const decrement = () => changePage(currentPage.value - 1)
+
+
     return {
         url,
         query,
         currentPage,
-        changePage
+        changePage,
+        increment,
+        decrement
     }
 }
