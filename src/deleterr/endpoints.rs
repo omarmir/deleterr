@@ -251,6 +251,7 @@ pub fn config(cfg: &mut web::ServiceConfig) {
             .service(get_movie_poster)
             .service(save_settings_submit_json)
             .service(get_all_settings_json)
+            .service(get_register_requests)
             .service(update_password)
             .service(get_overseerr_radar_info)
             .service(delete_watched_seasons),
@@ -258,6 +259,5 @@ pub fn config(cfg: &mut web::ServiceConfig) {
     .service(set_login)
     .service(set_logout)
     .service(get_setup_status)
-    .service(initialize_user)
-    .service(get_register_requests);
+    .service(initialize_user);
 }
