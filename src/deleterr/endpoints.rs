@@ -33,28 +33,13 @@ async fn get_stream_requests(
 ) -> impl Responder {
     let broadcaster = app_data.broadcaster.clone();
 
-    let matched_results = deleterr::requests::get_requests_and_update_cache(app_data, query);
+    let matched_results = deleterr::requests::get_requests_and_update_cache(app_data, query).await;
 
-    tokio::pin!(matched_results); // Pin the future so we can poll it
+    let resp = process_request_stream(matched_results);
 
-    let mut interval = tokio::time::interval(Duration::from_secs(5));
+    let msg = serde_json::json!(resp).to_string();
 
-    loop {
-        tokio::select! {
-            result = &mut matched_results => {
-                println!("done");
-                let resp = process_request_stream(result);
-                let msg = serde_json::json!(resp).to_string();
-                broadcaster.broadcast(msg.as_str()).await;
-                break;
-            }
-            _ = interval.tick() => {
-                println!("tick");
-                let message = serde_json::json!({ "status": "waiting" }).to_string();
-                broadcaster.broadcast(message.as_str()).await;
-            }
-        }
-    }
+    broadcaster.broadcast(msg.as_str()).await;
 
     broadcaster.close_client(client_id);
 

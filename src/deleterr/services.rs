@@ -4,6 +4,7 @@ use super::models::{
 };
 use super::requests::{delete_cached_record, get_cached_record};
 use super::watched::{SeasonWithStatus, WatchedChecker, WatchedStatus};
+use crate::common::broadcast::Broadcaster;
 use crate::common::models::deleterr_error::DeleterrError;
 use crate::overseerr::models::{MediaRequest, MediaType};
 use crate::radarr::models::Movie;
@@ -13,6 +14,7 @@ use crate::tautulli::user_watch_history::{
 };
 use actix_web::web::Data;
 use std::collections::HashMap;
+use std::sync::Arc;
 
 pub async fn get_request_status_for_series(
     media_request: &MediaRequest,
@@ -88,8 +90,19 @@ pub async fn get_request_status_for_movie(
     Ok(request_status)
 }
 
-pub async fn match_requests_to_watched() -> Result<RequestStatusWithRecordInfo, DeleterrError> {
+pub async fn match_requests_to_watched(
+    broadcaster: Arc<Broadcaster>,
+) -> Result<RequestStatusWithRecordInfo, DeleterrError> {
     let (os_requests, page_info) = crate::overseerr::services::get_os_requests().await?;
+
+    broadcaster
+        .broadcast(
+            serde_json::json!({"total": os_requests.len()})
+                .to_string()
+                .as_str(),
+        )
+        .await;
+
     let mut matched_requests = HashMap::with_capacity(page_info.results);
 
     for i in 0..os_requests.len() {
@@ -122,6 +135,10 @@ pub async fn match_requests_to_watched() -> Result<RequestStatusWithRecordInfo, 
         };
 
         matched_requests.insert(request_status.media_request.id, request_status);
+
+        broadcaster
+            .broadcast(serde_json::json!({"progress": i}).to_string().as_str())
+            .await;
     }
 
     let request_status_with_record_info = RequestStatusWithRecordInfo {

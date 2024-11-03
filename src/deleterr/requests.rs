@@ -49,7 +49,9 @@ async fn get_data_update_cache(
         .write() // ! This could leave the app timed out waiting for a write lock - I can't think when/why this would happen
         .expect("Unable to access cache");
 
-    let request_status_with_record_info = match_requests_to_watched().await?;
+    let broadcaster = app_data.broadcaster.clone();
+
+    let request_status_with_record_info = match_requests_to_watched(broadcaster).await?;
 
     *update_cache = Some(request_status_with_record_info.clone());
     Ok(request_status_with_record_info)

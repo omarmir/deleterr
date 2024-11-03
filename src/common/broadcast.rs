@@ -72,7 +72,9 @@ impl Broadcaster {
     ) -> Sse<InfallibleStream<ReceiverStream<sse::Event>>> {
         let (tx, rx) = mpsc::channel(10);
 
-        tx.send(sse::Data::new("connected").into()).await.unwrap();
+        tx.send(sse::Event::Comment("connected".into()))
+            .await
+            .unwrap();
 
         self.inner.lock().clients.push((uuid, tx));
 
