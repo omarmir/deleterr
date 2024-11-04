@@ -3,9 +3,6 @@ use crate::common::broadcast::SSEType;
 use crate::common::models::services::{ServiceInfo, Services};
 use crate::common::services::process_request;
 use crate::deleterr::models::QueryParms;
-use crate::deleterr::services::{
-    broadcast_stream_requests, delete_watched_seasons_and_possibly_request,
-};
 use crate::store::models::settings::Settings;
 use crate::{auth, deleterr, overseerr, radarr, sonarr, sonrad, store, tautulli, AppData};
 use actix_session::Session;
@@ -51,7 +48,7 @@ async fn get_register_requests(
     let id = Uuid::new_v4();
     let add_client = broadcaster.new_client(id, SSEType::Requests).await;
 
-    let _handle = actix_rt::spawn(broadcast_stream_requests(
+    let _handle = actix_rt::spawn(deleterr::services::common::broadcast_stream_requests(
         app_data,
         id,
         refresh.into_inner(),
@@ -120,7 +117,8 @@ async fn remove_media_exemption(web::Json(request_id): web::Json<usize>) -> impl
 #[delete("/movie/delete/{media_id}")]
 async fn delete_movie_file(app_data: Data<AppData>, path: web::Path<usize>) -> impl Responder {
     let delete_movie =
-        deleterr::services::delete_movie_from_radarr_overseerr(&app_data, path.into_inner()).await;
+        deleterr::services::movie::delete_movie_from_radarr_overseerr(&app_data, path.into_inner())
+            .await;
     return process_request(delete_movie);
 }
 
@@ -161,25 +159,20 @@ async fn get_movie_poster(path: web::Path<usize>) -> actix_web::HttpResponse {
 ///
 /// <div class="warning">Please use caution this can delete multiple files and may take a while!</div>
 ///
-#[delete("/series/{series_id}/delete/seasons/watched")]
+#[delete("/series/{request_id}/delete/seasons/watched")]
 async fn delete_watched_seasons(app_data: Data<AppData>, path: web::Path<usize>) -> impl Responder {
     let req_id = path.into_inner();
-    // Calculate the watched seasons and if the whole request is watched
-    let episodes_for_deletion =
-        deleterr::services::get_watched_seasons_episodes(&app_data, &req_id).await;
+    let broadcaster = app_data.broadcaster.clone();
+    let id = Uuid::new_v4();
+    let add_client = broadcaster.new_client(id, SSEType::SeriesDeletion).await;
 
-    // Check if successful
-    let processed_request = match episodes_for_deletion {
-        Ok(episodes) => {
-            // Delete the watched seasons and POSSIBLY the request if all watched in request.
-            let deleted_episodes =
-                delete_watched_seasons_and_possibly_request(&app_data, &req_id, episodes).await;
-            process_request(deleted_episodes)
-        }
-        Err(err) => process_request(Err(err)),
-    };
+    let _handle = actix_rt::spawn(
+        deleterr::services::series::delete_watched_seasons_and_possibly_request(
+            app_data, req_id, id,
+        ),
+    );
 
-    return processed_request;
+    return add_client;
 }
 
 // Settings

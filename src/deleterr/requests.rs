@@ -1,4 +1,3 @@
-use crate::common::models::api::{APIStatus, ResponseCodeBasedAction};
 use crate::common::models::deleterr_error::DeleterrError;
 use crate::overseerr::models::MediaType;
 use actix_web::web::Data;
@@ -9,7 +8,7 @@ use super::{
         AppData, QueryParms, RequestStatus, RequestStatusWithRecordInfo,
         RequestStatusWithRecordInfoVector, SortableProps,
     },
-    services::match_requests_to_watched,
+    services::common::match_requests_to_watched,
     watched::WatchedStatus,
 };
 
@@ -71,42 +70,6 @@ fn get_cached(app_data: &Data<AppData>) -> Option<RequestStatusWithRecordInfo> {
     };
 
     resp
-}
-
-pub fn get_cached_record(app_data: &Data<AppData>, request_id: &usize) -> Option<RequestStatus> {
-    let record = get_cached(app_data);
-
-    let resp = match record {
-        Some(requests) => requests.requests.get(&request_id).cloned(),
-        None => None,
-    };
-
-    resp
-}
-
-pub fn delete_cached_record(
-    app_data: &Data<AppData>,
-    request_id: &usize,
-) -> Result<ResponseCodeBasedAction, DeleterrError> {
-    let mut update_cache = app_data
-        .request_cache
-        .write() // ! This could leave the app timed out waiting for a write lock - I can't think when/why this would happen
-        .map_err(|err| {
-            DeleterrError::new(err.to_string().as_str())
-                .add_prefix("Unable to access cache. Lock is poisoned.")
-        })?;
-
-    if let Some(del_cache) = update_cache.as_mut() {
-        del_cache.requests.remove(&request_id);
-    } else {
-        return Err(DeleterrError::new(
-            "Cache is empty. Maybe resync the cache first?",
-        ));
-    }
-    Ok(ResponseCodeBasedAction {
-        status: APIStatus::Success,
-        success: true,
-    })
 }
 
 pub async fn get_requests_from_cache_or_update_cache(

@@ -26,11 +26,28 @@ pub enum SSEType {
     SeriesDeletion,
 }
 
+pub enum DeletionType {
+    Sonarr,
+    Overseer,
+    Cache,
+}
+
+impl DeletionType {
+    pub fn as_str<'a>(&self) -> &'a str {
+        match self {
+            DeletionType::Sonarr => "sonarr",
+            DeletionType::Overseer => "overseerr",
+            DeletionType::Cache => "cache",
+        }
+    }
+}
+
 pub enum MessageType {
     Progress((usize, usize)),
     Waiting,
-    Completion,
+    Complete,
     Error(String),
+    Delete(DeletionType),
 }
 
 impl Broadcaster {
@@ -129,9 +146,12 @@ impl Broadcaster {
             MessageType::Waiting => client
                 .2
                 .send(sse::Data::new("waiting").event("waiting").into()),
-            MessageType::Completion => client
+            MessageType::Complete => client
                 .2
-                .send(sse::Data::new("complete").event("completion").into()),
+                .send(sse::Data::new("complete").event("complete").into()),
+            MessageType::Delete(del) => client
+                .2
+                .send(sse::Data::new(del.as_str()).event("delete").into()),
         });
 
         // try to send to all clients, ignoring failures

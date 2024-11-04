@@ -5,7 +5,7 @@ use crate::{
 };
 use serde::{Deserialize, Serialize};
 
-#[derive(Deserialize, Serialize, Debug, Clone)]
+#[derive(Deserialize, Serialize, Debug, Clone, Copy)]
 #[serde(rename_all = "camelCase")]
 pub struct SeasonWithStatus {
     pub season_number: Option<usize>,
@@ -44,7 +44,7 @@ impl SeasonWithStatus {
     }
 }
 
-#[derive(Deserialize, Serialize, Debug, Clone, PartialEq)]
+#[derive(Deserialize, Serialize, Debug, Clone, PartialEq, Copy)]
 pub enum WatchedStatus {
     Unwatched,
     InProgress,

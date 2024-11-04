@@ -1,6 +1,6 @@
 use super::watched::{SeasonWithStatus, WatchedStatus};
 use crate::common::broadcast::Broadcaster;
-use crate::common::models::api::ResponseCodeBasedAction;
+use crate::common::models::api::{APIStatus, ResponseCodeBasedAction};
 use crate::common::models::deleterr_error::DeleterrError;
 use crate::overseerr::models::MediaRequest;
 use crate::radarr::models::Movie;
@@ -126,6 +126,15 @@ pub struct SeriesDeletionEpisodes {
     pub request_fully_watched: bool,
 }
 
+impl SeriesDeletionEpisodes {
+    pub fn default() -> Self {
+        SeriesDeletionEpisodes {
+            episodes: Vec::with_capacity(0),
+            request_fully_watched: false,
+        }
+    }
+}
+
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct QueryParms {
@@ -182,6 +191,40 @@ impl AppData {
             broadcaster: Broadcaster::create(),
             cache_status: RwLock::new(CacheStatus::Uninitialized),
         };
+    }
+
+    pub fn get_request(&self, req_id: &usize) -> Option<RequestStatus> {
+        let cache_lock = self
+            .request_cache
+            .read()
+            .expect("Unable to access cache")
+            .clone();
+        match cache_lock {
+            Some(reqs) => reqs.requests.get(&req_id).cloned(),
+            None => None,
+        }
+    }
+
+    pub fn delete_request(&self, req_id: &usize) -> Result<ResponseCodeBasedAction, DeleterrError> {
+        let mut update_cache = self
+            .request_cache
+            .write() // ! This could leave the app timed out waiting for a write lock - I can't think when/why this would happen
+            .map_err(|err| {
+                DeleterrError::new(err.to_string().as_str())
+                    .add_prefix("Unable to access cache. Lock is poisoned.")
+            })?;
+
+        if let Some(del_cache) = update_cache.as_mut() {
+            del_cache.requests.remove(req_id);
+        } else {
+            return Err(DeleterrError::new(
+                "Cache is empty. Maybe resync the cache first?",
+            ));
+        }
+        Ok(ResponseCodeBasedAction {
+            status: APIStatus::Success,
+            success: true,
+        })
     }
 
     pub fn set_cache_is_building(&self) {
