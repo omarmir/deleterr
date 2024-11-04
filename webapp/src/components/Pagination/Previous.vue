@@ -1,6 +1,7 @@
 <template>
   <li>
     <button
+      :disabled
       class="rounded-md rounded-l-lg px-3 py-1 focus:shadow-outline-purple focus:outline-none"
       @click="onClick"
       aria-label="Previous">
@@ -14,6 +15,7 @@
   </li>
 </template>
 <script setup lang="ts">
+const { disabled = false } = defineProps<{ disabled?: boolean }>()
 const emits = defineEmits(['click'])
 
 const onClick = () => emits('click')
