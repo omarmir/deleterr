@@ -42,13 +42,20 @@ async fn get_all_requests_json(
 /// # Returns
 /// Added client so the browser knows its an SSE
 ///
-#[get("/requests/sse")]
-async fn get_register_requests(app_data: Data<AppData>) -> impl Responder {
+#[get("/requests/sse/{refresh}")]
+async fn get_register_requests(
+    app_data: Data<AppData>,
+    refresh: web::Path<String>,
+) -> impl Responder {
     let broadcaster = app_data.broadcaster.clone();
     let id = Uuid::new_v4();
     let add_client = broadcaster.new_client(id, SSEType::Requests).await;
 
-    let _handle = actix_rt::spawn(broadcast_stream_requests(app_data, id));
+    let _handle = actix_rt::spawn(broadcast_stream_requests(
+        app_data,
+        id,
+        refresh.into_inner(),
+    ));
 
     return add_client;
 }

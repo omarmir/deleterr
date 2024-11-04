@@ -294,10 +294,32 @@ pub async fn delete_watched_seasons_and_possibly_request(
 /// # Parameters
 /// * `app_data`: The app state of type [AppData]
 /// * `client_id`: Unique identifier for the client.
-pub async fn broadcast_stream_requests(app_data: Data<AppData>, client_id: Uuid) {
+pub async fn broadcast_stream_requests(
+    app_data: Data<AppData>,
+    client_id: Uuid,
+    is_refresh: String,
+) {
     let broadcaster = app_data.broadcaster.clone();
+    let refresh_req = is_refresh == "refresh";
+    let mut cache_status = app_data.cache_status();
 
-    let cache_status = &app_data.cache_status();
+    // If cache is build then you may request reset
+    // If cache is uninit then just start building it
+    // If cache is building then ignore refresh request
+    match (refresh_req, cache_status) {
+        (true, CacheStatus::Built) => {
+            if let Err(err) = app_data.clear_cache() {
+                broadcaster
+                    .broadcast(MessageType::Error(err.to_string()))
+                    .await;
+                broadcaster.close_client(client_id);
+                return;
+            } else {
+                cache_status = CacheStatus::Uninitialized;
+            }
+        }
+        _ => (),
+    }
 
     match cache_status {
         CacheStatus::Built => {
@@ -323,6 +345,6 @@ pub async fn broadcast_stream_requests(app_data: Data<AppData>, client_id: Uuid)
 
             broadcaster.close_clients_of_type(SSEType::Requests);
         }
-        CacheStatus::Building => (),
+        CacheStatus::Building => {}
     }
 }

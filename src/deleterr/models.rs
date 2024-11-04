@@ -1,6 +1,7 @@
 use super::watched::{SeasonWithStatus, WatchedStatus};
 use crate::common::broadcast::Broadcaster;
 use crate::common::models::api::ResponseCodeBasedAction;
+use crate::common::models::deleterr_error::DeleterrError;
 use crate::overseerr::models::MediaRequest;
 use crate::radarr::models::Movie;
 use crate::sonarr::series::Series;
@@ -170,13 +171,22 @@ pub struct AppData {
     pub last_update: RwLock<Option<SystemTime>>,
     pub request_cache: RwLock<Option<RequestStatusWithRecordInfo>>,
     pub broadcaster: Arc<Broadcaster>,
-    pub is_cache_building_or_built: RwLock<CacheStatus>,
+    pub cache_status: RwLock<CacheStatus>,
 }
 
 impl AppData {
+    pub fn default() -> Self {
+        return AppData {
+            last_update: RwLock::new(None),
+            request_cache: RwLock::new(None),
+            broadcaster: Broadcaster::create(),
+            cache_status: RwLock::new(CacheStatus::Uninitialized),
+        };
+    }
+
     pub fn set_cache_is_building(&self) {
         let mut update_cache = self
-            .is_cache_building_or_built
+            .cache_status
             .write() // ! This could leave the app timed out waiting for a write lock - I can't think when/why this would happen
             .expect("Unable to access cache");
 
@@ -185,7 +195,7 @@ impl AppData {
 
     pub fn set_cache_is_built(&self) {
         let mut update_cache = self
-            .is_cache_building_or_built
+            .cache_status
             .write() // ! This could leave the app timed out waiting for a write lock - I can't think when/why this would happen
             .expect("Unable to access cache");
 
@@ -193,10 +203,22 @@ impl AppData {
     }
 
     pub fn cache_status(&self) -> CacheStatus {
-        let cache = self
-            .is_cache_building_or_built
-            .read()
-            .expect("Unable to access cache");
+        let cache = self.cache_status.read().expect("Unable to access cache");
         return *cache;
+    }
+
+    pub fn clear_cache(&self) -> Result<(), DeleterrError> {
+        let cache_status = self.cache_status.write();
+        let cache = self.request_cache.write();
+
+        let cache_clear = match (cache_status, cache) {
+            (Ok(mut status), Ok(mut reqs)) => {
+                *reqs = None;
+                *status = CacheStatus::Uninitialized;
+                Ok(())
+            }
+            _ => Err(DeleterrError::new("Unable to access cache")),
+        };
+        cache_clear
     }
 }
