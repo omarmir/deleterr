@@ -148,7 +148,7 @@ async fn get_movie_poster(path: web::Path<usize>) -> actix_web::HttpResponse {
         .body(img)
 }
 
-/// Deletes watched seasons of a series based on the provided series ID.
+/// Deletes watched seasons of a series based on the provided series ID. Have to use GET as its standard for SSE
 ///
 /// # Arguments:
 ///
@@ -159,7 +159,7 @@ async fn get_movie_poster(path: web::Path<usize>) -> actix_web::HttpResponse {
 ///
 /// <div class="warning">Please use caution this can delete multiple files and may take a while!</div>
 ///
-#[delete("/series/{request_id}/delete/seasons/watched")]
+#[get("/series/{request_id}/delete/seasons/watched")]
 async fn delete_watched_seasons(app_data: Data<AppData>, path: web::Path<usize>) -> impl Responder {
     let req_id = path.into_inner();
     let broadcaster = app_data.broadcaster.clone();

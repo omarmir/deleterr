@@ -194,14 +194,19 @@ pub async fn delete_watched_seasons_and_possibly_request(
     request_id: usize,
     client_id: Uuid,
 ) {
+    // ! We need to check if the index is being built right now
+    // ! We also need to check:
+    // * If the request is fully available
+    // * if the request is fully watched
+    // Only then can you delete the request.
     let broadcaster = app_data.broadcaster.clone();
 
     let episodes_for_deletion = get_watched_seasons_episodes(&app_data, &request_id)
         .await
         .unwrap_or(SeriesDeletionEpisodes::default());
 
-    let episode_delete =
-        delete_episodes_from_sonarr(&app_data, episodes_for_deletion.episodes).await;
+    let episode_delete = delay_ten_seconds_for_test().await;
+    //delete_episodes_from_sonarr(&app_data, episodes_for_deletion.episodes).await;
 
     // If not able to to delete from Sonarr then bail early.
     if let Err(_) = episode_delete {
@@ -210,14 +215,14 @@ pub async fn delete_watched_seasons_and_possibly_request(
 
     match (episode_delete, episodes_for_deletion.request_fully_watched) {
         (Ok(_), true) => {
-            let os_del =
-                crate::overseerr::services::delete_request(request_id.to_string().as_str()).await;
+            let os_del = delay_ten_seconds_for_test().await;
+            //crate::overseerr::services::delete_request(request_id.to_string().as_str()).await;
             match os_del {
                 Ok(_) => {
                     broadcaster
                         .broadcast(MessageType::Delete(DeletionType::Overseer))
                         .await;
-                    let cache_del = app_data.delete_request(&request_id);
+                    let cache_del = delay_ten_seconds_for_test().await; //app_data.delete_request(&request_id);
 
                     match cache_del {
                         Ok(_) => {
@@ -248,4 +253,12 @@ pub async fn delete_watched_seasons_and_possibly_request(
     }
 
     broadcaster.close_client(client_id);
+}
+
+async fn delay_ten_seconds_for_test() -> Result<(), DeleterrError> {
+    println!("Starting delay...");
+    tokio::time::sleep(Duration::from_secs(12)).await;
+    println!("10 seconds have passed.");
+
+    Ok(())
 }

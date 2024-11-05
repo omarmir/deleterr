@@ -1,5 +1,5 @@
 use super::models::SeriesEpisodes;
-use super::series::Series;
+use super::series::{Episode, Series};
 use crate::common::models::api::{APIStatus, RequestType, ResponseCodeBasedAction};
 use crate::common::models::deleterr_error::DeleterrError;
 use crate::common::models::services::{ServiceInfo, Services};
@@ -55,6 +55,51 @@ pub async fn get_series(tvdb_id: &Option<usize>) -> Result<Option<Series>, Delet
                 Ok(series) => {
                     if series.len() > 0 {
                         Ok(series.get(0).cloned())
+                    } else {
+                        Ok(None)
+                    }
+                }
+                Err(error) => {
+                    Err(DeleterrError::from(error)
+                        .add_prefix("Unable to process Sonarr response, "))
+                }
+            }
+        }
+        None => Ok(None),
+    }
+}
+
+/// We need to implement this so that we can see if the season finale (or series finale)
+/// is included in the list of episodes, its the only way to tell if the season is complete
+/// ! We are going to use 3 markers to determine if a season is marked as watched
+/// * if the percentOfEpisodes is at 100% - this is the episodes on disk/episodes monitored
+/// * if the series/season finale is the list of episodes - this tells us that sonarr has a full list of eps
+/// * if all files are watched in Tautulli
+/// ! So this would mean, we have the full list of episodes in sonarr, we have them on disk, and if all is watched
+pub async fn get_episodes(tvdb_id: &Option<usize>) -> Result<Option<Vec<Episode>>, DeleterrError> {
+    match tvdb_id {
+        Some(tv_id) => {
+            // episode?seriesId=390
+            let endpoint = "api/v3/episode".to_string();
+            let service_info = build_service_info()?;
+            let id = tv_id.to_string();
+
+            let api_url = create_api_url(&endpoint, &service_info);
+            let query = vec![("seriesId", id.as_str())];
+
+            let client_req =
+                get_api_endpoint(api_url, query, Some(service_info.api_key), RequestType::Get)?;
+
+            let request_response = make_api_call(client_req)
+                .await
+                .map_err(|err| err.add_prefix("Unable to get Sonarr show, "))?;
+
+            let resp = request_response.json::<Vec<Episode>>().await;
+
+            match resp {
+                Ok(series) => {
+                    if series.len() > 0 {
+                        Ok(Some(series))
                     } else {
                         Ok(None)
                     }

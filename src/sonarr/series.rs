@@ -70,3 +70,22 @@ pub struct SeriesStatistics {
     pub release_groups: Vec<String>,
     pub percent_of_episodes: f64,
 }
+
+#[derive(Debug, Deserialize, Clone)]
+pub enum FinaleType {
+    Season,
+    Series,
+}
+
+#[derive(Debug, Deserialize, Clone)]
+pub struct Episode {
+    series_id: u32,
+    tvdb_id: u64,
+    episode_file_id: u32,
+    season_number: u32,
+    episode_number: u32,
+    finale_type: Option<FinaleType>,
+    has_file: bool,
+    monitored: bool,
+    id: u32,
+}
