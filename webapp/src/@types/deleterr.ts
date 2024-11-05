@@ -143,7 +143,7 @@ export interface Settings {
 
 export type Services = 'tautulli' | 'overseerr' | 'radarr' | 'sonarr'
 
-export const EventsSSE: ['waiting', 'progress', 'error', 'completion'] = ['waiting', 'progress', 'error', 'completion']
+export const EventsSSE: ['waiting', 'progress', 'error', 'complete', 'delete'] = ['waiting', 'progress', 'error', 'complete', 'delete']
 
 export type Progress = {
   progress: number,

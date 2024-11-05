@@ -12,7 +12,7 @@
       <template #message>Loading</template>
       <template #subtitle>
         <div>Connecting to services and creating index.</div>
-        <div v-if="currProg">{{ currProg.progress }} / {{ currProg.total }}</div>
+        <div class="mt-4" v-if="currProg">{{ currProg.progress }} / {{ currProg.total }}</div>
       </template>
       <template #progress>
         <div class="h-2.5 w-full rounded-full bg-gray-200 dark:bg-gray-700">
@@ -53,7 +53,7 @@ watch(data, () => {
   if (event.value === 'progress') {
     status.value = 'loading'
     currProg.value = JSON.parse(data.value ?? '') as Progress
-  } else if (event.value === 'completion') {
+  } else if (event.value === 'complete') {
     status.value = 'complete'
     close()
   } else if (event.value === 'error') {
