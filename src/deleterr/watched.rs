@@ -49,6 +49,7 @@ pub enum WatchedStatus {
     Unwatched,
     InProgress,
     Watched,
+    StillAiringInProgress,
 }
 
 pub trait WatchedChecker {
@@ -131,6 +132,7 @@ impl From<WatchedStatus> for f32 {
             WatchedStatus::InProgress => 0.5,
             WatchedStatus::Unwatched => 0.0,
             WatchedStatus::Watched => 1.0,
+            WatchedStatus::StillAiringInProgress => 0.3,
         }
     }
 }
