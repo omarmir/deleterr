@@ -33,19 +33,11 @@ fn compare_user_watch_history(
         (WatchedStatus::Watched, _) => Ordering::Greater,
 
         (WatchedStatus::InProgress, WatchedStatus::Unwatched) => Ordering::Greater,
-        (WatchedStatus::InProgress, WatchedStatus::StillAiringInProgress) => Ordering::Greater,
         (WatchedStatus::InProgress, WatchedStatus::InProgress) => Ordering::Equal,
         (WatchedStatus::InProgress, WatchedStatus::Watched) => Ordering::Less,
 
         (WatchedStatus::Unwatched, WatchedStatus::Unwatched) => Ordering::Equal,
         (WatchedStatus::Unwatched, _) => Ordering::Less,
-
-        (WatchedStatus::StillAiringInProgress, WatchedStatus::Unwatched) => Ordering::Greater,
-        (WatchedStatus::StillAiringInProgress, WatchedStatus::InProgress) => Ordering::Less,
-        (WatchedStatus::StillAiringInProgress, WatchedStatus::Watched) => Ordering::Less,
-        (WatchedStatus::StillAiringInProgress, WatchedStatus::StillAiringInProgress) => {
-            Ordering::Equal
-        }
     }
 }
 async fn get_data_update_cache(

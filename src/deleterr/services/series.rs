@@ -13,7 +13,7 @@ use crate::{
         watched::{SeasonWithStatus, WatchedChecker, WatchedStatus},
     },
     overseerr::models::MediaRequest,
-    sonarr::series::Series,
+    sonarr::series::{Episode, Series},
     tautulli::user_watch_history::{ConvertToHashMapBySeason, UserWatchHistory},
 };
 
@@ -21,6 +21,7 @@ pub fn get_request_status_for_series(
     media_request: &MediaRequest,
     sonarr_series: Option<Series>,
     tau_hist: Option<Vec<UserWatchHistory>>,
+    episodes: Option<Vec<Episode>>,
 ) -> Result<RequestStatus, DeleterrError> {
     let (season_status, watched) = {
         let tau_history = tau_hist.hashmap_seasons();
@@ -31,7 +32,7 @@ pub fn get_request_status_for_series(
             let series_season = series_map.get(&season.season_number);
             let watched_statuses = tau_history.get(&season.season_number);
             let season_with_status =
-                SeasonWithStatus::from_series(season, watched_statuses, series_season);
+                SeasonWithStatus::from_series(season, watched_statuses, series_season, &episodes);
             seasons_with_status.push(season_with_status)
         }
 

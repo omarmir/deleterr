@@ -1,6 +1,6 @@
 use crate::{
     overseerr::models::{MediaRequest, RequestSeason},
-    sonarr::series::Season,
+    sonarr::series::{Episode, FinaleType, Season},
     tautulli::user_watch_history::UserWatchHistory,
 };
 use serde::{Deserialize, Serialize};
@@ -13,6 +13,8 @@ pub struct SeasonWithStatus {
     pub watched: WatchedStatus,
     pub episode_count: usize,
     pub episode_file_count: usize,
+    pub finished_airing: bool,
+    pub percent_of_monitored_on_disk: f64,
 }
 
 impl SeasonWithStatus {
@@ -20,8 +22,31 @@ impl SeasonWithStatus {
         season: &RequestSeason,
         watched_statuses: Option<&Vec<UserWatchHistory>>,
         series_season: Option<&Season>,
+        episodes: &Option<Vec<Episode>>,
     ) -> Self {
         let watched = watched_statuses.is_watched(series_season.unwrap().statistics.episode_count);
+
+        // We check to see if the list of episodes provided in this season (filter for season)
+        // contains an episode that has a finale (either series or season)
+        let finale_in_list = match episodes {
+            Some(eps) => {
+                eps.iter()
+                    .filter(|ep| {
+                        ep.season_number == season.season_number
+                            && (ep.finale_type == Some(FinaleType::Season)
+                                || ep.finale_type == Some(FinaleType::Series))
+                    })
+                    .collect::<Vec<&Episode>>()
+                    .len()
+                    > 0
+            }
+            None => false,
+        };
+
+        let percent_of_eps = match series_season {
+            Some(series) => series.statistics.percent_of_episodes,
+            None => 0.0,
+        };
 
         SeasonWithStatus {
             season_number: Some(season.season_number),
@@ -30,6 +55,8 @@ impl SeasonWithStatus {
             episode_count: series_season.map_or(0, |season| season.statistics.episode_count),
             episode_file_count: series_season
                 .map_or(0, |season| season.statistics.episode_file_count),
+            finished_airing: finale_in_list,
+            percent_of_monitored_on_disk: percent_of_eps,
         }
     }
 
@@ -40,6 +67,8 @@ impl SeasonWithStatus {
             watched: watched.clone(),
             episode_count: 1,
             episode_file_count: 1,
+            finished_airing: true,
+            percent_of_monitored_on_disk: 100.0,
         }
     }
 }
@@ -49,7 +78,6 @@ pub enum WatchedStatus {
     Unwatched,
     InProgress,
     Watched,
-    StillAiringInProgress,
 }
 
 pub trait WatchedChecker {
@@ -132,7 +160,6 @@ impl From<WatchedStatus> for f32 {
             WatchedStatus::InProgress => 0.5,
             WatchedStatus::Unwatched => 0.0,
             WatchedStatus::Watched => 1.0,
-            WatchedStatus::StillAiringInProgress => 0.3,
         }
     }
 }

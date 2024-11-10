@@ -71,21 +71,24 @@ pub struct SeriesStatistics {
     pub percent_of_episodes: f64,
 }
 
-#[derive(Debug, Deserialize, Clone)]
+#[derive(Debug, Deserialize, Clone, PartialEq)]
+#[serde(rename_all = "camelCase")]
 pub enum FinaleType {
     Season,
     Series,
+    Midseason,
 }
 
 #[derive(Debug, Deserialize, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct Episode {
-    series_id: u32,
-    tvdb_id: u64,
-    episode_file_id: u32,
-    season_number: u32,
-    episode_number: u32,
-    finale_type: Option<FinaleType>,
-    has_file: bool,
-    monitored: bool,
-    id: u32,
+    //series_id: u32,
+    //tvdb_id: u64,
+    //episode_file_id: u32,
+    pub season_number: usize,
+    //episode_number: u32,
+    pub finale_type: Option<FinaleType>,
+    //has_file: bool,
+    //monitored: bool,
+    //id: u32,
 }

@@ -41,9 +41,27 @@ pub async fn match_requests_to_watched(
 
         let request_status = match media_type {
             MediaType::TV => {
+                // Get series from Sonarr
                 let sonarr_series = crate::sonarr::services::get_series(tvdb_id).await?;
+                // Get from Sonar series
+                let series_id = match &sonarr_series {
+                    Some(series) => Some(series.id),
+                    None => None,
+                };
+                // Use the ID to get episodes from sonarr
+                let episodes = crate::sonarr::services::get_episodes(&series_id).await;
+
+                let eps = match episodes {
+                    Ok(episodes) => episodes,
+                    Err(err) => {
+                        print!("{}", err);
+                        None
+                    }
+                };
+
                 let request_status =
-                    get_request_status_for_series(media_request, sonarr_series, tau_hist)?;
+                    get_request_status_for_series(media_request, sonarr_series, tau_hist, eps)?;
+
                 request_status
             }
             MediaType::Movie => {

@@ -76,13 +76,15 @@ pub async fn get_series(tvdb_id: &Option<usize>) -> Result<Option<Series>, Delet
 /// * if the series/season finale is the list of episodes - this tells us that sonarr has a full list of eps
 /// * if all files are watched in Tautulli
 /// ! So this would mean, we have the full list of episodes in sonarr, we have them on disk, and if all is watched
-pub async fn get_episodes(tvdb_id: &Option<usize>) -> Result<Option<Vec<Episode>>, DeleterrError> {
-    match tvdb_id {
-        Some(tv_id) => {
+pub async fn get_episodes(
+    series_id: &Option<usize>,
+) -> Result<Option<Vec<Episode>>, DeleterrError> {
+    match series_id {
+        Some(series_id) => {
             // episode?seriesId=390
             let endpoint = "api/v3/episode".to_string();
             let service_info = build_service_info()?;
-            let id = tv_id.to_string();
+            let id = series_id.to_string();
 
             let api_url = create_api_url(&endpoint, &service_info);
             let query = vec![("seriesId", id.as_str())];
@@ -92,7 +94,7 @@ pub async fn get_episodes(tvdb_id: &Option<usize>) -> Result<Option<Vec<Episode>
 
             let request_response = make_api_call(client_req)
                 .await
-                .map_err(|err| err.add_prefix("Unable to get Sonarr show, "))?;
+                .map_err(|err| err.add_prefix("Unable to get Sonarr show episodes, "))?;
 
             let resp = request_response.json::<Vec<Episode>>().await;
 
@@ -104,10 +106,8 @@ pub async fn get_episodes(tvdb_id: &Option<usize>) -> Result<Option<Vec<Episode>
                         Ok(None)
                     }
                 }
-                Err(error) => {
-                    Err(DeleterrError::from(error)
-                        .add_prefix("Unable to process Sonarr response, "))
-                }
+                Err(error) => Err(DeleterrError::from(error)
+                    .add_prefix("Unable to process Sonarr episodes response, ")),
             }
         }
         None => Ok(None),
